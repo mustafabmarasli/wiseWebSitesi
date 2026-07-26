@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use App\Enums\OrderStatus;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
@@ -22,7 +23,7 @@ class AllDataExportWidget extends Widget
     {
         return [
             'stats' => Cache::remember('export_all_stats', 3600, function () {
-                $paidStatuses = ['paid', 'shipped', 'delivered'];
+                $paidStatuses = OrderStatus::paidStatuses();
                 
                 $healthCategories = \App\Models\Category::whereIn('slug', ['lens-aksesuarlari', 'dmv-urunleri'])->pluck('id');
                 $electronicsCategories = \App\Models\Category::whereNotIn('slug', ['lens-aksesuarlari', 'dmv-urunleri'])->pluck('id');
@@ -54,7 +55,7 @@ class AllDataExportWidget extends Widget
 
     public function exportAll(): \Symfony\Component\HttpFoundation\StreamedResponse
     {
-        $paidStatuses = ['paid', 'shipped', 'delivered'];
+        $paidStatuses = OrderStatus::paidStatuses();
 
         $stats = [];
         $stats[] = ['Metrik', 'Değer'];

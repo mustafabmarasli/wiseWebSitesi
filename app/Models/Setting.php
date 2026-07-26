@@ -12,11 +12,15 @@ class Setting extends Model
     protected $fillable = [
         'standard_shipping_cost',
         'free_shipping_threshold',
+        'announcement_enabled',
+        'announcement_title',
+        'announcement_text',
     ];
 
     protected $casts = [
         'standard_shipping_cost'  => 'decimal:2',
         'free_shipping_threshold' => 'decimal:2',
+        'announcement_enabled'    => 'boolean',
     ];
 
     /**
@@ -28,6 +32,14 @@ class Setting extends Model
             'standard_shipping_cost'  => 0,
             'free_shipping_threshold' => null,
         ]);
+    }
+
+    /**
+     * Duyuru gösterilecek mi? Metin boşsa aktif olsa bile gösterilmez.
+     */
+    public function showsAnnouncement(): bool
+    {
+        return $this->announcement_enabled && filled($this->announcement_text);
     }
 
     /**

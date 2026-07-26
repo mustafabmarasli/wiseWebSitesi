@@ -339,7 +339,17 @@ class CartController extends Controller
 
         $provinces = \App\Models\Province::orderBy('name', 'asc')->get();
 
-        return view('checkout', array_merge($totals, compact('provinces')));
+        // Giriş yapmış kullanıcının kayıtlı adresleri; formu tek tıkla doldurmak için.
+        $savedAddresses = auth()->check()
+            ? auth()->user()->addresses()
+                ->with(['province', 'district', 'neighborhood'])
+                ->latest()
+                ->get()
+                ->map(fn ($a) => ['id' => $a->id, 'title' => $a->title] + $a->toCheckoutPayload())
+                ->values()
+            : collect();
+
+        return view('checkout', array_merge($totals, compact('provinces', 'savedAddresses')));
     }
 
     /**

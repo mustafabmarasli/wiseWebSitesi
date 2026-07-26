@@ -2,6 +2,7 @@
 
 namespace App\Filament\Exports;
 
+use App\Enums\OrderStatus;
 use App\Models\User;
 use Filament\Actions\Exports\ExportColumn;
 use Filament\Actions\Exports\Exporter;
@@ -33,7 +34,7 @@ class UserExporter extends Exporter
             ExportColumn::make('total_spent')
                 ->label('Toplam Harcama')
                 ->state(fn (User $record): string => number_format(
-                    (float) $record->orders()->whereIn('status', ['paid', 'shipped', 'delivered'])->sum('total_amount'),
+                    (float) $record->orders()->whereIn('status', OrderStatus::paidStatuses())->sum('total_amount'),
                     2, ',', '.'
                 )),
             ExportColumn::make('addresses_count')

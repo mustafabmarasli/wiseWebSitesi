@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use App\Enums\OrderStatus;
 use App\Models\Order;
 use Carbon\Carbon;
 use Filament\Widgets\ChartWidget;
@@ -23,7 +24,7 @@ class SalesChart extends ChartWidget
             $year = $date->year;
             $month = $date->month;
 
-            $monthlyRevenue = Order::whereIn('status', ['paid', 'shipped', 'delivered'])
+            $monthlyRevenue = Order::whereIn('status', OrderStatus::paidStatuses())
                 ->whereYear('created_at', $year)
                 ->whereMonth('created_at', $month)
                 ->sum('total_amount');

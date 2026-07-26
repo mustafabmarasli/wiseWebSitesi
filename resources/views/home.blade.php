@@ -4,6 +4,17 @@
 
 @section('meta_description', 'En kaliteli ' . $channelTitle . ' ürünleri, geliştirme kartları, lens saklama kutuları ve DMV vantuz aparatları en uygun fiyat ve hızlı teslimatla sitemizde!')
 
+{{-- Duyuru penceresi — yalnızca mağaza sayfalarında (Elektronik / Sağlık),
+     ana portal sayfasında değil. Panelden açılıp kapatılabilir.
+
+     ÖNEMLİ: İçerik bölümüne değil `modals` bölümüne konur. <main> öğesinde
+     `animate-fade-in` animasyonu bir `transform` üretiyor; bu da içindeki
+     position:fixed öğeleri viewport yerine <main>'e göre konumlandırıyor
+     ve pencere sayfanın çok aşağısında kalıyordu. --}}
+@section('modals')
+    @include('partials.announcement')
+@endsection
+
 @section('content')
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 font-sans">
     <div class="flex flex-col lg:flex-row gap-8">
@@ -435,4 +446,76 @@
             updateSlider();
         });
     </script>
+@endsection
+
+@section('modals')
+    <!-- Announcement Modal (Wisely Style) -->
+    <div x-data="{ 
+        open: false,
+        init() {
+            if (!sessionStorage.getItem('announcement_shown')) {
+                setTimeout(() => { this.open = true; }, 400);
+            }
+        },
+        closeModal() {
+            this.open = false;
+            sessionStorage.setItem('announcement_shown', 'true');
+        }
+    }">
+        <!-- Backdrop -->
+        <div x-show="open" 
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             class="fixed inset-0 z-[999999] bg-slate-950/60 backdrop-blur-md flex items-center justify-center p-4"
+             style="display: none;"
+             @click.self="closeModal()"
+        >
+            <!-- Modal Card -->
+            <div x-show="open"
+                 x-transition:enter="transition ease-out duration-300 transform"
+                 x-transition:enter-start="scale-95 translate-y-4 opacity-0"
+                 x-transition:enter-end="scale-100 translate-y-0 opacity-100"
+                 x-transition:leave="transition ease-in duration-200 transform"
+                 x-transition:leave-start="scale-100 translate-y-0 opacity-100"
+                 x-transition:leave-end="scale-95 translate-y-4 opacity-0"
+                 class="relative bg-white rounded-3xl shadow-[0_25px_60px_-15px_rgba(0,0,0,0.3)] border border-slate-100 max-w-md w-full overflow-hidden p-6 sm:p-8 text-center"
+            >
+                <!-- Close button (X) at the top right -->
+                <button @click="closeModal()" class="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-655 hover:bg-slate-50 rounded-full transition-all focus:outline-none" aria-label="Kapat">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+
+                <!-- Announcement Icon Wrapper -->
+                <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-2xl bg-amber-50 text-amber-500 mb-6 shadow-inner relative">
+                    <!-- Ripple effect rings -->
+                    <span class="absolute inline-flex h-full w-full rounded-2xl bg-amber-400 opacity-20 animate-ping"></span>
+                    <!-- Alert icon -->
+                    <svg class="h-8 w-8 relative z-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                </div>
+
+                <!-- Title -->
+                <h3 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight mb-3">
+                    Duyuru
+                </h3>
+
+                <!-- Message -->
+                <p class="text-sm font-semibold text-slate-600 leading-relaxed mb-6">
+                    Sitemiz güncellemeler ve ödeme yöntemi güncellemesi nedeniyle çok yakında ürün satışına başlayacaktır.
+                </p>
+
+                <!-- Action button -->
+                <button @click="closeModal()" class="w-full bg-trendyol hover:bg-trendyolDark text-white font-extrabold text-sm py-3.5 px-6 rounded-xl transition-all active:scale-[0.98] shadow-lg shadow-trendyol/20">
+                    Alışverişe Devam Et
+                </button>
+            </div>
+        </div>
+    </div>
 @endsection

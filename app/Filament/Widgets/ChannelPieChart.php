@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use App\Enums\OrderStatus;
 use App\Models\OrderItem;
 use App\Models\Category;
 use Filament\Widgets\ChartWidget;
@@ -24,23 +25,23 @@ class ChannelPieChart extends ChartWidget
             $electronicsCategories = Category::whereNotIn('slug', ['lens-aksesuarlari', 'dmv-urunleri'])->pluck('id');
 
             $healthRevenue = OrderItem::whereHas('order', function ($q) {
-                    $q->whereIn('status', ['paid', 'shipped', 'delivered']);
+                    $q->whereIn('status', OrderStatus::paidStatuses());
                 })
                 ->whereHas('product', function ($q) use ($healthCategories) {
                     $q->whereIn('category_id', $healthCategories);
                 })
                 ->join('orders', 'order_items.order_id', '=', 'orders.id')
-                ->whereIn('orders.status', ['paid', 'shipped', 'delivered'])
+                ->whereIn('orders.status', OrderStatus::paidStatuses())
                 ->sum('order_items.total_price');
 
             $electronicsRevenue = OrderItem::whereHas('order', function ($q) {
-                    $q->whereIn('status', ['paid', 'shipped', 'delivered']);
+                    $q->whereIn('status', OrderStatus::paidStatuses());
                 })
                 ->whereHas('product', function ($q) use ($electronicsCategories) {
                     $q->whereIn('category_id', $electronicsCategories);
                 })
                 ->join('orders', 'order_items.order_id', '=', 'orders.id')
-                ->whereIn('orders.status', ['paid', 'shipped', 'delivered'])
+                ->whereIn('orders.status', OrderStatus::paidStatuses())
                 ->sum('order_items.total_price');
 
             return [

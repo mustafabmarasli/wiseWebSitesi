@@ -5,7 +5,9 @@ namespace App\Filament\Pages;
 use App\Models\Setting;
 use BackedEnum;
 use Filament\Actions\Action;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Schemas\Components\Section;
@@ -17,9 +19,9 @@ class ShippingSettings extends Page
 {
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedTruck;
 
-    protected static ?string $navigationLabel = 'Kargo Ayarları';
+    protected static ?string $navigationLabel = 'Site Ayarları';
 
-    protected static ?string $title = 'Kargo Ayarları';
+    protected static ?string $title = 'Site Ayarları';
 
     protected static ?int $navigationSort = 90;
 
@@ -35,6 +37,9 @@ class ShippingSettings extends Page
         $this->form->fill(Setting::current()->only([
             'standard_shipping_cost',
             'free_shipping_threshold',
+            'announcement_enabled',
+            'announcement_title',
+            'announcement_text',
         ]));
     }
 
@@ -65,6 +70,29 @@ class ShippingSettings extends Page
                             ->maxValue(1000000)
                             ->nullable(),
                     ]),
+
+                Section::make('Site Duyurusu')
+                    ->description('Elektronik ve Sağlık sayfaları açıldığında ortada beliren bilgilendirme penceresi. Ziyaretçi kapattığında oturum boyunca tekrar gösterilmez.')
+                    ->schema([
+                        Toggle::make('announcement_enabled')
+                            ->label('Duyuruyu göster')
+                            ->helperText('Satışa başlayınca bu düğmeyi kapatmanız yeterli; kod değişikliği gerekmez.')
+                            ->live(),
+
+                        TextInput::make('announcement_title')
+                            ->label('Başlık')
+                            ->maxLength(100)
+                            ->placeholder('Yakında Satıştayız')
+                            ->visible(fn ($get) => $get('announcement_enabled')),
+
+                        Textarea::make('announcement_text')
+                            ->label('Duyuru Metni')
+                            ->rows(3)
+                            ->maxLength(500)
+                            ->placeholder('Sitemiz güncellemeler ve ödeme yöntemi güncellemesi nedeniyle çok yakında ürün satışına başlayacaktır.')
+                            ->required(fn ($get) => (bool) $get('announcement_enabled'))
+                            ->visible(fn ($get) => $get('announcement_enabled')),
+                    ]),
             ]);
     }
 
@@ -77,10 +105,13 @@ class ShippingSettings extends Page
             'free_shipping_threshold' => ($data['free_shipping_threshold'] ?? null) === ''
                 ? null
                 : $data['free_shipping_threshold'],
+            'announcement_enabled'    => (bool) ($data['announcement_enabled'] ?? false),
+            'announcement_title'      => $data['announcement_title'] ?? null,
+            'announcement_text'       => $data['announcement_text'] ?? null,
         ]);
 
         Notification::make()
-            ->title('Kargo ayarları kaydedildi.')
+            ->title('Ayarlar kaydedildi.')
             ->success()
             ->send();
     }

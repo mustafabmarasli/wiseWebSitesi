@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use App\Enums\OrderStatus;
 use App\Models\Order;
 use Carbon\Carbon;
 use Filament\Widgets\ChartWidget;
@@ -28,7 +29,7 @@ class AOVTrendChart extends ChartWidget
                 $year = $date->year;
                 $month = $date->month;
 
-                $monthlyAvg = Order::whereIn('status', ['paid', 'shipped', 'delivered'])
+                $monthlyAvg = Order::whereIn('status', OrderStatus::paidStatuses())
                     ->whereYear('created_at', $year)
                     ->whereMonth('created_at', $month)
                     ->avg('total_amount') ?? 0;

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use App\Enums\OrderStatus;
 use App\Models\Order;
 use App\Support\Csv;
 use Filament\Actions\Action;
@@ -57,7 +58,7 @@ class CouponStatsWidget extends TableWidget
     {
         return Order::query()
             ->whereNotNull('coupon_code')
-            ->whereIn('status', ['paid', 'shipped', 'delivered'])
+            ->whereIn('status', OrderStatus::paidStatuses())
             ->select(
                 DB::raw('MIN(id) as id'),
                 'coupon_code',

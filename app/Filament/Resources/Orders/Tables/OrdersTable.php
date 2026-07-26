@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Orders\Tables;
 
+use App\Enums\OrderStatus;
 use App\Models\Order;
 use App\Support\OrderExporter;
 use Filament\Actions\Action;
@@ -86,28 +87,8 @@ class OrdersTable
                 TextColumn::make('status')
                     ->label('Durum')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'pending' => 'warning',
-                        'paid' => 'success',
-                        'shipped' => 'info',
-                        'delivered' => 'success',
-                        'failed' => 'danger',
-                        'review' => 'danger',
-                        'refunded' => 'gray',
-                        'cancelled' => 'danger',
-                        default => 'gray',
-                    })
-                    ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'pending' => 'Ödeme Bekliyor',
-                        'paid' => 'Ödendi / Hazırlanıyor',
-                        'shipped' => 'Kargoya Verildi',
-                        'delivered' => 'Teslim Edildi',
-                        'failed' => 'Ödeme Başarısız',
-                        'review' => 'İnceleme Gerekiyor',
-                        'refunded' => 'İade Edildi',
-                        'cancelled' => 'İptal Edildi',
-                        default => $state,
-                    }),
+                    ->color(fn (string $state): string => OrderStatus::colorFor($state))
+                    ->formatStateUsing(fn (string $state): string => OrderStatus::labelFor($state)),
                 TextColumn::make('payment_method')
                     ->label('Ödeme Yöntemi')
                     ->searchable()
@@ -145,16 +126,7 @@ class OrdersTable
                 SelectFilter::make('status')
                     ->label('Durum')
                     ->multiple()
-                    ->options([
-                        'pending'   => 'Ödeme Bekliyor',
-                        'paid'      => 'Ödendi / Hazırlanıyor',
-                        'shipped'   => 'Kargoya Verildi',
-                        'delivered' => 'Teslim Edildi',
-                        'failed'    => 'Ödeme Başarısız',
-                        'review'    => 'İnceleme Gerekiyor',
-                        'refunded'  => 'İade Edildi',
-                        'cancelled' => 'İptal Edildi',
-                    ]),
+                    ->options(OrderStatus::options()),
                 TernaryFilter::make('coupon_code')
                     ->label('Kupon kullanımı')
                     ->placeholder('Tümü')

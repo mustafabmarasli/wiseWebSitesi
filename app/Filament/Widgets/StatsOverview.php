@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use App\Enums\OrderStatus;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\ProductView;
@@ -25,15 +26,15 @@ class StatsOverview extends StatsOverviewWidget
     protected function getStats(): array
     {
         return Cache::remember('dashboard_stats_overview', 600, function () {
-        $todayRevenue   = Order::whereIn('status', ['paid', 'shipped', 'delivered'])->whereDate('created_at', today())->sum('total_amount');
-        $todayOrders    = Order::whereIn('status', ['paid', 'shipped', 'delivered'])->whereDate('created_at', today())->count();
+        $todayRevenue   = Order::whereIn('status', OrderStatus::paidStatuses())->whereDate('created_at', today())->sum('total_amount');
+        $todayOrders    = Order::whereIn('status', OrderStatus::paidStatuses())->whereDate('created_at', today())->count();
 
-        $monthRevenue   = Order::whereIn('status', ['paid', 'shipped', 'delivered'])->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->sum('total_amount');
-        $lastMonthRev   = Order::whereIn('status', ['paid', 'shipped', 'delivered'])->whereMonth('created_at', now()->subMonth()->month)->whereYear('created_at', now()->subMonth()->year)->sum('total_amount');
+        $monthRevenue   = Order::whereIn('status', OrderStatus::paidStatuses())->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->sum('total_amount');
+        $lastMonthRev   = Order::whereIn('status', OrderStatus::paidStatuses())->whereMonth('created_at', now()->subMonth()->month)->whereYear('created_at', now()->subMonth()->year)->sum('total_amount');
         $revChange      = $lastMonthRev > 0 ? round((($monthRevenue - $lastMonthRev) / $lastMonthRev) * 100, 1) : 0;
 
-        $totalRevenue   = Order::whereIn('status', ['paid', 'shipped', 'delivered'])->sum('total_amount');
-        $totalOrders    = Order::whereIn('status', ['paid', 'shipped', 'delivered'])->count();
+        $totalRevenue   = Order::whereIn('status', OrderStatus::paidStatuses())->sum('total_amount');
+        $totalOrders    = Order::whereIn('status', OrderStatus::paidStatuses())->count();
         $avgOrder       = $totalOrders > 0 ? $totalRevenue / $totalOrders : 0;
 
         $usersCount     = User::where('is_admin', false)->count();
@@ -53,7 +54,7 @@ class StatsOverview extends StatsOverviewWidget
             : null;
 
         $viewsMonth     = ProductView::whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->count();
-        $ordersMonth    = Order::whereIn('status', ['paid', 'shipped', 'delivered'])->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->count();
+        $ordersMonth    = Order::whereIn('status', OrderStatus::paidStatuses())->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->count();
         $conversion     = $viewsMonth > 0 ? round(($ordersMonth / $viewsMonth) * 100, 2) : 0;
 
         return [

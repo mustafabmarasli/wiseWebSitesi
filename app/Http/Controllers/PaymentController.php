@@ -134,7 +134,25 @@ class PaymentController extends Controller
             }
 
             if ($order->coupon_code) {
-                Coupon::where('code', $order->coupon_code)->increment('used_count');
+                // Satır kilitlenir: iki ödeme callback'i aynı anda gelirse ikincisi
+                // bekler ve güncel sayacı görür. Kilitsiz increment'te ikisi de eski
+                // değeri okuyup limiti aşabiliyordu.
+                $coupon = Coupon::where('code', $order->coupon_code)->lockForUpdate()->first();
+
+                if ($coupon) {
+                    if ($coupon->max_uses !== null && $coupon->used_count >= $coupon->max_uses) {
+                        // Ödeme tahsil edildiği için sipariş iptal edilmez;
+                        // operasyonun görebilmesi için kaydedilir.
+                        Log::warning('Kupon kullanım limiti aşıldı', [
+                            'order_id'   => $order->id,
+                            'coupon'     => $coupon->code,
+                            'max_uses'   => $coupon->max_uses,
+                            'used_count' => $coupon->used_count,
+                        ]);
+                    }
+
+                    $coupon->increment('used_count');
+                }
             }
         });
 

@@ -514,6 +514,39 @@
         }
     </script>
 
+    <!-- Top-Right Cart Notification Component (AlpineJS) -->
+    <div x-data="{ 
+            show: false, 
+            message: 'Sepete eklendi', 
+            timer: null,
+            showToast() {
+                this.show = true;
+                if (this.timer) clearTimeout(this.timer);
+                this.timer = setTimeout(() => { this.show = false; }, 1500);
+            }
+        }"
+        x-on:show-cart-toast.window="showToast()"
+        x-show="show"
+        x-transition:enter="transition ease-out duration-300 transform"
+        x-transition:enter-start="translate-x-8 opacity-0"
+        x-transition:enter-end="translate-x-0 opacity-100"
+        x-transition:leave="transition ease-in duration-200 transform"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="translate-x-8 opacity-0"
+        class="fixed top-5 right-5 z-[99999] bg-white text-slate-800 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-slate-100 px-5 py-4 flex items-center gap-3.5 max-w-sm"
+        style="display: none;"
+    >
+        <div class="bg-emerald-500 text-white rounded-full p-1.5 shrink-0 shadow-md shadow-emerald-100">
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+            </svg>
+        </div>
+        <div class="flex-grow">
+            <p class="text-xs font-black text-slate-900">Sepete Eklendi</p>
+            <p class="text-[10px] font-semibold text-slate-500 mt-0.5">Ürün sepetinize eklendi.</p>
+        </div>
+    </div>
+
     <!-- Toast Notification Component -->
     <div x-data="{ 
             show: false, 
@@ -623,6 +656,8 @@
         </a>
     </div>
 
+    @yield('modals')
+
     @yield('scripts')
 
     <script>
@@ -661,10 +696,8 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        // Trigger toast notification
-                        window.dispatchEvent(new CustomEvent('show-toast', { 
-                            detail: { message: data.message || 'Ürün sepete eklendi!', type: 'success' } 
-                        }));
+                        // Trigger top-right cart notification
+                        window.dispatchEvent(new CustomEvent('show-cart-toast'));
                         // Update cart count badge
                         if (data.cartCount !== undefined) {
                             const desktopBadge = document.getElementById('cart-badge-count');
