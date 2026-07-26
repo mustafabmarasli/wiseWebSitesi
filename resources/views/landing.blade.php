@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     
+    <link rel="icon" type="image/jpeg" href="{{ asset('img/strong-modern-logo-for--wise-solutions---large-bol (1).jpg') }}">
     <title>Hoş Geldiniz - Buy WISEly Portal</title>
     <meta name="description" content="Buy WISEly Elektronik, Genel Sağlık (DMV/Lens) ve Dış Ticaret Danışmanlık portalı.">
     

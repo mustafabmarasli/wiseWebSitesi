@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     
     <!-- SEO Optimization -->
+    <link rel="icon" type="image/jpeg" href="{{ asset('img/strong-modern-logo-for--wise-solutions---large-bol (1).jpg') }}">
     <title>@yield('title', 'Buy WISEly - Geliştirme Kartları ve Sağlık Ürünleri')</title>
     <meta name="description" content="@yield('meta_description', 'Arduino, Raspberry Pi, ESP32 geliştirme kartları, sensörler ve robotik malzemeler en uygun fiyatlarla sitemizde!')">
     <link rel="canonical" href="{{ url()->current() }}">
