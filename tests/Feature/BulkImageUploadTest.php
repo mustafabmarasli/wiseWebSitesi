@@ -62,12 +62,12 @@ it('dosya adiyla eslesen urune ana gorsel atar', function () {
     Storage::disk('public')->assertExists($product->image_path);
 });
 
-it('galeri secilirse ek gorsellere ekler', function () {
+it('galeri modunda ek gorsellere ekler', function () {
     $product = bulkProduct('esp32-devkit');
 
     Livewire::actingAs(User::factory()->create(['is_admin' => true]))
         ->test(BulkImageUpload::class)
-        ->set('asGallery', true)
+        ->set('mode', 'gallery')
         ->set('files', [fakeWebp('esp32-devkit.webp')])
         ->call('save');
 
@@ -77,16 +77,94 @@ it('galeri secilirse ek gorsellere ekler', function () {
     expect($product->additional_images)->toHaveCount(1);
 });
 
-it('numarali dosya adi ayni urune eslesir', function () {
+it('ayni urune 5 gorsel: ilki ana gorsel kalani galeri', function () {
     $product = bulkProduct('esp32-devkit');
 
     Livewire::actingAs(User::factory()->create(['is_admin' => true]))
         ->test(BulkImageUpload::class)
-        ->set('asGallery', true)
-        ->set('files', [fakeWebp('esp32-devkit-2.webp'), fakeWebp('esp32-devkit-3.webp')])
+        ->set('mode', 'auto')
+        ->set('files', [
+            fakeWebp('esp32-devkit.webp'),
+            fakeWebp('esp32-devkit-2.webp'),
+            fakeWebp('esp32-devkit-3.webp'),
+            fakeWebp('esp32-devkit-4.webp'),
+            fakeWebp('esp32-devkit-5.webp'),
+        ])
         ->call('save');
 
-    expect($product->fresh()->additional_images)->toHaveCount(2);
+    $product->refresh();
+
+    expect($product->image_path)->not->toBeNull();
+    expect($product->additional_images)->toHaveCount(4);
+});
+
+it('otomatik modda sira karisik gelse de numarasiz olan ana gorsel olur', function () {
+    $product = bulkProduct('esp32-devkit');
+
+    // Tarayici dosyalari alfabetik siralamayabilir
+    Livewire::actingAs(User::factory()->create(['is_admin' => true]))
+        ->test(BulkImageUpload::class)
+        ->set('mode', 'auto')
+        ->set('files', [
+            fakeWebp('esp32-devkit-3.webp'),
+            fakeWebp('esp32-devkit.webp'),
+            fakeWebp('esp32-devkit-2.webp'),
+        ])
+        ->call('save');
+
+    $product->refresh();
+
+    expect($product->image_path)->not->toBeNull();
+    expect($product->additional_images)->toHaveCount(2);
+    expect($product->additional_images)->not->toContain($product->image_path);
+});
+
+it('tek seferde birden fazla urunun gorselleri islenir', function () {
+    $a = bulkProduct('urun-a', 'Urun A');
+    $b = bulkProduct('urun-b', 'Urun B');
+
+    Livewire::actingAs(User::factory()->create(['is_admin' => true]))
+        ->test(BulkImageUpload::class)
+        ->set('mode', 'auto')
+        ->set('files', [
+            fakeWebp('urun-a.webp'), fakeWebp('urun-a-2.webp'),
+            fakeWebp('urun-b.webp'), fakeWebp('urun-b-2.webp'), fakeWebp('urun-b-3.webp'),
+        ])
+        ->call('save');
+
+    expect($a->fresh()->additional_images)->toHaveCount(1);
+    expect($b->fresh()->additional_images)->toHaveCount(2);
+    expect($a->fresh()->image_path)->not->toBeNull();
+    expect($b->fresh()->image_path)->not->toBeNull();
+});
+
+it('galeriyi temizle secilirse eski gorseller silinir', function () {
+    $product = bulkProduct('esp32-devkit');
+    $product->update(['additional_images' => ['products/eski1.webp', 'products/eski2.webp']]);
+
+    Livewire::actingAs(User::factory()->create(['is_admin' => true]))
+        ->test(BulkImageUpload::class)
+        ->set('mode', 'gallery')
+        ->set('replaceGallery', true)
+        ->set('files', [fakeWebp('esp32-devkit-2.webp')])
+        ->call('save');
+
+    $gallery = $product->fresh()->additional_images;
+
+    expect($gallery)->toHaveCount(1);
+    expect($gallery)->not->toContain('products/eski1.webp');
+});
+
+it('adi rakamla biten urun bozulmaz', function () {
+    // "esp32-c6" gibi slug'lar numara sanilip kirpilmamali
+    $product = bulkProduct('esp32-c6');
+
+    Livewire::actingAs(User::factory()->create(['is_admin' => true]))
+        ->test(BulkImageUpload::class)
+        ->set('files', [fakeWebp('esp32-c6.webp')])
+        ->call('save');
+
+    expect($product->fresh()->image_path)->not->toBeNull();
 });
 
 it('eslesmeyen dosya icin hata bildirir ve digerlerini isler', function () {

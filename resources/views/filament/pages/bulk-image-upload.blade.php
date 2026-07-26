@@ -90,6 +90,24 @@
             cursor: pointer; white-space: nowrap;
         }
         .tg-kopyala:hover { background: rgba(37, 99, 235, .16); }
+
+        /* Yukleme modu secimi */
+        .tg-secim {
+            display: flex; align-items: flex-start; gap: .75rem;
+            cursor: pointer; font-size: .875rem; padding: .5rem 0;
+        }
+        .tg-secim input { margin-top: .2rem; flex-shrink: 0; }
+        .tg-alt { display: block; color: rgb(107 114 128); margin-top: .125rem; }
+        .tg-onerilen {
+            font-size: .6875rem; font-weight: 600; color: rgb(22 163 74);
+            background: rgba(34, 197, 94, .12); border-radius: .25rem;
+            padding: .0625rem .375rem; margin-left: .25rem;
+        }
+        .tg-ayrac {
+            border-top: 1px solid rgb(229 231 235);
+            margin-top: .5rem; padding-top: .875rem;
+        }
+        .dark .tg-ayrac { border-color: rgb(55 65 81); }
     </style>
 
     <div x-data="topluGorsel()" class="tg-arasi">
@@ -98,13 +116,39 @@
         <x-filament::section>
             <x-slot name="heading">Nasıl yüklensin?</x-slot>
 
-            <label class="tg-aralik">
-                <input type="checkbox" wire:model="asGallery" style="margin-top:.25rem">
-                <span style="font-size:.875rem">
-                    <strong>Galeriye ekle</strong>
-                    <span style="display:block;color:rgb(107 114 128)">
-                        İşaretlemezsen görseller <strong>ana görsel</strong> olarak ayarlanır (varsa üzerine yazar).
-                        İşaretlersen ürünün galerisine eklenir.
+            <label class="tg-secim">
+                <input type="radio" wire:model="mode" value="auto">
+                <span>
+                    <strong>Otomatik</strong> <span class="tg-onerilen">önerilen</span>
+                    <span class="tg-alt">
+                        Bir ürüne ait ilk görsel <strong>ana görsel</strong>, kalanlar <strong>galeri</strong> olur.
+                        Aynı ürüne 5 fotoğraf atacaksan bunu seç.
+                    </span>
+                </span>
+            </label>
+
+            <label class="tg-secim">
+                <input type="radio" wire:model="mode" value="main">
+                <span>
+                    <strong>Hepsi ana görsel</strong>
+                    <span class="tg-alt">Her dosya, eşleştiği ürünün ana görseli olur (varsa üzerine yazar).</span>
+                </span>
+            </label>
+
+            <label class="tg-secim">
+                <input type="radio" wire:model="mode" value="gallery">
+                <span>
+                    <strong>Hepsi galeriye</strong>
+                    <span class="tg-alt">Ana görsele dokunulmaz, tüm dosyalar galeriye eklenir.</span>
+                </span>
+            </label>
+
+            <label class="tg-secim tg-ayrac">
+                <input type="checkbox" wire:model="replaceGallery">
+                <span>
+                    <strong>Önce mevcut galeriyi temizle</strong>
+                    <span class="tg-alt">
+                        Aynı ürüne ikinci kez yükleme yapıyorsan işaretle; yoksa eski görseller listede kalır.
                     </span>
                 </span>
             </label>
