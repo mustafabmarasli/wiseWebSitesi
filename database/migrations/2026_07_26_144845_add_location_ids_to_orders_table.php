@@ -12,13 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('orders', function (Blueprint $table) {
-            $table->foreignId('province_id')->nullable()->constrained('provinces')->nullOnDelete();
-            $table->foreignId('district_id')->nullable()->constrained('districts')->nullOnDelete();
-            $table->foreignId('neighborhood_id')->nullable()->constrained('neighborhoods')->nullOnDelete();
+            $table->unsignedBigInteger('province_id')->nullable();
+            $table->unsignedBigInteger('district_id')->nullable();
+            $table->unsignedBigInteger('neighborhood_id')->nullable();
 
-            $table->foreignId('billing_province_id')->nullable()->constrained('provinces')->nullOnDelete();
-            $table->foreignId('billing_district_id')->nullable()->constrained('districts')->nullOnDelete();
-            $table->foreignId('billing_neighborhood_id')->nullable()->constrained('neighborhoods')->nullOnDelete();
+            $table->unsignedBigInteger('billing_province_id')->nullable();
+            $table->unsignedBigInteger('billing_district_id')->nullable();
+            $table->unsignedBigInteger('billing_neighborhood_id')->nullable();
         });
     }
 
@@ -28,13 +28,6 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('orders', function (Blueprint $table) {
-            $table->dropForeign(['province_id']);
-            $table->dropForeign(['district_id']);
-            $table->dropForeign(['neighborhood_id']);
-            $table->dropForeign(['billing_province_id']);
-            $table->dropForeign(['billing_district_id']);
-            $table->dropForeign(['billing_neighborhood_id']);
-
             $table->dropColumn([
                 'province_id', 'district_id', 'neighborhood_id',
                 'billing_province_id', 'billing_district_id', 'billing_neighborhood_id'
