@@ -3,6 +3,9 @@
 Bu dosya, projeyi güncellerken ihtiyacın olan her şeyi içerir.
 Bir şeyi unutursan buraya bak.
 
+> **Kod yazacaksan** önce [`GELISTIRICI-NOTLARI.md`](GELISTIRICI-NOTLARI.md) dosyasına
+> bak — bu projeye özgü teknik tuzaklar orada.
+
 ---
 
 ## 1. Kod nasıl akıyor

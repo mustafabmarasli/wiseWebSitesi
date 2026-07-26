@@ -46,14 +46,13 @@
             </button>
 
             <div style="padding:2.5rem 2rem 2rem; text-align:center;">
-                {{-- Simge --}}
-                <div style="width:4rem; height:4rem; margin:0 auto 1.25rem; border-radius:1rem;
-                            background:linear-gradient(135deg,#1B4A7A,#14385C);
-                            display:flex; align-items:center; justify-content:center;
-                            box-shadow:0 10px 25px rgba(27,74,122,.3);">
-                    <svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="#fff" stroke-width="1.7">
+                {{-- Simge: amber uyarı + dalga efekti --}}
+                <div class="duyuru-simge">
+                    <span class="duyuru-dalga" aria-hidden="true"></span>
+                    <svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                         stroke-width="1.8" style="position:relative; z-index:1;">
                         <path stroke-linecap="round" stroke-linejoin="round"
-                              d="M10.34 15.84c-.688-.06-1.386-.09-2.09-.09H7.5a4.5 4.5 0 110-9h.75c.704 0 1.402-.03 2.09-.09m0 9.18c.253.962.584 1.892.985 2.783.247.55.06 1.21-.463 1.511l-.657.38c-.551.318-1.26.117-1.527-.461a20.845 20.845 0 01-1.44-4.282m3.102.069a18.03 18.03 0 01-.59-4.59c0-1.586.205-3.124.59-4.59m0 9.18a23.848 23.848 0 018.835 2.535M10.34 6.66a23.847 23.847 0 008.835-2.535m0 0A23.74 23.74 0 0018.795 3m.38 1.125a23.91 23.91 0 011.014 5.395m-1.014 8.855c-.118.38-.245.754-.38 1.125m.38-1.125a23.91 23.91 0 001.014-5.395m0-3.46c.495.413.811 1.035.811 1.73 0 .695-.316 1.317-.811 1.73m0-3.46a24.347 24.347 0 010 3.46" />
+                              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                     </svg>
                 </div>
 
@@ -83,6 +82,26 @@
             position: fixed; inset: 0; z-index: 10000;
             display: flex; align-items: center; justify-content: center;
             padding: 1rem;
+        }
+
+        /* Amber uyari simgesi + dalga efekti */
+        .duyuru-simge {
+            position: relative; width: 4rem; height: 4rem; margin: 0 auto 1.25rem;
+            border-radius: 1rem; background: #FFFBEB; color: #F59E0B;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: inset 0 2px 6px rgba(245,158,11,.12);
+        }
+        .duyuru-dalga {
+            position: absolute; inset: 0; border-radius: 1rem;
+            background: #FBBF24; opacity: .2;
+            animation: duyuru-ping 1.8s cubic-bezier(0, 0, .2, 1) infinite;
+        }
+        @keyframes duyuru-ping {
+            75%, 100% { transform: scale(1.35); opacity: 0; }
+        }
+        /* Hareketi azalt tercihi olan ziyaretcilerde animasyon calismaz */
+        @media (prefers-reduced-motion: reduce) {
+            .duyuru-dalga { animation: none; }
         }
 
         .duyuru-kapat {
