@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -rn 'static ?string $heading\\\\|static ?string $description\\\\|string $heading' app/Filament/)",
+      "Bash(grep -n 'protected static\\\\|protected ?\\\\|protected int\\\\|protected string\\\\|public function getPollingInterval\\\\|public static function getSort\\\\|protected static ?int $sort' vendor/filament/widgets/src/Widget.php vendor/filament/widgets/src/StatsOverviewWidget.php vendor/filament/widgets/src/ChartWidget.php)",
+      "Bash(php artisan *)"
+    ]
+  }
+}
