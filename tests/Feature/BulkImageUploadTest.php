@@ -108,6 +108,32 @@ it('eslesmeyen dosya icin hata bildirir ve digerlerini isler', function () {
     expect($product->fresh()->image_path)->not->toBeNull();
 });
 
+it('urun referans listesi beklenen dosya adlarini gosterir', function () {
+    bulkProduct('esp32-devkit-v1', 'ESP32 DevKit V1');
+
+    $this->actingAs(User::factory()->create(['is_admin' => true]))
+        ->get('/admin/bulk-image-upload')
+        ->assertOk()
+        ->assertSee('ESP32 DevKit V1')
+        ->assertSee('esp32-devkit-v1.jpg');
+});
+
+it('gorseli olmayan urunler listede once gelir', function () {
+    $gorselli = bulkProduct('gorselli-urun', 'Gorselli Urun');
+    $gorselli->update(['image_path' => 'products/var.webp']);
+
+    bulkProduct('gorselsiz-urun', 'Gorselsiz Urun');
+
+    $liste = Livewire::actingAs(User::factory()->create(['is_admin' => true]))
+        ->test(BulkImageUpload::class)
+        ->instance()
+        ->getProductReference();
+
+    expect($liste->first()['dosya'])->toBe('gorselsiz-urun.jpg');
+    expect($liste->first()['gorselVar'])->toBeFalse();
+    expect($liste->last()['gorselVar'])->toBeTrue();
+});
+
 it('bosluklu dosya adi slug e cevrilir', function () {
     $product = bulkProduct('esp32-dev-kit');
 

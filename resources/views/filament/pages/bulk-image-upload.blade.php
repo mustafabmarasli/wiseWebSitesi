@@ -61,6 +61,35 @@
             display: flex; align-items: center; justify-content: space-between;
             margin-bottom: .75rem; font-size: .875rem;
         }
+
+        /* Urun / dosya adi referans listesi */
+        .tg-arama {
+            width: 100%; padding: .5rem .75rem; font-size: .875rem;
+            border: 1px solid rgb(209 213 219); border-radius: .5rem;
+            margin-bottom: .75rem; background: transparent;
+        }
+        .dark .tg-arama { border-color: rgb(55 65 81); color: rgb(243 244 246); }
+        .tg-liste { max-height: 20rem; overflow-y: auto; }
+        .tg-liste-satir {
+            display: flex; align-items: center; gap: .625rem;
+            padding: .375rem 0; font-size: .8125rem;
+            border-bottom: 1px solid rgb(243 244 246);
+        }
+        .dark .tg-liste-satir { border-color: rgb(31 41 55); }
+        .tg-nokta { width: .5rem; height: .5rem; border-radius: 9999px; flex-shrink: 0; }
+        .tg-dolu { background: rgb(34 197 94); }
+        .tg-bos  { background: rgb(251 146 60); }
+        .tg-urun-ad {
+            flex: 1; min-width: 0; overflow: hidden;
+            text-overflow: ellipsis; white-space: nowrap;
+        }
+        .tg-kopyala {
+            font-family: ui-monospace, monospace; font-size: .75rem;
+            color: rgb(37 99 235); background: rgba(37, 99, 235, .08);
+            border: 0; border-radius: .25rem; padding: .125rem .5rem;
+            cursor: pointer; white-space: nowrap;
+        }
+        .tg-kopyala:hover { background: rgba(37, 99, 235, .16); }
     </style>
 
     <div x-data="topluGorsel()" class="tg-arasi">
@@ -153,6 +182,32 @@
                 <span wire:loading wire:target="save">Yükleniyor...</span>
             </x-filament::button>
         </div>
+
+        {{-- Ürün / dosya adı referansı --}}
+        <x-filament::section collapsible collapsed>
+            <x-slot name="heading">Hangi ürüne hangi dosya adı? ({{ $this->getProductReference()->count() }} ürün)</x-slot>
+            <x-slot name="description">
+                Görseli olmayan ürünler başta listelenir. Dosya adına tıklayarak kopyalayabilirsiniz.
+            </x-slot>
+
+            <div x-data="{ ara: '' }">
+                <input type="text" x-model="ara" placeholder="Ürün adı veya dosya adı ara..." class="tg-arama">
+
+                <div class="tg-liste">
+                    @foreach ($this->getProductReference() as $u)
+                        <div class="tg-liste-satir"
+                             x-show="!ara || @js(mb_strtolower($u['ad'] . ' ' . $u['dosya'])).includes(ara.toLowerCase())">
+                            <span class="tg-nokta {{ $u['gorselVar'] ? 'tg-dolu' : 'tg-bos' }}"
+                                  title="{{ $u['gorselVar'] ? 'Görseli var' : 'Görseli yok' }}"></span>
+                            <span class="tg-urun-ad">{{ $u['ad'] }}</span>
+                            <button type="button" class="tg-kopyala"
+                                    @click="navigator.clipboard.writeText(@js($u['dosya'])); $el.textContent = 'kopyalandı'; setTimeout(() => $el.textContent = @js($u['dosya']), 1200)"
+                                    title="Kopyalamak için tıklayın">{{ $u['dosya'] }}</button>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        </x-filament::section>
 
         {{-- Sonuçlar --}}
         @if (!empty($results))

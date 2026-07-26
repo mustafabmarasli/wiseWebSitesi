@@ -47,6 +47,29 @@ class BulkImageUpload extends Page
     }
 
     /**
+     * Hangi ürüne hangi dosya adının gerektiğini gösteren liste.
+     *
+     * Slug'ları ezberlemek mümkün olmadığı için sayfada referans olarak sunulur;
+     * görseli olmayanlar başa alınır.
+     *
+     * @return \Illuminate\Support\Collection<int, array{ad: string, dosya: string, gorselVar: bool}>
+     */
+    public function getProductReference()
+    {
+        return Product::query()
+            ->orderBy('name')
+            ->get(['id', 'name', 'slug', 'image_path'])
+            ->map(fn (Product $p) => [
+                'ad'        => $p->name,
+                'dosya'     => $p->slug . '.jpg',
+                'gorselVar' => filled($p->image_path),
+            ])
+            // Görseli eksik olanlar önce görünsün
+            ->sortBy('gorselVar')
+            ->values();
+    }
+
+    /**
      * Yüklenen dosyaları ürünlerle eşleştirip kaydeder.
      */
     public function save(): void

@@ -11,9 +11,15 @@ echo ===============================================
 echo.
 
 REM --- 1. Degisiklik var mi? ---
-git diff --quiet && git diff --cached --quiet
-if %errorlevel% equ 0 (
+REM "git diff" YENI dosyalari gormez, bu yuzden "git status --porcelain" kullaniliyor.
+set "DEGISIKLIK="
+for /f "delims=" %%i in ('git status --porcelain') do set "DEGISIKLIK=1"
+
+if not defined DEGISIKLIK (
     echo Degisiklik yok - gonderilecek bir sey bulunamadi.
+    echo.
+    echo Zaten gonderdiyseniz bu normaldir. Kontrol icin:
+    echo    git log --oneline -3
     echo.
     pause
     exit /b 0
