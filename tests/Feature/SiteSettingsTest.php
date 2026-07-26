@@ -25,12 +25,23 @@ it('duyuru acilip kaydedilebilir', function () {
     expect($s->showsAnnouncement())->toBeTrue();
 });
 
-it('kargo ucreti bos birakilirsa hata vermez', function () {
+it('kargo ucreti zorunludur', function () {
+    // Bos birakilirsa kaydetmemeli; kargo bedava icin 0 yazilmali
     Livewire::actingAs(ayarAdmin())
         ->test(ShippingSettings::class)
         ->set('data.standard_shipping_cost', '')
         ->call('save')
+        ->assertHasErrors('data.standard_shipping_cost');
+});
+
+it('kargo ucreti sifir yazilarak bedava yapilabilir', function () {
+    Livewire::actingAs(ayarAdmin())
+        ->test(ShippingSettings::class)
+        ->set('data.standard_shipping_cost', 0)
+        ->call('save')
         ->assertHasNoErrors();
+
+    expect((float) Setting::current()->fresh()->standard_shipping_cost)->toBe(0.0);
 });
 
 it('ucretsiz kargo limiti bos birakilabilir', function () {
