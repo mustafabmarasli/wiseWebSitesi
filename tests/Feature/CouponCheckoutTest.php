@@ -41,18 +41,8 @@ function cartSession(Product $product, int $qty = 1): array
 
 function checkoutPayload(array $overrides = []): array
 {
-    return array_merge([
-        'first_name'      => 'Test',
-        'last_name'       => 'Kullanici',
-        'email'           => 'misafir@example.com',
-        'phone'           => '05551112233',
-        'address'         => 'Test Mahallesi No:1',
-        'city'            => 'Istanbul',
-        'identity_number' => '11111111111',
-        'agree_sales'     => '1',
-        'agree_kvkk'      => '1',
-        'agree_accuracy'  => '1',
-    ], $overrides);
+    // Ortak gövde tests/Pest.php içinde; il/ilçe/mahalle ve geçerli TC dahil.
+    return odemePayload($overrides);
 }
 
 it('sepette gorunen indirim odeme adiminda da gecerlidir', function () {

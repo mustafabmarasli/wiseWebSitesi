@@ -33,6 +33,8 @@ function fullOrder(array $overrides = []): Order
         'first_name' => 'Ahmet', 'last_name' => 'Yilmaz',
         'email' => 'ahmet@example.com', 'phone' => '05551112233',
         'address' => 'Melikgazi Mah. No:5', 'city' => 'Kayseri', 'zip_code' => '38000',
+        // Adres artık il/ilçe/mahalle ilişkilerinden gösteriliyor
+        ...testLocation(),
         'identity_number' => '12345678901',
         'billing_address' => 'Fatura Mah. No:9', 'billing_city' => 'Ankara',
         'is_corporate' => true, 'company_name' => 'Ornek Ltd',
@@ -63,7 +65,9 @@ it('siparis detay sayfasi acilir ve tum bilgileri gosterir', function () {
         ->assertSee('ahmet@example.com')
         ->assertSee('05551112233')
         ->assertSee('Melikgazi Mah. No:5')
-        ->assertSee('Kayseri')
+        ->assertSee('Kayseri')          // il
+        ->assertSee('Melikgazi')        // ilçe
+        ->assertSee('Numune Evler')     // mahalle
         ->assertSee('Ornek Ltd')
         ->assertSee('INDIRIM10')
         ->assertSee('ESP32 Kart');

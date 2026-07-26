@@ -113,13 +113,7 @@ it('kargo ucreti siparise kaydedilir', function () {
     $this->post(route('cart.add'), ['product_id' => $product->id, 'quantity' => 1]);
 
     // iyzico cagrisi basarisiz olsa da siparis pending olarak olusur
-    $this->post(route('payment.initiate'), [
-        'first_name' => 'Test', 'last_name' => 'Kullanici',
-        'email' => 'test@example.com', 'phone' => '05551112233',
-        'address' => 'Adres', 'city' => 'Istanbul',
-        'identity_number' => '11111111111',
-        'agree_sales' => '1', 'agree_kvkk' => '1', 'agree_accuracy' => '1',
-    ]);
+    $this->post(route('payment.initiate'), odemePayload());
 
     $order = Order::latest('id')->first();
 

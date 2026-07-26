@@ -199,7 +199,12 @@
 
             {{-- ===== VİTRİN ÜRÜNLER (2 Kart) ===== --}}
             @if ($popularProducts->count() > 0)
-            @php $featuredItems = $popularProducts->take(2); @endphp
+            @php
+                // Vitrin "en çok satan"a göre seçiliyordu; en çok satanlar da ilk
+                // tükenenler olduğu için vitrinde sürekli stoksuz ürün çıkıyordu.
+                // Önce stoktakiler, yetmezse kalanlar.
+                $featuredItems = $popularProducts->sortByDesc(fn ($p) => $p->stock > 0)->values()->take(2);
+            @endphp
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 @foreach ($featuredItems as $i => $feat)
                 @php
@@ -259,15 +264,24 @@
                                    style="background: {{ $accent }};">
                                     İncele
                                 </a>
-                                <form action="{{ route('cart.add') }}" method="POST" class="m-0 flex-1">
-                                    @csrf
-                                    <input type="hidden" name="product_id" value="{{ $feat->id }}">
-                                    <input type="hidden" name="quantity" value="1">
-                                    <button type="submit"
-                                        class="w-full text-[11px] font-bold text-white/80 py-1.5 rounded-lg border border-white/20 hover:bg-white/10 transition-all active:scale-95">
-                                        + Sepet
+                                {{-- Stoğu bitmiş ürüne "+ Sepet" göstermek yanıltıcıydı:
+                                     buton tıklanıyor ama sunucu haklı olarak reddediyordu. --}}
+                                @if ($feat->stock <= 0)
+                                    <button type="button" onclick="notifyStock({{ $feat->id }})"
+                                        class="flex-1 text-[11px] font-bold text-white/60 py-1.5 rounded-lg border border-white/20 hover:bg-white/10 transition-all active:scale-95">
+                                        Tükendi · Haber Ver
                                     </button>
-                                </form>
+                                @else
+                                    <form action="{{ route('cart.add') }}" method="POST" class="m-0 flex-1">
+                                        @csrf
+                                        <input type="hidden" name="product_id" value="{{ $feat->id }}">
+                                        <input type="hidden" name="quantity" value="1">
+                                        <button type="submit"
+                                            class="w-full text-[11px] font-bold text-white/80 py-1.5 rounded-lg border border-white/20 hover:bg-white/10 transition-all active:scale-95">
+                                            + Sepet
+                                        </button>
+                                    </form>
+                                @endif
                             </div>
                         </div>
                     </div>

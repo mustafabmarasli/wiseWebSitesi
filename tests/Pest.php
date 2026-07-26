@@ -41,7 +41,58 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+/**
+ * Doğrulama algoritmasından geçen geçerli bir TC Kimlik No.
+ *
+ * Ödeme formu gerçek TC algoritmasını uyguluyor; 11111111111 gibi
+ * uydurma numaralar reddedilir.
+ */
+const GECERLI_TC = '12345678950';
+
+/**
+ * Test için il/ilçe/mahalle zinciri oluşturur.
+ *
+ * Konum verisi migration ile değil SQL dökümünden geldiği için test
+ * veritabanında hiç kayıt yoktur; ödeme testleri bunu kendisi kurar.
+ *
+ * @return array{province_id: int, district_id: int, neighborhood_id: int}
+ */
+function testLocation(): array
 {
-    // ..
+    $province = \App\Models\Province::create(['name' => 'Kayseri']);
+
+    $district = \App\Models\District::create([
+        'province_id' => $province->id,
+        'name'        => 'Melikgazi',
+    ]);
+
+    $neighborhood = \App\Models\Neighborhood::create([
+        'district_id' => $district->id,
+        'name'        => 'Numune Evler',
+    ]);
+
+    return [
+        'province_id'     => $province->id,
+        'district_id'     => $district->id,
+        'neighborhood_id' => $neighborhood->id,
+    ];
+}
+
+/**
+ * Ödeme formunun kabul ettiği eksiksiz bir istek gövdesi.
+ */
+function odemePayload(array $overrides = []): array
+{
+    return array_merge([
+        'first_name'      => 'Test',
+        'last_name'       => 'Kullanici',
+        'email'           => 'misafir@example.com',
+        'phone'           => '05551112233',
+        'address_detail'  => 'Test Sokak No:1 Daire:2',
+        'identity_number' => GECERLI_TC,
+        'billing_same'    => '1',
+        'agree_sales'     => '1',
+        'agree_kvkk'      => '1',
+        'agree_accuracy'  => '1',
+    ], testLocation(), $overrides);
 }
