@@ -96,22 +96,31 @@ class ShippingSettings extends Page
 
     public function save(): void
     {
-        $data = $this->form->getState();
+        try {
+            $data = $this->form->getState();
 
-        Setting::current()->update([
-            'standard_shipping_cost'  => $data['standard_shipping_cost'] ?? 0,
-            'free_shipping_threshold' => ($data['free_shipping_threshold'] ?? null) === ''
-                ? null
-                : $data['free_shipping_threshold'],
-            'announcement_enabled'    => (bool) ($data['announcement_enabled'] ?? false),
-            'announcement_title'      => $data['announcement_title'] ?? null,
-            'announcement_text'       => $data['announcement_text'] ?? null,
-        ]);
+            Setting::current()->update([
+                'standard_shipping_cost'  => $data['standard_shipping_cost'] ?? 0,
+                'free_shipping_threshold' => ($data['free_shipping_threshold'] ?? null) === ''
+                    ? null
+                    : $data['free_shipping_threshold'],
+                'announcement_enabled'    => (bool) ($data['announcement_enabled'] ?? false),
+                'announcement_title'      => $data['announcement_title'] ?? null,
+                'announcement_text'       => $data['announcement_text'] ?? null,
+            ]);
 
-        Notification::make()
-            ->title('Ayarlar kaydedildi.')
-            ->success()
-            ->send();
+            Notification::make()
+                ->title('Ayarlar kaydedildi.')
+                ->success()
+                ->send();
+        } catch (\Illuminate\Database\QueryException $e) {
+            Notification::make()
+                ->title('Ayarlar kaydedilemedi')
+                ->body('Veritabanı hatası: ' . $e->getMessage())
+                ->danger()
+                ->persistent()
+                ->send();
+        }
     }
 
     protected function getHeaderActions(): array
