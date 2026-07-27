@@ -209,18 +209,10 @@
             @endif
 
             {{-- ===== VİTRİN ÜRÜNLER (2 Kart) ===== --}}
-            @if ($popularProducts->count() > 0)
-            @php
-                // Vitrin "en çok satan"a göre seçiliyordu; en çok satanlar da ilk
-                // tükenenler olduğu için vitrinde sürekli stoksuz ürün çıkıyordu.
-                // Önce stoktakiler, yetmezse kalanlar.
-                $featuredItems = $popularProducts->sortByDesc(fn ($p) => $p->stock > 0)->values()->take(2);
-            @endphp
+            @if ($showcaseProducts->count() > 0)
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                @foreach ($featuredItems as $i => $feat)
+                @foreach ($showcaseProducts as $i => $feat)
                 @php
-                    $fImgs = is_array($feat->images) ? $feat->images : (json_decode($feat->images, true) ?? []);
-                    $fImg  = !empty($fImgs) ? $fImgs[0] : null;
                     $gradients = [
                         'from-slate-900 via-slate-800 to-indigo-950',
                         'from-slate-900 via-slate-800 to-rose-950',
@@ -236,8 +228,8 @@
                     <div class="relative z-10 flex items-center gap-4 p-5">
                         {{-- Görsel --}}
                         <div class="shrink-0 w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center">
-                            @if ($fImg && file_exists(public_path($fImg)))
-                                <img src="{{ asset($fImg) }}" alt="{{ $feat->name }}"
+                            @if ($feat->image_url)
+                                <img src="{{ $feat->image_url }}" alt="{{ $feat->name }}"
                                      class="w-full h-full object-contain drop-shadow-lg transition-transform duration-500 group-hover:scale-110">
                             @else
                                 <div class="w-full h-full bg-white/5 rounded-xl flex items-center justify-center border border-white/10">

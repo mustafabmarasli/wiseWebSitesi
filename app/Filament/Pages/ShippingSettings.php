@@ -82,16 +82,14 @@ class ShippingSettings extends Page
                         TextInput::make('announcement_title')
                             ->label('Başlık')
                             ->maxLength(100)
-                            ->placeholder('Yakında Satıştayız')
-                            ->visible(fn ($get) => $get('announcement_enabled')),
+                            ->placeholder('Yakında Satıştayız'),
 
                         Textarea::make('announcement_text')
                             ->label('Duyuru Metni')
                             ->rows(3)
                             ->maxLength(500)
                             ->placeholder('Sitemiz güncellemeler ve ödeme yöntemi güncellemesi nedeniyle çok yakında ürün satışına başlayacaktır.')
-                            ->required(fn ($get) => (bool) $get('announcement_enabled'))
-                            ->visible(fn ($get) => $get('announcement_enabled')),
+                            ->required(fn ($get) => (bool) $get('announcement_enabled')),
                     ]),
             ]);
     }
@@ -121,7 +119,7 @@ class ShippingSettings extends Page
         return [
             Action::make('save')
                 ->label('Kaydet')
-                ->submit('save'),
+                ->action('save'),
         ];
     }
 

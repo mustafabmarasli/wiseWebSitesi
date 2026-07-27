@@ -8,6 +8,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
 use Filament\Forms\Set;
 use Illuminate\Support\Str;
@@ -62,9 +63,13 @@ class ProductForm
                     ->directory('products')
                     ->label('Ek Görseller (Galeri)'),
                 TextInput::make('rating')
-                    ->required()
                     ->numeric()
-                    ->default(5.0),
+                    ->nullable()
+                    ->default(0.0)
+                    ->dehydrateStateUsing(fn ($state) => $state ?? 0.0),
+                Toggle::make('is_featured')
+                    ->label('Vitrinde Göster')
+                    ->default(false),
                 TextInput::make('satis_sayisi')
                     ->required()
                     ->numeric()

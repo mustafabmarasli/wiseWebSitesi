@@ -72,3 +72,16 @@ it('stokta olan urun anasayfadan sepete eklenir', function () {
 
     expect(session('cart')[$product->id]['quantity'])->toBe(1);
 });
+
+it('vitrin is_featured olan urunu onceliklendirir', function () {
+    // En cok satan ama is_featured olmayan
+    $notFeatured = showcaseProduct('Normal Populer', stock: 10, sales: 500);
+    // Az satan ama is_featured olan
+    $featured = showcaseProduct('Vitrin Urunu', stock: 5, sales: 2);
+    $featured->update(['is_featured' => true]);
+
+    $response = $this->get(route('electronics.home'))->assertOk();
+    
+    // Vitrin Urunu vitrin kartlarinda gorunmeli
+    $response->assertSee('Vitrin Urunu');
+});

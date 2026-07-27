@@ -210,6 +210,7 @@
                         </h1>
                         
                         <!-- Ratings -->
+                        @if ($product->rating > 0)
                         <div class="flex items-center gap-2 mb-4" id="product-detail-ratings">
                             <div class="flex items-center text-amber-500 gap-0.5">
                                 @for ($i = 0; $i < 5; $i++)
@@ -223,6 +224,7 @@
                             <span class="text-sm font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded">{{ number_format($product->rating, 1) }}</span>
                             <span class="text-xs text-slate-400 font-semibold">(24 Değerlendirme)</span>
                         </div>
+                        @endif
 
                         <!-- Price and Stock Details -->
                         <div class="bg-slate-50 border border-slate-100 rounded-xl p-5 mb-4" id="product-detail-pricebox">

@@ -42,7 +42,28 @@ class HomeController extends Controller
             ->whereColumn('eski_fiyat', '>', 'price')
             ->get();
 
-        return view('home', compact('categories', 'popularProducts', 'discountedProducts', 'allProducts', 'channel', 'channelTitle'));
+        // 4. Showcase Products (featured with fallback)
+        $showcaseProducts = Product::with('category')
+            ->whereIn('category_id', $categoryIds)
+            ->where('is_featured', true)
+            ->orderByDesc('stock')
+            ->take(2)
+            ->get();
+
+        if ($showcaseProducts->count() < 2) {
+            $excludeIds = $showcaseProducts->pluck('id')->toArray();
+            $fallback = Product::with('category')
+                ->whereIn('category_id', $categoryIds)
+                ->whereNotIn('id', $excludeIds)
+                ->orderByDesc('satis_sayisi')
+                ->get()
+                ->sortByDesc(fn ($p) => $p->stock > 0)
+                ->take(2 - $showcaseProducts->count());
+
+            $showcaseProducts = $showcaseProducts->concat($fallback);
+        }
+
+        return view('home', compact('categories', 'popularProducts', 'discountedProducts', 'allProducts', 'showcaseProducts', 'channel', 'channelTitle'));
     }
 
     /**
@@ -71,6 +92,27 @@ class HomeController extends Controller
             ->whereColumn('eski_fiyat', '>', 'price')
             ->get();
 
-        return view('home', compact('categories', 'popularProducts', 'discountedProducts', 'allProducts', 'channel', 'channelTitle'));
+        // 4. Showcase Products (featured with fallback)
+        $showcaseProducts = Product::with('category')
+            ->whereIn('category_id', $categoryIds)
+            ->where('is_featured', true)
+            ->orderByDesc('stock')
+            ->take(2)
+            ->get();
+
+        if ($showcaseProducts->count() < 2) {
+            $excludeIds = $showcaseProducts->pluck('id')->toArray();
+            $fallback = Product::with('category')
+                ->whereIn('category_id', $categoryIds)
+                ->whereNotIn('id', $excludeIds)
+                ->orderByDesc('satis_sayisi')
+                ->get()
+                ->sortByDesc(fn ($p) => $p->stock > 0)
+                ->take(2 - $showcaseProducts->count());
+
+            $showcaseProducts = $showcaseProducts->concat($fallback);
+        }
+
+        return view('home', compact('categories', 'popularProducts', 'discountedProducts', 'allProducts', 'showcaseProducts', 'channel', 'channelTitle'));
     }
 }

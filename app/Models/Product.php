@@ -27,6 +27,7 @@ class Product extends Model
         'image_path',
         'additional_images',
         'rating',
+        'is_featured',
         'meta_title',
         'meta_description',
     ];
@@ -40,6 +41,7 @@ class Product extends Model
         'satis_sayisi' => 'integer',
         'view_count' => 'integer',
         'rating' => 'float',
+        'is_featured' => 'boolean',
     ];
 
     public function views(): \Illuminate\Database\Eloquent\Relations\HasMany
