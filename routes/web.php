@@ -12,6 +12,9 @@ Route::get('/', [PageController::class, 'landing'])->name('landing');
 // Arama motorları için site haritası (robots.txt içinden gösterilir)
 Route::get('/sitemap.xml', [\App\Http\Controllers\SitemapController::class, 'index'])->name('sitemap');
 
+// Google Merchant Center ürün akışı — Merchant Center bu adresi günlük çeker
+Route::get('/merchant-feed.xml', [\App\Http\Controllers\MerchantFeedController::class, 'index'])->name('merchant.feed');
+
 // Separate store hubs & Consulting pages
 Route::get('/elektronik', [HomeController::class, 'electronics'])->name('electronics.home');
 Route::get('/saglik', [HomeController::class, 'health'])->name('health.home');

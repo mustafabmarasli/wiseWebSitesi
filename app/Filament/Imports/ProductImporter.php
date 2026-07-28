@@ -46,6 +46,20 @@ class ProductImporter extends Importer
                 ->exampleHeader('Kategori')
                 ->example('Geliştirme Kartları'),
 
+            ImportColumn::make('brand')
+                ->label('Marka')
+                ->rules(['nullable', 'string', 'max:255'])
+                ->ignoreBlankState()
+                ->exampleHeader('Marka')
+                ->example('Espressif'),
+
+            ImportColumn::make('gtin')
+                ->label('Barkod (GTIN)')
+                ->rules(['nullable', 'string', 'max:50'])
+                ->ignoreBlankState()
+                ->exampleHeader('Barkod (GTIN)')
+                ->example('8681234567890'),
+
             ImportColumn::make('description')
                 ->label('Açıklama')
                 ->rules(['nullable', 'string'])

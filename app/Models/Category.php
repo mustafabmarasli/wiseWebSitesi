@@ -16,6 +16,7 @@ class Category extends Model
         'name',
         'slug',
         'channel',
+        'google_product_category',
         'description',
         'image_path',
     ];

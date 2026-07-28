@@ -18,6 +18,8 @@ class ProductExporter extends Exporter
             ExportColumn::make('name')->label('Ürün Adı'),
             ExportColumn::make('slug')->label('URL (slug)'),
             ExportColumn::make('category.name')->label('Kategori'),
+            ExportColumn::make('brand')->label('Marka'),
+            ExportColumn::make('gtin')->label('Barkod (GTIN)'),
             ExportColumn::make('description')->label('Açıklama'),
             ExportColumn::make('price')->label('Fiyat'),
             ExportColumn::make('eski_fiyat')->label('Eski Fiyat'),

@@ -29,6 +29,14 @@ class ProductForm
                 TextInput::make('slug')
                     ->required()
                     ->unique(ignoreRecord: true),
+                TextInput::make('brand')
+                    ->label('Marka')
+                    ->maxLength(255)
+                    ->helperText('Google Merchant için. Örn: Espressif, DFRobot, DMV. Boş bırakılırsa akışta "tanımlayıcı yok" olarak işaretlenir.'),
+                TextInput::make('gtin')
+                    ->label('Barkod (GTIN/EAN)')
+                    ->maxLength(50)
+                    ->helperText('Varsa ürünün barkodu. Google en güçlü eşleştirmeyi bununla yapar; yoksa boş bırakın.'),
                 RichEditor::make('description')
                     ->default(null)
                     ->columnSpanFull(),

@@ -31,6 +31,11 @@ class CategoryForm
                     ->required()
                     ->default('electronics')
                     ->label('Kanal / Bölüm'),
+                TextInput::make('google_product_category')
+                    ->label('Google Ürün Kategorisi')
+                    ->maxLength(20)
+                    ->helperText('Google taksonomi kimliği. Örn: Elektronik bileşenler için 3853. Boş bırakılırsa Google kendi tahmin eder. Liste: support.google.com/merchants/answer/6324436')
+                    ->placeholder('3853'),
                 Textarea::make('description')
                     ->default(null)
                     ->columnSpanFull(),
