@@ -114,6 +114,11 @@
                 clip-path: polygon(0 0, 68% 0, 38% 100%, 0 100%);
                 z-index: 30;
             }
+            /* Icerik kutulari 3 bolmeli duzene gore konumlanmis; iki bolmede
+               kendi bolmelerinin ortasina kaydirilir. */
+            .iki-bolme .bolme-icerik-1 { left: 10%; width: 34%; }
+            .iki-bolme .bolme-icerik-2 { left: 52%; width: 34%; }
+
             .iki-bolme .clip-section-2:hover {
                 clip-path: polygon(62% 0, 100% 0, 100% 100%, 32% 100%);
                 z-index: 30;
@@ -185,7 +190,7 @@
                 <div class="absolute top-0 right-0 h-full w-[2px] bg-gradient-to-b from-transparent via-white/20 group-hover:via-trendyol to-transparent transform -skew-x-[16.7deg] origin-top"></div>
                 
                 <!-- Content (Centered inside Section 1's column) -->
-                <div class="absolute inset-y-0 left-0 w-[35%] flex flex-col justify-center items-center p-6 text-center select-none">
+                <div class="bolme-icerik bolme-icerik-1 absolute inset-y-0 left-0 w-[35%] flex flex-col justify-center items-center p-6 text-center select-none">
                     <div class="border-2 border-white/70 group-hover:border-trendyol px-6 py-4 rounded-lg mb-4 bg-slate-950/20 backdrop-blur-sm transition-all duration-300 transform group-hover:scale-105">
                         <h2 class="text-white text-xl lg:text-2xl font-black uppercase tracking-widest">Elektronik</h2>
                     </div>
@@ -203,7 +208,7 @@
                 <div class="absolute top-0 right-0 h-full w-[2px] bg-gradient-to-b from-transparent via-white/20 group-hover:via-trendyol to-transparent transform -skew-x-[16.7deg] origin-top"></div>
                 
                 <!-- Content (Centered inside Section 2's column) -->
-                <div class="absolute inset-y-0 left-[30%] w-[40%] flex flex-col justify-center items-center p-6 text-center select-none">
+                <div class="bolme-icerik bolme-icerik-2 absolute inset-y-0 left-[30%] w-[40%] flex flex-col justify-center items-center p-6 text-center select-none">
                     <div class="border-2 border-white/70 group-hover:border-trendyol px-6 py-4 rounded-lg mb-4 bg-slate-950/20 backdrop-blur-sm transition-all duration-300 transform group-hover:scale-105">
                         <h2 class="text-white text-xl lg:text-2xl font-black uppercase tracking-widest">Genel Sağlık</h2>
                     </div>
