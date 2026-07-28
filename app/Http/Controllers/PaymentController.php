@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\OrderStatus;
 use App\Models\Address;
 use App\Models\Coupon;
 use App\Models\Order;
@@ -48,7 +49,7 @@ class PaymentController extends Controller
         $this->grantOrderAccess($order);
 
         // IDEMPOTENCY: callback tekrar tetiklenirse stok/kupon/e-posta ikinci kez işlenmesin.
-        if ($order->status !== 'pending') {
+        if ($order->status !== OrderStatus::Pending->value) {
             return $this->redirectToResult($order);
         }
 
@@ -70,7 +71,7 @@ class PaymentController extends Controller
 
         if (!$isSuccessful) {
             $order->update([
-                'status'                => 'failed',
+                'status'                => OrderStatus::Failed->value,
                 'iyzico_payment_status' => $checkoutForm->getPaymentStatus() ?? 'FAILED',
             ]);
 
@@ -90,7 +91,7 @@ class PaymentController extends Controller
             ]);
 
             $order->update([
-                'status'                => 'review',
+                'status'                => OrderStatus::Review->value,
                 'iyzico_payment_id'     => $checkoutForm->getPaymentId(),
                 'iyzico_payment_status' => $checkoutForm->getPaymentStatus(),
             ]);
@@ -106,7 +107,7 @@ class PaymentController extends Controller
 
         DB::transaction(function () use ($order, $checkoutForm) {
             $order->update([
-                'status'                => 'paid',
+                'status'                => OrderStatus::Paid->value,
                 'iyzico_payment_id'     => $checkoutForm->getPaymentId(),
                 'iyzico_payment_status' => $checkoutForm->getPaymentStatus(),
             ]);
@@ -177,7 +178,7 @@ class PaymentController extends Controller
     {
         $this->authorizeOrderAccess($request, $order);
 
-        if ($order->status !== 'paid') {
+        if ($order->status !== OrderStatus::Paid->value) {
             return redirect()->route('landing');
         }
 
@@ -193,7 +194,7 @@ class PaymentController extends Controller
     {
         $this->authorizeOrderAccess($request, $order);
 
-        if (!in_array($order->status, ['failed', 'pending'])) {
+        if (!in_array($order->status, [OrderStatus::Failed->value, OrderStatus::Pending->value])) {
             return redirect()->route('landing');
         }
 
@@ -210,7 +211,7 @@ class PaymentController extends Controller
         $this->authorizeOrderAccess($request, $order);
 
         // Sipariş başarılı mı ve henüz bir hesaba bağlı değil mi kontrol et
-        if ($order->status !== 'paid' || $order->user_id !== null) {
+        if ($order->status !== OrderStatus::Paid->value || $order->user_id !== null) {
             return redirect()->route('landing');
         }
 
@@ -242,15 +243,21 @@ class PaymentController extends Controller
 
             $order->update(['user_id' => $user->id]);
 
+            // Konum ID'leri de kopyalanır; aksi halde müşteri bir sonraki
+            // siparişinde kayıtlı adresini seçtiğinde il/ilçe/mahalle boş gelir
+            // ve baştan doldurmak zorunda kalır.
             Address::create([
-                'user_id'    => $user->id,
-                'title'      => 'Sipariş Adresim',
-                'first_name' => $order->first_name,
-                'last_name'  => $order->last_name,
-                'phone'      => $order->phone,
-                'address'    => $order->address,
-                'city'       => $order->city,
-                'zip_code'   => $order->zip_code,
+                'user_id'         => $user->id,
+                'title'           => 'Sipariş Adresim',
+                'first_name'      => $order->first_name,
+                'last_name'       => $order->last_name,
+                'phone'           => $order->phone,
+                'address'         => $order->address,
+                'city'            => $order->city,
+                'province_id'     => $order->province_id,
+                'district_id'     => $order->district_id,
+                'neighborhood_id' => $order->neighborhood_id,
+                'zip_code'        => $order->zip_code,
             ]);
 
             return $user;
@@ -270,7 +277,7 @@ class PaymentController extends Controller
      */
     private function redirectToResult(Order $order)
     {
-        $route = $order->status === 'paid' ? 'payment.success' : 'payment.failed';
+        $route = $order->status === OrderStatus::Paid->value ? 'payment.success' : 'payment.failed';
 
         return redirect()->to(
             URL::temporarySignedRoute($route, now()->addDays(self::RESULT_LINK_TTL_DAYS), ['order' => $order->id])

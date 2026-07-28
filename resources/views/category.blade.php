@@ -3,6 +3,25 @@
 @section('title', $category->name . ' - Buy WISEly')
 @section('meta_description', $category->description ?? $category->name . ' kategorisindeki en kaliteli ürünler stoktan kargo avantajıyla.')
 
+@section('og_type', 'website')
+@section('og_title', $category->name)
+
+{{-- Kategori kırıntısı: Google arama sonucunda URL yerine
+     "Ana Sayfa › Geliştirme Kartları" şeklinde gösterir. --}}
+@section('schema')
+@php
+    $kirintiSemasi = [
+        '@context'        => 'https://schema.org',
+        '@type'           => 'BreadcrumbList',
+        'itemListElement' => [
+            ['@type' => 'ListItem', 'position' => 1, 'name' => 'Ana Sayfa', 'item' => route('landing')],
+            ['@type' => 'ListItem', 'position' => 2, 'name' => $category->name, 'item' => url()->current()],
+        ],
+    ];
+@endphp
+<script type="application/ld+json">{!! json_encode($kirintiSemasi, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
+@endsection
+
 @section('content')
 
     <!-- Breadcrumb -->

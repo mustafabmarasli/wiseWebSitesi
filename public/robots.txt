@@ -1,2 +1,17 @@
 User-agent: *
-Disallow:
+
+# Kisisel ve islem sayfalari: taranmasi gereksiz, tarama butcesini tuketir
+# ve sepet gibi sayfalarin indekslenmesini onler.
+Disallow: /sepet
+Disallow: /odeme
+Disallow: /siparis/
+Disallow: /hesabim
+Disallow: /giris
+Disallow: /uye-ol
+Disallow: /admin
+Disallow: /auth/
+
+# Arama sonuc sayfalari sonsuz varyasyon uretir, ozgun icerik degil
+Disallow: /arama
+
+Sitemap: https://www.wisesolutions.com.tr/sitemap.xml

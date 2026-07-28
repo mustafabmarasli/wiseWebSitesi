@@ -5,9 +5,47 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     
     <link rel="icon" type="image/jpeg" href="{{ asset('img/strong-modern-logo-for--wise-solutions---large-bol (1).jpg') }}">
-    <title>Hoş Geldiniz - Buy WISEly Portal</title>
-    <meta name="description" content="Buy WISEly Elektronik, Genel Sağlık (DMV/Lens) ve Dış Ticaret Danışmanlık portalı.">
-    
+    <title>Wise Solutions - Elektronik, Lens Aksesuarları ve Dış Ticaret Danışmanlığı</title>
+    <meta name="description" content="ESP32 ve Arduino geliştirme kartları, orijinal DMV® lens aksesuarları ve dış ticaret danışmanlığı. Kayseri merkezli Wise Solutions ile stoktan hızlı teslimat.">
+    <link rel="canonical" href="{{ url()->current() }}">
+
+    {{-- Bu sayfa layouts.app'i KULLANMIYOR (bağımsız portal tasarımı), bu yüzden
+         paylaşım etiketleri ve şema burada ayrıca tanımlanır. --}}
+    <meta property="og:site_name" content="Wise Solutions">
+    <meta property="og:locale" content="tr_TR">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:title" content="Wise Solutions - Elektronik, Lens Aksesuarları ve Dış Ticaret">
+    <meta property="og:description" content="ESP32 ve Arduino geliştirme kartları, orijinal DMV® lens aksesuarları ve dış ticaret danışmanlığı.">
+    <meta property="og:image" content="{{ asset('images/banner.png') }}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Wise Solutions">
+    <meta name="twitter:description" content="Elektronik geliştirme kartları, lens aksesuarları ve dış ticaret danışmanlığı.">
+    <meta name="twitter:image" content="{{ asset('images/banner.png') }}">
+
+    @php
+        $portalSemasi = [
+            '@context' => 'https://schema.org',
+            '@type'    => 'WebSite',
+            'name'     => 'Wise Solutions',
+            'url'      => url('/'),
+            'publisher' => [
+                '@type' => 'Organization',
+                'name'  => 'Wise Solutions',
+                'logo'  => [
+                    '@type' => 'ImageObject',
+                    'url'   => asset('img/strong-modern-logo-for--wise-solutions---large-bol (1).jpg'),
+                ],
+            ],
+            'potentialAction' => [
+                '@type'       => 'SearchAction',
+                'target'      => route('product.search') . '?q={search_term_string}',
+                'query-input' => 'required name=search_term_string',
+            ],
+        ];
+    @endphp
+    <script type="application/ld+json">{!! json_encode($portalSemasi, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
+
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -66,6 +104,20 @@
     </style>
 </head>
 <body class="h-screen bg-slate-950 flex flex-col md:relative md:overflow-hidden select-none">
+
+    {{-- Sayfanın tek H1'i. Tasarım tam ekran görsel bölmelerden oluştuğu için
+         görünür bir başlık yok; arama motorları ve ekran okuyucular için
+         gizli ama okunabilir bir başlık + tanıtım metni bulunuyor.
+         Bunlar `display:none` DEĞİL — sr-only, yani gizleme cezası almaz. --}}
+    <h1 class="sr-only">Wise Solutions — Elektronik Geliştirme Kartları, Lens Aksesuarları ve Dış Ticaret Danışmanlığı</h1>
+    <p class="sr-only">
+        Kayseri merkezli Wise Solutions; ESP32, ESP8266 ve Arduino geliştirme kartları,
+        sensör modülleri ve LED aydınlatma bileşenleri ile orijinal DMV® kontakt lens
+        takma-çıkarma vantuzları ve lens saklama kutuları satmaktadır. Ayrıca dış ticaret
+        ve ithalat danışmanlığı hizmeti vermektedir. Aşağıdaki bölümlerden ilgilendiğiniz
+        alanı seçebilirsiniz.
+    </p>
+
 
     <!-- Mobile view: simple 3-row grid -->
     <div class="flex flex-col h-full md:hidden">

@@ -10,6 +10,7 @@ use Filament\Actions\ExportBulkAction;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Table;
 
 class ProductsTable
@@ -27,15 +28,15 @@ class ProductsTable
                 TextColumn::make('price')
                     ->money('TRY')
                     ->sortable(),
-                TextColumn::make('discount_price')
-                    ->money('TRY')
-                    ->sortable(),
                 TextColumn::make('stock')
                     ->numeric()
                     ->sortable(),
                 ImageColumn::make('image_url')->label('Görsel'),
                 TextColumn::make('rating')
                     ->numeric()
+                    ->sortable(),
+                ToggleColumn::make('is_featured')
+                    ->label('Vitrin')
                     ->sortable(),
                 TextColumn::make('meta_title')
                     ->searchable()

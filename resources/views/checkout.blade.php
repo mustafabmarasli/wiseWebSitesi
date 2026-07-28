@@ -68,6 +68,36 @@
             {{-- SOL: Müşteri Bilgileri --}}
             <div class="lg:col-span-3 space-y-6">
 
+                {{-- Kayıtlı Adresler --}}
+                @if (!empty($savedAddresses) && count($savedAddresses) > 0)
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6" id="kayitli-adresler">
+                        <h2 class="text-base font-extrabold text-slate-800 mb-1.5 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-trendyol" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            Kayıtlı Adreslerim
+                        </h2>
+                        <p class="text-xs text-slate-500 font-semibold mb-4">Bir adres seçin, form otomatik dolsun.</p>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            @foreach ($savedAddresses as $adres)
+                                <button type="button"
+                                        class="kayitli-adres text-left bg-slate-50 hover:bg-white border border-slate-200 hover:border-trendyol rounded-xl px-4 py-3 transition-all active:scale-[0.99]"
+                                        data-adres='@json($adres)'>
+                                    <span class="block text-xs font-black text-slate-800">{{ $adres['title'] }}</span>
+                                    <span class="block text-[11px] text-slate-500 font-semibold mt-0.5 leading-snug">
+                                        {{ $adres['first_name'] }} {{ $adres['last_name'] }} —
+                                        {{ $adres['neighborhood_name'] ?? '' }}
+                                        {{ $adres['district_name'] ?? '' }}
+                                        {{ $adres['province_name'] ?? $adres['city'] ?? '' }}
+                                    </span>
+                                </button>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+
                 {{-- Kişisel Bilgiler --}}
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
                     <h2 class="text-base font-extrabold text-slate-800 mb-5 flex items-center gap-2">
@@ -700,6 +730,62 @@
                     });
                     $neighborhoodSelect.html(options).prop('disabled', false).trigger('change');
                 });
+            });
+
+            /**
+             * Kayıtlı adres seçimi.
+             *
+             * İl/ilçe/mahalle kademeli yükleniyor: ilçe listesi ancak il seçilince,
+             * mahalle listesi ancak ilçe seçilince dolar. Bu yüzden değerleri
+             * doğrudan atamak yetmez — her adımın AJAX'ını sırayla beklemek gerekir.
+             */
+            function ilceleriYukle(provinceId) {
+                return $.getJSON("{{ route('location.districts') }}", { province_id: provinceId })
+                    .then(function (data) {
+                        let options = '<option value="">Seçiniz</option>';
+                        data.forEach(i => options += `<option value="${i.id}">${i.name}</option>`);
+                        $('#district_id').html(options).prop('disabled', false);
+                    });
+            }
+
+            function mahalleleriYukle(districtId) {
+                return $.getJSON("{{ route('location.neighborhoods') }}", { district_id: districtId })
+                    .then(function (data) {
+                        let options = '<option value="">Seçiniz</option>';
+                        data.forEach(i => options += `<option value="${i.id}">${i.name}</option>`);
+                        $('#neighborhood_id').html(options).prop('disabled', false);
+                    });
+            }
+
+            $('.kayitli-adres').on('click', function () {
+                const a = $(this).data('adres');
+                const $btn = $(this);
+
+                // Seçili adresi görsel olarak işaretle
+                $('.kayitli-adres').removeClass('border-trendyol bg-white ring-2 ring-trendyol/20');
+                $btn.addClass('border-trendyol bg-white ring-2 ring-trendyol/20');
+
+                $('#first_name').val(a.first_name || '');
+                $('#last_name').val(a.last_name || '');
+                $('#phone').val(a.phone || '');
+                $('#address_detail').val(a.address_detail || '');
+                $('#zip_code').val(a.zip_code || '');
+
+                if (!a.province_id) return;
+
+                // Kademeli doldurma: il -> ilçe -> mahalle
+                $('#province_id').val(a.province_id).trigger('change.select2');
+
+                ilceleriYukle(a.province_id)
+                    .then(function () {
+                        if (!a.district_id) return;
+                        $('#district_id').val(a.district_id).trigger('change.select2');
+                        return mahalleleriYukle(a.district_id);
+                    })
+                    .then(function () {
+                        if (!a.neighborhood_id) return;
+                        $('#neighborhood_id').val(a.neighborhood_id).trigger('change.select2');
+                    });
             });
 
             // Billing cascading dropdowns

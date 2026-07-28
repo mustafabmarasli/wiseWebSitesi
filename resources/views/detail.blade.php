@@ -3,6 +3,61 @@
 @section('title', ($product->meta_title ?? $product->name) . ' - Buy WISEly')
 @section('meta_description', $product->meta_description ?? Str::limit(strip_tags($product->description), 150))
 
+{{-- Sosyal paylaşım: WhatsApp/Instagram'da link paylaşıldığında görsel + başlık çıksın --}}
+@section('og_type', 'product')
+@section('og_title', $product->name)
+@section('og_description', Str::limit(strip_tags($product->description), 200))
+@if ($product->image_url)
+    @section('og_image', $product->image_url)
+@endif
+
+{{-- Yapısal veri: Google arama sonucunda fiyat ve stok durumu gösterir.
+     aggregateRating BİLİNÇLİ OLARAK YOK — puanlar gerçek müşteri yorumu değil
+     (seed verisi), uydurma değerlendirme Google politikası ihlalidir. --}}
+@section('schema')
+@php
+    $urunSemasi = [
+        '@context'    => 'https://schema.org',
+        '@type'       => 'Product',
+        'name'        => $product->name,
+        'description' => Str::limit(strip_tags($product->description), 300),
+        'sku'         => (string) $product->id,
+        'image'       => array_values(array_filter(
+            array_merge([$product->image_url], $product->additional_image_urls)
+        )),
+        'category'    => $product->category?->name,
+        'offers'      => [
+            '@type'         => 'Offer',
+            'url'           => url()->current(),
+            'price'         => number_format((float) $product->price, 2, '.', ''),
+            'priceCurrency' => 'TRY',
+            'availability'  => $product->stock > 0
+                ? 'https://schema.org/InStock'
+                : 'https://schema.org/OutOfStock',
+            'itemCondition' => 'https://schema.org/NewCondition',
+            'seller'        => ['@type' => 'Organization', 'name' => 'Wise Solutions'],
+        ],
+    ];
+
+    $kirintiSemasi = [
+        '@context'        => 'https://schema.org',
+        '@type'           => 'BreadcrumbList',
+        'itemListElement' => array_values(array_filter([
+            ['@type' => 'ListItem', 'position' => 1, 'name' => 'Ana Sayfa', 'item' => route('landing')],
+            $product->category ? [
+                '@type'    => 'ListItem',
+                'position' => 2,
+                'name'     => $product->category->name,
+                'item'     => route('category', $product->category->slug),
+            ] : null,
+            ['@type' => 'ListItem', 'position' => 3, 'name' => $product->name, 'item' => url()->current()],
+        ])),
+    ];
+@endphp
+<script type="application/ld+json">{!! json_encode($urunSemasi, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
+<script type="application/ld+json">{!! json_encode($kirintiSemasi, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
+@endsection
+
 @section('content')
 
     <!-- Breadcrumb -->

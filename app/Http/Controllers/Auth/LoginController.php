@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Enums\OrderStatus;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -70,7 +71,7 @@ class LoginController extends Controller
         $user  = Auth::user();
         $order = \App\Models\Order::find($orderId);
 
-        if (!$order || $order->user_id !== null || $order->status !== 'paid') {
+        if (!$order || $order->user_id !== null || $order->status !== OrderStatus::Paid->value) {
             return false;
         }
 

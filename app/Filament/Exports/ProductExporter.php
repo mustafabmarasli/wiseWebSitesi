@@ -21,7 +21,6 @@ class ProductExporter extends Exporter
             ExportColumn::make('description')->label('Açıklama'),
             ExportColumn::make('price')->label('Fiyat'),
             ExportColumn::make('eski_fiyat')->label('Eski Fiyat'),
-            ExportColumn::make('discount_price')->label('İndirimli Fiyat'),
             ExportColumn::make('stock')->label('Stok'),
             ExportColumn::make('satis_sayisi')->label('Satış Adedi'),
             ExportColumn::make('view_count')->label('Görüntülenme'),

@@ -39,10 +39,6 @@ class ProductForm
                     ->required()
                     ->numeric()
                     ->prefix('₺'),
-                TextInput::make('discount_price')
-                    ->numeric()
-                    ->default(null)
-                    ->prefix('₺'),
                 TextInput::make('eski_fiyat')
                     ->numeric()
                     ->default(null)

@@ -2,7 +2,12 @@
 
 @section('title', $channelTitle . ' - Buy WISEly')
 
-@section('meta_description', 'En kaliteli ' . $channelTitle . ' ürünleri, geliştirme kartları, lens saklama kutuları ve DMV vantuz aparatları en uygun fiyat ve hızlı teslimatla sitemizde!')
+{{-- Her kanal kendi açıklamasını kullanır. Önceden ikisi de aynı şablondan
+     üretiliyordu: elektronik sayfası lens kutusundan, sağlık sayfası
+     geliştirme kartından bahsediyordu. Google bunu kopya açıklama sayar. --}}
+@section('meta_description', $channel === 'health'
+    ? 'Orijinal DMV® lens takma-çıkarma vantuzları, sızdırmaz kontakt lens saklama kutuları ve göz sağlığı aksesuarları. Yetkili satıcı, stoktan hızlı kargo.'
+    : 'ESP32, ESP8266 ve Arduino geliştirme kartları, sensör modülleri, COB ve S-tipi şerit LED aydınlatma bileşenleri. Maker ve IoT projeleriniz için stoktan teslim.')
 
 {{-- Duyuru penceresi — yalnızca mağaza sayfalarında (Elektronik / Sağlık),
      ana portal sayfasında değil. Panelden açılıp kapatılabilir.
@@ -43,7 +48,12 @@
 
         <!-- Sağ İçerik: Banner + Ürün Listeleri (Right Content) -->
         <div class="flex-1 min-w-0 space-y-4">
-            
+
+            {{-- Sayfanın tek H1'i. Slider başlıkları H2; her slayt H1 olduğunda
+                 sayfada 3 tane H1 oluşuyordu ve Google hangisinin sayfa konusu
+                 olduğunu ayırt edemiyordu. --}}
+            <h1 class="sr-only">{{ $channelTitle }} Ürünleri — Buy WISEly</h1>
+
             <!-- Hero Slider (Dynamic Banner) -->
             <div class="relative rounded-2xl overflow-hidden shadow-lg border border-slate-200 group h-48 sm:h-80 md:h-[400px]">
                 <!-- Slides Container -->
@@ -54,7 +64,7 @@
                             <img src="{{ asset('images/banner_health.png') }}" alt="Genel Sağlık Kampanyası" class="w-full h-full object-cover" loading="eager">
                             <div class="absolute inset-0 bg-gradient-to-r from-slate-950/80 to-transparent flex flex-col justify-center px-8 sm:px-16 text-white">
                                 <span class="bg-trendyol text-white font-extrabold text-xs uppercase tracking-widest px-3 py-1 rounded-full w-max mb-3">Sağlık & Medikal</span>
-                                <h1 class="text-2xl sm:text-4xl lg:text-5xl font-black max-w-lg leading-tight">Kontakt Lens Aksesuarları</h1>
+                                <h2 class="text-2xl sm:text-4xl lg:text-5xl font-black max-w-lg leading-tight">Kontakt Lens Aksesuarları</h2>
                                 <p class="text-slate-300 text-xs sm:text-base mt-2 max-w-sm">Yetkili satıcısı olduğumuz orijinal DMV® vantuzları ve sızdırmaz lens kapları.</p>
                                 <div class="mt-6 flex gap-4">
                                     <a href="#tum-urunler" class="bg-trendyol hover:bg-trendyolDark text-white px-6 py-2.5 rounded-lg text-sm font-bold shadow-md hover:shadow-lg transition-all">Ürünleri Gör</a>
@@ -67,7 +77,7 @@
                             <img src="{{ asset('images/banner_health2.png') }}" alt="Orijinal DMV Aparatları" class="w-full h-full object-cover" loading="lazy">
                             <div class="absolute inset-0 bg-gradient-to-r from-slate-950/80 to-transparent flex flex-col justify-center px-8 sm:px-16 text-white">
                                 <span class="bg-amber-500 text-white font-extrabold text-xs uppercase tracking-widest px-3 py-1 rounded-full w-max mb-3">Amerika'dan İthal</span>
-                                <h1 class="text-2xl sm:text-4xl lg:text-5xl font-black max-w-lg leading-tight">Orijinal DMV® Ürünleri</h1>
+                                <h2 class="text-2xl sm:text-4xl lg:text-5xl font-black max-w-lg leading-tight">Orijinal DMV® Ürünleri</h2>
                                 <p class="text-slate-300 text-xs sm:text-base mt-2 max-w-sm">Skleral, sert ve yumuşak lensler için patentli takma ve çıkarma vantuzları.</p>
                                 <div class="mt-6 flex gap-4">
                                     <a href="#tum-urunler" class="bg-trendyol hover:bg-trendyolDark text-white px-6 py-2.5 rounded-lg text-sm font-bold shadow-md hover:shadow-lg transition-all">Şimdi İncele</a>
@@ -81,7 +91,7 @@
                             <img src="{{ asset('images/banner.png') }}" alt="Elektronik Geliştirme Kartları Kampanyası" class="w-full h-full object-cover" loading="eager">
                             <div class="absolute inset-0 bg-gradient-to-r from-slate-950/80 to-transparent flex flex-col justify-center px-8 sm:px-16 text-white">
                                 <span class="bg-trendyol text-white font-extrabold text-xs uppercase tracking-widest px-3 py-1 rounded-full w-max mb-3">Gelişmiş Donanım</span>
-                                <h1 class="text-2xl sm:text-4xl lg:text-5xl font-black max-w-lg leading-tight">Mikroişlemci Geliştirme Kartları</h1>
+                                <h2 class="text-2xl sm:text-4xl lg:text-5xl font-black max-w-lg leading-tight">Mikroişlemci Geliştirme Kartları</h2>
                                 <p class="text-slate-300 text-xs sm:text-base mt-2 max-w-sm">ESP32, ESP8266, S Tipi LED ve COB LED aydınlatma bileşenleri stoktan teslim.</p>
                                 <div class="mt-6 flex gap-4">
                                     <a href="#tum-urunler" class="bg-trendyol hover:bg-trendyolDark text-white px-6 py-2.5 rounded-lg text-sm font-bold shadow-md hover:shadow-lg transition-all">Şimdi Keşfet</a>
@@ -94,7 +104,7 @@
                             <img src="{{ asset('images/banner2.png') }}" alt="COB LED Aydınlatma Teknolojisi" class="w-full h-full object-cover" loading="lazy">
                             <div class="absolute inset-0 bg-gradient-to-r from-slate-950/80 to-transparent flex flex-col justify-center px-8 sm:px-16 text-white">
                                 <span class="bg-emerald-500 text-white font-extrabold text-xs uppercase tracking-widest px-3 py-1 rounded-full w-max mb-3">Yeni Nesil Işık</span>
-                                <h1 class="text-2xl sm:text-4xl lg:text-5xl font-black max-w-lg leading-tight">COB & S-Tipi LED Teknolojisi</h1>
+                                <h2 class="text-2xl sm:text-4xl lg:text-5xl font-black max-w-lg leading-tight">COB & S-Tipi LED Teknolojisi</h2>
                                 <p class="text-slate-300 text-xs sm:text-base mt-2 max-w-sm">Noktasız kesintisiz ışık veren şerit LED'ler ve bükülebilir S-Tipi aydınlatmalar.</p>
                                 <div class="mt-6 flex gap-4">
                                     <a href="#tum-urunler" class="bg-trendyol hover:bg-trendyolDark text-white px-6 py-2.5 rounded-lg text-sm font-bold shadow-md hover:shadow-lg transition-all">Modelleri Gör</a>
@@ -107,7 +117,7 @@
                             <img src="{{ asset('images/banner3.png') }}" alt="IoT Projeleri" class="w-full h-full object-cover" loading="lazy">
                             <div class="absolute inset-0 bg-gradient-to-r from-slate-950/80 to-transparent flex flex-col justify-center px-8 sm:px-16 text-white">
                                 <span class="bg-blue-500 text-white font-extrabold text-xs uppercase tracking-widest px-3 py-1 rounded-full w-max mb-3">Geleceğin Teknolojisi</span>
-                                <h1 class="text-2xl sm:text-4xl lg:text-5xl font-black max-w-lg leading-tight">IoT Projenize Özel Çözüm</h1>
+                                <h2 class="text-2xl sm:text-4xl lg:text-5xl font-black max-w-lg leading-tight">IoT Projenize Özel Çözüm</h2>
                                 <p class="text-slate-300 text-xs sm:text-base mt-2 max-w-sm">Akıllı ev sistemleri, giyilebilir teknoloji ve sensör modülleriyle projeler üretin.</p>
                                 <div class="mt-6 flex gap-4">
                                     <a href="#tum-urunler" class="bg-trendyol hover:bg-trendyolDark text-white px-6 py-2.5 rounded-lg text-sm font-bold shadow-md hover:shadow-lg transition-all">Projelere Başla</a>

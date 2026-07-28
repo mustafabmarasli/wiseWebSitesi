@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\OrderStatus;
 use App\Models\Coupon;
 use App\Models\Order;
 use App\Models\OrderItem;
@@ -520,7 +521,7 @@ class CartController extends Controller
             'estimated_delivery_at'   => now()->addDays(3),
             'total_amount'            => $netTotal,
             'currency'                => 'TRY',
-            'status'                  => 'pending',
+            'status'                  => OrderStatus::Pending->value,
             'iyzico_conversation_id'  => $conversationId,
             'cart_snapshot'           => $cart,
             'coupon_code'             => $coupon ? $coupon['code'] : null,
@@ -614,7 +615,7 @@ class CartController extends Controller
 
         if ($checkoutFormInitialize->getStatus() !== 'success') {
             // Siparişi başarısız işaretle
-            $order->update(['status' => 'failed']);
+            $order->update(['status' => OrderStatus::Failed->value]);
             return redirect()->route('checkout')
                 ->with('error', 'Ödeme başlatılamadı: ' . $checkoutFormInitialize->getErrorMessage());
         }

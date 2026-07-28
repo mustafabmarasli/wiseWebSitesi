@@ -19,7 +19,6 @@ class Product extends Model
         'description',
         'features',
         'price',
-        'discount_price',
         'eski_fiyat',
         'satis_sayisi',
         'view_count',
@@ -36,7 +35,6 @@ class Product extends Model
         'features' => 'array',
         'additional_images' => 'array',
         'price' => 'float',
-        'discount_price' => 'float',
         'eski_fiyat' => 'float',
         'satis_sayisi' => 'integer',
         'view_count' => 'integer',
@@ -70,17 +68,16 @@ class Product extends Model
      }
  
      /**
-      * Satışta geçerli olan fiyat: indirimli fiyat tanımlıysa o, değilse normal fiyat.
+      * Satışta geçerli fiyat.
       *
-      * Not: Sepet ve sipariş hesabı halen `price` üzerinden yürüyor. Buraya
-      * geçilecekse CartController::syncCart() de aynı anda güncellenmeli, yoksa
-      * vitrinde görünen fiyatla ödenen tutar birbirini tutmaz.
+      * Tek fiyat alanı vardır: `price`. İndirim, `eski_fiyat` üzeri çizilerek
+      * gösterilir. Vitrin, ürün kartı, detay, taksit, sepet ve sipariş —
+      * hepsi bu değeri kullanır. İkinci bir fiyat alanı EKLEME; "hangisi
+      * geçerli?" belirsizliği gösterilen fiyatla tahsil edilen tutarı ayırır.
       */
      public function getActivePriceAttribute(): float
      {
-         return $this->discount_price > 0
-             ? (float) $this->discount_price
-             : (float) $this->price;
+         return (float) $this->price;
      }
 
      /**
@@ -88,12 +85,13 @@ class Product extends Model
       */
      public function getDiscountPercentAttribute(): ?int
      {
-         $eski = (float) $this->eski_fiyat;
+         $eski  = (float) $this->eski_fiyat;
+         $simdi = (float) $this->price;
 
-         if ($eski <= 0 || $eski <= $this->active_price) {
+         if ($eski <= 0 || $eski <= $simdi) {
              return null;
          }
 
-         return (int) round((1 - $this->active_price / $eski) * 100);
+         return (int) round((1 - $simdi / $eski) * 100);
      }
 }

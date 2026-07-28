@@ -9,14 +9,60 @@
     <title>@yield('title', 'Buy WISEly - Geliştirme Kartları ve Sağlık Ürünleri')</title>
     <meta name="description" content="@yield('meta_description', 'Arduino, Raspberry Pi, ESP32 geliştirme kartları, sensörler ve robotik malzemeler en uygun fiyatlarla sitemizde!')">
     <link rel="canonical" href="{{ url()->current() }}">
-    
+
+    {{-- Sosyal paylaşım kartları (WhatsApp, Facebook, X, LinkedIn).
+         Bunlar olmadan paylaşılan link çıplak metin olarak görünür. --}}
+    <meta property="og:site_name" content="Buy WISEly">
+    <meta property="og:locale" content="tr_TR">
+    <meta property="og:type" content="@yield('og_type', 'website')">
+    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:title" content="@yield('og_title', View::yieldContent('title', 'Buy WISEly'))">
+    <meta property="og:description" content="@yield('og_description', View::yieldContent('meta_description', 'Geliştirme kartları, sensörler ve lens aksesuarları.'))">
+    <meta property="og:image" content="@yield('og_image', asset('images/banner.png'))">
+    <meta property="og:image:width" content="@yield('og_image_width', '1200')">
+    <meta property="og:image:height" content="@yield('og_image_height', '630')">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="@yield('og_title', View::yieldContent('title', 'Buy WISEly'))">
+    <meta name="twitter:description" content="@yield('og_description', View::yieldContent('meta_description', 'Geliştirme kartları, sensörler ve lens aksesuarları.'))">
+    <meta name="twitter:image" content="@yield('og_image', asset('images/banner.png'))">
+
+    {{-- Yapısal veri: her sayfa kendi şemasını `schema` bölümüne basar.
+         DİKKAT: Puanlar gerçek müşteri yorumu değil (seed verisi), bu yüzden
+         aggregateRating ASLA eklenmemeli — Google sahte değerlendirme sayar. --}}
+    @php
+        // Not: @json() direktifi çok satırlı iç içe dizilerde derlenen PHP'yi
+        // bozuyor (ParseError). Dizi burada kurulup json_encode ile basılır.
+        $kurumSemasi = [
+            '@context' => 'https://schema.org',
+            '@type'    => 'Organization',
+            'name'     => 'Wise Solutions',
+            'url'      => url('/'),
+            'logo'     => asset('img/strong-modern-logo-for--wise-solutions---large-bol (1).jpg'),
+            'email'    => config('mail.admin_address'),
+            'address'  => [
+                '@type'           => 'PostalAddress',
+                'addressLocality' => 'Kayseri',
+                'addressCountry'  => 'TR',
+            ],
+        ];
+    @endphp
+    <script type="application/ld+json">{!! json_encode($kurumSemasi, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
+    @yield('schema')
+
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- SweetAlert2 CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    {{-- SweetAlert2 — sürüm SABİT + SRI.
+         Sürüm aralığı (@11) kullanılırsa CDN yeni yama yayınladığında hash
+         tutmaz ve script hiç yüklenmez. Sürümü yükseltirken integrity
+         değerini de yenilemek gerekir. --}}
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.25/dist/sweetalert2.all.min.js"
+            integrity="sha384-nLoOnA/BDh8A/jxqtckg4DumuCGOBYUnNJLZdQz/zfYNp3wcjGSoWTAzgko06G/2"
+            crossorigin="anonymous"
+            referrerpolicy="no-referrer"></script>
     
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -61,7 +107,11 @@
     </style>
     
     <!-- AlpineJS CDN -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    {{-- Alpine.js — sürüm SABİT + SRI (yukarıdaki SweetAlert notuna bakın) --}}
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.15.12/dist/cdn.min.js"
+            integrity="sha384-pb6hrQvo4s23cEUFtj0CZkzGE3jyK3pj26RIupXXxhSrrcUA/Cn0lZgcCrGH0t6L"
+            crossorigin="anonymous"
+            referrerpolicy="no-referrer"></script>
 
     @yield('styles')
 </head>

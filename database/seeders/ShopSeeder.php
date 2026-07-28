@@ -713,11 +713,16 @@ class ShopSeeder extends Seeder
             $prod['category_id'] = $createdCategories[$catSlug]->id;
             $prod['slug'] = Str::slug($prod['name']);
             
-            // Map prices to the new schema:
+            // Yazım kolaylığı için ürünler "price = liste fiyatı,
+            // discount_price = satış fiyatı" biçiminde tanımlanmış.
+            // Şemada tek fiyat alanı var: liste fiyatı eski_fiyat'a taşınır,
+            // satış fiyatı price olur. discount_price kaydedilmez.
             if (isset($prod['discount_price']) && $prod['discount_price'] !== null) {
                 $prod['eski_fiyat'] = $prod['price'];
-                $prod['price'] = $prod['discount_price'];
+                $prod['price']      = $prod['discount_price'];
             }
+
+            unset($prod['discount_price']);
             
             // Assign a random sales count for demo purposes
             $prod['satis_sayisi'] = rand(10, 180);
