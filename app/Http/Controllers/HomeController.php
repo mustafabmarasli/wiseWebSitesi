@@ -63,7 +63,9 @@ class HomeController extends Controller
             $showcaseProducts = $showcaseProducts->concat($fallback);
         }
 
-        return view('home', compact('categories', 'popularProducts', 'discountedProducts', 'allProducts', 'showcaseProducts', 'channel', 'channelTitle'));
+        $slides = \App\Models\Slide::forChannel($channel);
+
+        return view('home', compact('categories', 'popularProducts', 'discountedProducts', 'allProducts', 'showcaseProducts', 'channel', 'channelTitle', 'slides'));
     }
 
     /**
@@ -113,6 +115,8 @@ class HomeController extends Controller
             $showcaseProducts = $showcaseProducts->concat($fallback);
         }
 
-        return view('home', compact('categories', 'popularProducts', 'discountedProducts', 'allProducts', 'showcaseProducts', 'channel', 'channelTitle'));
+        $slides = \App\Models\Slide::forChannel($channel);
+
+        return view('home', compact('categories', 'popularProducts', 'discountedProducts', 'allProducts', 'showcaseProducts', 'channel', 'channelTitle', 'slides'));
     }
 }

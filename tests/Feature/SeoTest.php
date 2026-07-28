@@ -46,6 +46,18 @@ it('sitemap.xml urun ve kategorileri icerir', function () {
     expect($xml)->toContain(route('landing'));
 });
 
+it('danismanlik kapaliyken sitemapte yer almaz', function () {
+    \App\Models\Setting::current()->update(['consulting_enabled' => false]);
+
+    expect($this->get('/sitemap.xml')->getContent())->not->toContain('/danismanlik');
+});
+
+it('danismanlik acikken sitemapte yer alir', function () {
+    \App\Models\Setting::current()->update(['consulting_enabled' => true]);
+
+    expect($this->get('/sitemap.xml')->getContent())->toContain('/danismanlik');
+});
+
 it('sitemapteki her adres gercekten acilir', function () {
     // Canli sitede yasal sayfalarin 6'si 404 veriyordu: sitemap'e URL slug'i
     // yerine gorunum dosyasi adi (alt cizgili) yazilmisti.

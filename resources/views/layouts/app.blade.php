@@ -119,6 +119,7 @@
 
     @php
         $currentPath = request()->path();
+        $danismanlikAcik = \App\Models\Setting::current()->consulting_enabled;
         $activeChannel = 'electronics';
         
         // Define active channel logic
@@ -146,8 +147,10 @@
                 <a href="{{ route('electronics.home') }}" class="hover:text-trendyol pb-0.5 {{ $activeChannel === 'electronics' && !Str::contains($currentPath, 'danismanlik') ? 'text-trendyol font-extrabold border-b-2 border-trendyol' : '' }}">Elektronik</a>
                 <span class="text-slate-300">|</span>
                 <a href="{{ route('health.home') }}" class="hover:text-trendyol pb-0.5 {{ $activeChannel === 'health' ? 'text-trendyol font-extrabold border-b-2 border-trendyol' : '' }}">Sağlık & Lens</a>
-                <span class="text-slate-300">|</span>
-                <a href="{{ route('consulting') }}" class="hover:text-trendyol pb-0.5 {{ Str::contains($currentPath, 'danismanlik') ? 'text-trendyol font-extrabold border-b-2 border-trendyol' : '' }}">Danışmanlık & Dış Ticaret</a>
+                @if ($danismanlikAcik)
+                    <span class="text-slate-300">|</span>
+                    <a href="{{ route('consulting') }}" class="hover:text-trendyol pb-0.5 {{ Str::contains($currentPath, 'danismanlik') ? 'text-trendyol font-extrabold border-b-2 border-trendyol' : '' }}">Danışmanlık & Dış Ticaret</a>
+                @endif
             </div>
             <div class="hidden sm:block">
                 <a href="{{ route('landing') }}" class="hover:text-trendyol flex items-center gap-1">
@@ -327,7 +330,9 @@
                 <ul class="space-y-4 text-xs font-bold text-slate-400">
                     <li><a href="{{ route('electronics.home') }}" class="hover:text-accentTeal hover:translate-x-1 duration-200 transition-all inline-block py-1">Elektronik Mağazası</a></li>
                     <li><a href="{{ route('health.home') }}" class="hover:text-accentTeal hover:translate-x-1 duration-200 transition-all inline-block py-1">Sağlık & Lens Mağazası</a></li>
+                    @if ($danismanlikAcik)
                     <li><a href="{{ route('consulting') }}" class="hover:text-accentTeal hover:translate-x-1 duration-200 transition-all inline-block py-1">Danışmanlık Hizmetleri</a></li>
+                    @endif
                     <li><a href="{{ route('contact') }}" class="hover:text-accentTeal hover:translate-x-1 duration-200 transition-all inline-block py-1">Müşteri İletişimi</a></li>
                 </ul>
             </div>
@@ -445,7 +450,9 @@
                         <div class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-1">Mağaza Kanalları</div>
                         <a href="{{ route('electronics.home') }}" class="block px-3 py-2 rounded-lg text-sm font-bold text-slate-700 hover:bg-slate-50 hover:text-trendyol transition-colors">Elektronik</a>
                         <a href="{{ route('health.home') }}" class="block px-3 py-2 rounded-lg text-sm font-bold text-slate-700 hover:bg-slate-50 hover:text-trendyol transition-colors">Sağlık & Lens</a>
+                        @if ($danismanlikAcik)
                         <a href="{{ route('consulting') }}" class="block px-3 py-2 rounded-lg text-sm font-bold text-slate-700 hover:bg-slate-50 hover:text-trendyol transition-colors">Danışmanlık & Dış Ticaret</a>
+                        @endif
                     </div>
 
                     <hr class="border-slate-100">

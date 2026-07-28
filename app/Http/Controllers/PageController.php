@@ -23,6 +23,10 @@ class PageController extends Controller
      */
     public function consulting()
     {
+        // Bölüm panelden kapatıldıysa sayfa da erişilemez olmalı; yoksa
+        // menüden gizlenmiş ama adresi bilen herkese açık kalırdı.
+        abort_unless(\App\Models\Setting::current()->consulting_enabled, 404);
+
         return view('consulting');
     }
 

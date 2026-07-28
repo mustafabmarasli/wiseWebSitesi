@@ -40,6 +40,7 @@ class ShippingSettings extends Page
             'announcement_enabled',
             'announcement_title',
             'announcement_text',
+            'consulting_enabled',
         ]));
     }
 
@@ -69,6 +70,14 @@ class ShippingSettings extends Page
                             ->minValue(0)
                             ->maxValue(1000000)
                             ->nullable(),
+                    ]),
+
+                Section::make('Bölümler')
+                    ->description('Sitede hangi bölümlerin görüneceğini buradan açıp kapatabilirsiniz.')
+                    ->schema([
+                        Toggle::make('consulting_enabled')
+                            ->label('Danışmanlık ve Dış Ticaret bölümü')
+                            ->helperText('Kapalıyken portal sayfasındaki üçüncü bölme, üst menü, alt bilgi ve mobil menüdeki bağlantılar gizlenir; /danismanlik adresi de 404 döner.'),
                     ]),
 
                 Section::make('Site Duyurusu')
@@ -107,6 +116,7 @@ class ShippingSettings extends Page
                 'announcement_enabled'    => (bool) ($data['announcement_enabled'] ?? false),
                 'announcement_title'      => $data['announcement_title'] ?? null,
                 'announcement_text'       => $data['announcement_text'] ?? null,
+            'consulting_enabled'      => (bool) ($data['consulting_enabled'] ?? false),
             ]);
 
             Notification::make()

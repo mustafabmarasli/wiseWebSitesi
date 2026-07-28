@@ -1,3 +1,4 @@
+@php $danismanlikAcik = \App\Models\Setting::current()->consulting_enabled; @endphp
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -5,8 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     
     <link rel="icon" type="image/jpeg" href="{{ asset('img/strong-modern-logo-for--wise-solutions---large-bol (1).jpg') }}">
-    <title>Wise Solutions - Elektronik, Lens Aksesuarları ve Dış Ticaret Danışmanlığı</title>
-    <meta name="description" content="ESP32 ve Arduino geliştirme kartları, orijinal DMV® lens aksesuarları ve dış ticaret danışmanlığı. Kayseri merkezli Wise Solutions ile stoktan hızlı teslimat.">
+    <title>Wise Solutions - Elektronik ve Lens Aksesuarları@if($danismanlikAcik), Dış Ticaret Danışmanlığı@endif</title>
+    <meta name="description" content="ESP32 ve Arduino geliştirme kartları, orijinal DMV® lens aksesuarları@if($danismanlikAcik) ve dış ticaret danışmanlığı@endif. Kayseri merkezli Wise Solutions ile stoktan hızlı teslimat.">
     <link rel="canonical" href="{{ url()->current() }}">
 
     {{-- Bu sayfa layouts.app'i KULLANMIYOR (bağımsız portal tasarımı), bu yüzden
@@ -15,12 +16,12 @@
     <meta property="og:locale" content="tr_TR">
     <meta property="og:type" content="website">
     <meta property="og:url" content="{{ url()->current() }}">
-    <meta property="og:title" content="Wise Solutions - Elektronik, Lens Aksesuarları ve Dış Ticaret">
-    <meta property="og:description" content="ESP32 ve Arduino geliştirme kartları, orijinal DMV® lens aksesuarları ve dış ticaret danışmanlığı.">
+    <meta property="og:title" content="Wise Solutions - Elektronik ve Lens Aksesuarları">
+    <meta property="og:description" content="ESP32 ve Arduino geliştirme kartları ve orijinal DMV® lens aksesuarları.">
     <meta property="og:image" content="{{ asset('images/banner.png') }}">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Wise Solutions">
-    <meta name="twitter:description" content="Elektronik geliştirme kartları, lens aksesuarları ve dış ticaret danışmanlığı.">
+    <meta name="twitter:description" content="Elektronik geliştirme kartları ve lens aksesuarları.">
     <meta name="twitter:image" content="{{ asset('images/banner.png') }}">
 
     @php
@@ -100,6 +101,23 @@
                 clip-path: polygon(77% 0, 100% 0, 100% 100%, 47% 100%);
                 z-index: 30;
             }
+
+            /* Danismanlik bolumu gizliyken iki bolme ekrani tam kaplar.
+               Aksi halde ucuncu bolmenin yeri bos egik bir alan olarak kalirdi. */
+            .iki-bolme .clip-section-1 {
+                clip-path: polygon(0 0, 65% 0, 35% 100%, 0 100%);
+            }
+            .iki-bolme .clip-section-2 {
+                clip-path: polygon(65% 0, 100% 0, 100% 100%, 35% 100%);
+            }
+            .iki-bolme .clip-section-1:hover {
+                clip-path: polygon(0 0, 68% 0, 38% 100%, 0 100%);
+                z-index: 30;
+            }
+            .iki-bolme .clip-section-2:hover {
+                clip-path: polygon(62% 0, 100% 0, 100% 100%, 32% 100%);
+                z-index: 30;
+            }
         }
     </style>
 </head>
@@ -109,13 +127,13 @@
          görünür bir başlık yok; arama motorları ve ekran okuyucular için
          gizli ama okunabilir bir başlık + tanıtım metni bulunuyor.
          Bunlar `display:none` DEĞİL — sr-only, yani gizleme cezası almaz. --}}
-    <h1 class="sr-only">Wise Solutions — Elektronik Geliştirme Kartları, Lens Aksesuarları ve Dış Ticaret Danışmanlığı</h1>
+    <h1 class="sr-only">Wise Solutions — Elektronik Geliştirme Kartları ve Lens Aksesuarları@if($danismanlikAcik), Dış Ticaret Danışmanlığı@endif</h1>
     <p class="sr-only">
         Kayseri merkezli Wise Solutions; ESP32, ESP8266 ve Arduino geliştirme kartları,
         sensör modülleri ve LED aydınlatma bileşenleri ile orijinal DMV® kontakt lens
-        takma-çıkarma vantuzları ve lens saklama kutuları satmaktadır. Ayrıca dış ticaret
-        ve ithalat danışmanlığı hizmeti vermektedir. Aşağıdaki bölümlerden ilgilendiğiniz
-        alanı seçebilirsiniz.
+        takma-çıkarma vantuzları ve lens saklama kutuları satmaktadır.@if($danismanlikAcik)
+        Ayrıca dış ticaret ve ithalat danışmanlığı hizmeti vermektedir.@endif
+        Aşağıdaki bölümlerden ilgilendiğiniz alanı seçebilirsiniz.
     </p>
 
 
@@ -140,6 +158,7 @@
             <span class="relative z-10 text-trendyol font-extrabold text-xs tracking-widest uppercase bg-black/40 px-3 py-1 rounded">Alışverişe Başla</span>
         </a>
 
+        @if ($danismanlikAcik)
         <!-- Section 3: Danışmanlık ve Dış Ticaret -->
         <a href="{{ route('consulting') }}" class="flex-1 relative overflow-hidden group flex flex-col justify-center items-center text-center p-6 active:scale-98 transition-all duration-200">
             <div class="absolute inset-0 bg-cover bg-center filter blur-[1.5px] brightness-[0.35] group-hover:scale-105 transition-transform duration-700" style="background-image: url('https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=800&q=80');"></div>
@@ -150,11 +169,12 @@
                 <span class="text-white text-[9px] font-bold tracking-widest uppercase bg-slate-900/60 px-2 py-0.5 rounded">Detaylı Bilgi İçin Tıklayın</span>
             </div>
         </a>
+        @endif
 
     </div>
 
     <!-- Desktop view: 3-column slanted segments -->
-    <div class="hidden md:block absolute inset-0 w-full h-full pointer-events-none">
+    <div class="hidden md:block absolute inset-0 w-full h-full pointer-events-none @if(!$danismanlikAcik) iki-bolme @endif">
         
         <!-- Section 1: Elektronik -->
         <div class="absolute inset-0 w-full h-full z-10 pointer-events-none">
@@ -192,6 +212,7 @@
             </a>
         </div>
 
+        @if ($danismanlikAcik)
         <!-- Section 3: Danışmanlık ve Dış Ticaret -->
         <div class="absolute inset-0 w-full h-full z-10 pointer-events-none">
             <a href="{{ route('consulting') }}" class="w-full h-full block relative cursor-pointer pointer-events-auto clip-section-3 transition-all duration-500 group">
@@ -209,6 +230,7 @@
                 </div>
             </a>
         </div>
+        @endif
 
     </div>
 

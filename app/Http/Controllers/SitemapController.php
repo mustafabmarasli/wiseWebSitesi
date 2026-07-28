@@ -32,7 +32,12 @@ class SitemapController extends Controller
         $urls[] = $this->url(route('landing'), '1.0', 'daily');
         $urls[] = $this->url(route('electronics.home'), '0.9', 'daily');
         $urls[] = $this->url(route('health.home'), '0.9', 'daily');
-        $urls[] = $this->url(route('consulting'), '0.6', 'monthly');
+        // Danışmanlık bölümü panelden kapatılabiliyor; kapalıyken sayfa 404
+        // döndüğü için site haritasına konmamalı.
+        if (\App\Models\Setting::current()->consulting_enabled) {
+            $urls[] = $this->url(route('consulting'), '0.6', 'monthly');
+        }
+
         $urls[] = $this->url(route('contact'), '0.5', 'monthly');
 
         // Kategoriler

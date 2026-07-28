@@ -15,12 +15,14 @@ class Setting extends Model
         'announcement_enabled',
         'announcement_title',
         'announcement_text',
+        'consulting_enabled',
     ];
 
     protected $casts = [
         'standard_shipping_cost'  => 'decimal:2',
         'free_shipping_threshold' => 'decimal:2',
         'announcement_enabled'    => 'boolean',
+        'consulting_enabled'      => 'boolean',
     ];
 
     /**

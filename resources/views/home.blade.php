@@ -58,86 +58,55 @@
             <div class="relative rounded-2xl overflow-hidden shadow-lg border border-slate-200 group h-48 sm:h-80 md:h-[400px]">
                 <!-- Slides Container -->
                 <div id="hero-slider" class="flex transition-transform duration-700 ease-in-out h-full w-full" style="transform: translateX(0%);">
-                    @if ($channel === 'health')
-                        <!-- Slayt 1 (Sağlık) -->
+                    {{-- Slaytlar veritabanindan gelir; panelden yonetilir.
+                         Once koda gomuluydu, her degisiklik yayin gerektiriyordu. --}}
+                    @foreach ($slides as $i => $slide)
                         <div class="w-full h-full shrink-0 relative">
-                            <img src="{{ asset('images/banner_health.png') }}" alt="Genel Sağlık Kampanyası" class="w-full h-full object-cover" loading="eager">
+                            @if ($slide->image_url)
+                                <img src="{{ $slide->image_url }}"
+                                     alt="{{ $slide->image_alt ?: $slide->title }}"
+                                     class="w-full h-full object-cover"
+                                     loading="{{ $i === 0 ? 'eager' : 'lazy' }}">
+                            @else
+                                <div class="w-full h-full bg-gradient-to-br from-slate-800 to-slate-950"></div>
+                            @endif
+
                             <div class="absolute inset-0 bg-gradient-to-r from-slate-950/80 to-transparent flex flex-col justify-center px-8 sm:px-16 text-white">
-                                <span class="bg-trendyol text-white font-extrabold text-xs uppercase tracking-widest px-3 py-1 rounded-full w-max mb-3">Sağlık & Medikal</span>
-                                <h2 class="text-2xl sm:text-4xl lg:text-5xl font-black max-w-lg leading-tight">Kontakt Lens Aksesuarları</h2>
-                                <p class="text-slate-300 text-xs sm:text-base mt-2 max-w-sm">Yetkili satıcısı olduğumuz orijinal DMV® vantuzları ve sızdırmaz lens kapları.</p>
-                                <div class="mt-6 flex gap-4">
-                                    <a href="#tum-urunler" class="bg-trendyol hover:bg-trendyolDark text-white px-6 py-2.5 rounded-lg text-sm font-bold shadow-md hover:shadow-lg transition-all">Ürünleri Gör</a>
-                                    <a href="{{ route('contact') }}" class="bg-white/10 hover:bg-white/20 text-white backdrop-blur border border-white/30 px-6 py-2.5 rounded-lg text-sm font-bold transition-all">Danışın</a>
-                                </div>
+                                @if ($slide->badge)
+                                    <span class="{{ $slide->badge_class }} text-white font-extrabold text-xs uppercase tracking-widest px-3 py-1 rounded-full w-max mb-3">{{ $slide->badge }}</span>
+                                @endif
+
+                                <h2 class="text-2xl sm:text-4xl lg:text-5xl font-black max-w-lg leading-tight">{{ $slide->title }}</h2>
+
+                                @if ($slide->subtitle)
+                                    <p class="text-slate-300 text-xs sm:text-base mt-2 max-w-sm">{{ $slide->subtitle }}</p>
+                                @endif
+
+                                @if ($slide->primary_text || $slide->secondary_text)
+                                    <div class="mt-6 flex gap-4">
+                                        @if ($slide->primary_text)
+                                            <a href="{{ $slide->primary_url ?: '#tum-urunler' }}" class="bg-trendyol hover:bg-trendyolDark text-white px-6 py-2.5 rounded-lg text-sm font-bold shadow-md hover:shadow-lg transition-all">{{ $slide->primary_text }}</a>
+                                        @endif
+                                        @if ($slide->secondary_text)
+                                            <a href="{{ $slide->secondary_url ?: route('contact') }}" class="bg-white/10 hover:bg-white/20 text-white backdrop-blur border border-white/30 px-6 py-2.5 rounded-lg text-sm font-bold transition-all">{{ $slide->secondary_text }}</a>
+                                        @endif
+                                    </div>
+                                @endif
                             </div>
                         </div>
-                        <!-- Slayt 2 (Sağlık) -->
-                        <div class="w-full h-full shrink-0 relative">
-                            <img src="{{ asset('images/banner_health2.png') }}" alt="Orijinal DMV Aparatları" class="w-full h-full object-cover" loading="lazy">
-                            <div class="absolute inset-0 bg-gradient-to-r from-slate-950/80 to-transparent flex flex-col justify-center px-8 sm:px-16 text-white">
-                                <span class="bg-amber-500 text-white font-extrabold text-xs uppercase tracking-widest px-3 py-1 rounded-full w-max mb-3">Amerika'dan İthal</span>
-                                <h2 class="text-2xl sm:text-4xl lg:text-5xl font-black max-w-lg leading-tight">Orijinal DMV® Ürünleri</h2>
-                                <p class="text-slate-300 text-xs sm:text-base mt-2 max-w-sm">Skleral, sert ve yumuşak lensler için patentli takma ve çıkarma vantuzları.</p>
-                                <div class="mt-6 flex gap-4">
-                                    <a href="#tum-urunler" class="bg-trendyol hover:bg-trendyolDark text-white px-6 py-2.5 rounded-lg text-sm font-bold shadow-md hover:shadow-lg transition-all">Şimdi İncele</a>
-                                    <a href="{{ route('contact') }}" class="bg-white/10 hover:bg-white/20 text-white backdrop-blur border border-white/30 px-6 py-2.5 rounded-lg text-sm font-bold transition-all">Bilgi Al</a>
-                                </div>
-                            </div>
-                        </div>
-                    @else
-                        <!-- Slayt 1 (Elektronik) -->
-                        <div class="w-full h-full shrink-0 relative">
-                            <img src="{{ asset('images/banner.png') }}" alt="Elektronik Geliştirme Kartları Kampanyası" class="w-full h-full object-cover" loading="eager">
-                            <div class="absolute inset-0 bg-gradient-to-r from-slate-950/80 to-transparent flex flex-col justify-center px-8 sm:px-16 text-white">
-                                <span class="bg-trendyol text-white font-extrabold text-xs uppercase tracking-widest px-3 py-1 rounded-full w-max mb-3">Gelişmiş Donanım</span>
-                                <h2 class="text-2xl sm:text-4xl lg:text-5xl font-black max-w-lg leading-tight">Mikroişlemci Geliştirme Kartları</h2>
-                                <p class="text-slate-300 text-xs sm:text-base mt-2 max-w-sm">ESP32, ESP8266, S Tipi LED ve COB LED aydınlatma bileşenleri stoktan teslim.</p>
-                                <div class="mt-6 flex gap-4">
-                                    <a href="#tum-urunler" class="bg-trendyol hover:bg-trendyolDark text-white px-6 py-2.5 rounded-lg text-sm font-bold shadow-md hover:shadow-lg transition-all">Şimdi Keşfet</a>
-                                    <a href="{{ route('contact') }}" class="bg-white/10 hover:bg-white/20 text-white backdrop-blur border border-white/30 px-6 py-2.5 rounded-lg text-sm font-bold transition-all">Destek Al</a>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- Slayt 2 (Elektronik) -->
-                        <div class="w-full h-full shrink-0 relative">
-                            <img src="{{ asset('images/banner2.png') }}" alt="COB LED Aydınlatma Teknolojisi" class="w-full h-full object-cover" loading="lazy">
-                            <div class="absolute inset-0 bg-gradient-to-r from-slate-950/80 to-transparent flex flex-col justify-center px-8 sm:px-16 text-white">
-                                <span class="bg-emerald-500 text-white font-extrabold text-xs uppercase tracking-widest px-3 py-1 rounded-full w-max mb-3">Yeni Nesil Işık</span>
-                                <h2 class="text-2xl sm:text-4xl lg:text-5xl font-black max-w-lg leading-tight">COB & S-Tipi LED Teknolojisi</h2>
-                                <p class="text-slate-300 text-xs sm:text-base mt-2 max-w-sm">Noktasız kesintisiz ışık veren şerit LED'ler ve bükülebilir S-Tipi aydınlatmalar.</p>
-                                <div class="mt-6 flex gap-4">
-                                    <a href="#tum-urunler" class="bg-trendyol hover:bg-trendyolDark text-white px-6 py-2.5 rounded-lg text-sm font-bold shadow-md hover:shadow-lg transition-all">Modelleri Gör</a>
-                                    <a href="{{ route('contact') }}" class="bg-white/10 hover:bg-white/20 text-white backdrop-blur border border-white/30 px-6 py-2.5 rounded-lg text-sm font-bold transition-all">Detaylı Bilgi</a>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- Slayt 3 (Elektronik) -->
-                        <div class="w-full h-full shrink-0 relative">
-                            <img src="{{ asset('images/banner3.png') }}" alt="IoT Projeleri" class="w-full h-full object-cover" loading="lazy">
-                            <div class="absolute inset-0 bg-gradient-to-r from-slate-950/80 to-transparent flex flex-col justify-center px-8 sm:px-16 text-white">
-                                <span class="bg-blue-500 text-white font-extrabold text-xs uppercase tracking-widest px-3 py-1 rounded-full w-max mb-3">Geleceğin Teknolojisi</span>
-                                <h2 class="text-2xl sm:text-4xl lg:text-5xl font-black max-w-lg leading-tight">IoT Projenize Özel Çözüm</h2>
-                                <p class="text-slate-300 text-xs sm:text-base mt-2 max-w-sm">Akıllı ev sistemleri, giyilebilir teknoloji ve sensör modülleriyle projeler üretin.</p>
-                                <div class="mt-6 flex gap-4">
-                                    <a href="#tum-urunler" class="bg-trendyol hover:bg-trendyolDark text-white px-6 py-2.5 rounded-lg text-sm font-bold shadow-md hover:shadow-lg transition-all">Projelere Başla</a>
-                                    <a href="{{ route('contact') }}" class="bg-white/10 hover:bg-white/20 text-white backdrop-blur border border-white/30 px-6 py-2.5 rounded-lg text-sm font-bold transition-all">İletişime Geç</a>
-                                </div>
-                            </div>
-                        </div>
-                    @endif
+                    @endforeach
                 </div>
 
                 <!-- Dots Indicators -->
+                {{-- Nokta sayısı slayt sayısına göre üretilir; panelden slayt
+                     eklenince/silinince elle güncellemeye gerek kalmaz. --}}
                 <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2 z-20">
-                    @if ($channel === 'health')
-                        <button onclick="goToSlide(0)" class="w-2.5 h-2.5 rounded-full bg-white/50 hover:bg-white transition-all slider-dot" id="dot-0"></button>
-                        <button onclick="goToSlide(1)" class="w-2.5 h-2.5 rounded-full bg-white/50 hover:bg-white transition-all slider-dot" id="dot-1"></button>
-                    @else
-                        <button onclick="goToSlide(0)" class="w-2.5 h-2.5 rounded-full bg-white/50 hover:bg-white transition-all slider-dot" id="dot-0"></button>
-                        <button onclick="goToSlide(1)" class="w-2.5 h-2.5 rounded-full bg-white/50 hover:bg-white transition-all slider-dot" id="dot-1"></button>
-                        <button onclick="goToSlide(2)" class="w-2.5 h-2.5 rounded-full bg-white/50 hover:bg-white transition-all slider-dot" id="dot-2"></button>
-                    @endif
+                    @foreach ($slides as $i => $slide)
+                        <button type="button" onclick="goToSlide({{ $i }})"
+                                aria-label="{{ $i + 1 }}. görsele git"
+                                class="w-2.5 h-2.5 rounded-full bg-white/50 hover:bg-white transition-all slider-dot"
+                                id="dot-{{ $i }}"></button>
+                    @endforeach
                 </div>
 
                 <!-- Slider Arrows -->
@@ -366,7 +335,9 @@
 
     <script>
         let currentSlide = 0;
-        const slidesCount = {{ $channel === 'health' ? 2 : 3 }};
+        // Slayt sayısı veritabanından gelir; sabit yazılırsa panelden slayt
+        // eklendiğinde slider boş kareye kayar.
+        const slidesCount = {{ $slides->count() }};
         const sliderEl = document.getElementById('hero-slider');
         
         function updateSlider() {
