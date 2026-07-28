@@ -57,13 +57,21 @@ class SitemapController extends Controller
             }
         });
 
-        // Yasal sayfalar — nadiren değişir, düşük öncelik
-        foreach (['kvkk', 'mesafeli_satis', 'on_bilgilendirme', 'gizlilik_guvenlik', 'cerez_politikasi', 'teslimat_iade', 'kullanim_kosullari'] as $sayfa) {
-            $urls[] = $this->url(
-                $sayfa === 'kvkk' ? route('kvkk') : route('procedural', $sayfa),
-                '0.3',
-                'yearly'
-            );
+        // Yasal sayfalar — nadiren değişir, düşük öncelik.
+        // DİKKAT: Buradaki değerler URL slug'larıdır (TİRE ile), görünüm dosyası
+        // adları değil (onlar alt çizgi kullanıyor). PageController::procedural()
+        // içindeki beyaz listeyle birebir aynı olmalı.
+        $urls[] = $this->url(route('kvkk'), '0.3', 'yearly');
+
+        foreach ([
+            'mesafeli-satis',
+            'on-bilgilendirme',
+            'gizlilik-guvenlik',
+            'cerez-politikasi',
+            'teslimat-iade',
+            'kullanim-kosullari',
+        ] as $sayfa) {
+            $urls[] = $this->url(route('procedural', $sayfa), '0.3', 'yearly');
         }
 
         return '<?xml version="1.0" encoding="UTF-8"?>' . "\n"

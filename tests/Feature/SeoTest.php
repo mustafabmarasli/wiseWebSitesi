@@ -46,6 +46,28 @@ it('sitemap.xml urun ve kategorileri icerir', function () {
     expect($xml)->toContain(route('landing'));
 });
 
+it('sitemapteki her adres gercekten acilir', function () {
+    // Canli sitede yasal sayfalarin 6'si 404 veriyordu: sitemap'e URL slug'i
+    // yerine gorunum dosyasi adi (alt cizgili) yazilmisti.
+    seoUrun();
+
+    $xml = $this->get('/sitemap.xml')->getContent();
+    preg_match_all('|<loc>([^<]+)</loc>|', $xml, $m);
+
+    expect($m[1])->not->toBeEmpty();
+
+    $bozuk = [];
+    foreach ($m[1] as $url) {
+        $yol = parse_url($url, PHP_URL_PATH) ?: '/';
+
+        if ($this->get($yol)->getStatusCode() !== 200) {
+            $bozuk[] = $yol;
+        }
+    }
+
+    expect($bozuk)->toBeEmpty('sitemapte acilmayan adres var: ' . implode(', ', $bozuk));
+});
+
 it('sitemap gecerli xml uretir', function () {
     seoUrun();
 
