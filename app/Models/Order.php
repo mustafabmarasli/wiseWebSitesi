@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Order extends Model
 {
     protected $fillable = [
+        'order_number',
         'user_id',
         'first_name',
         'last_name',
@@ -62,6 +63,55 @@ class Order extends Model
         'payment_confirmed_at'   => 'datetime',
         'is_corporate'           => 'boolean',
     ];
+
+    /**
+     * Sipariş numarasında kullanılan karakterler.
+     *
+     * Birbirine benzeyen karakterler (0/O, 1/I/L) bilerek çıkarıldı: bu numara
+     * telefonda okunacak ve havale açıklamasına elle yazılacak.
+     */
+    private const NUMARA_KARAKTERLERI = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+
+    /**
+     * Yeni bir sipariş numarası üretir: 260729-WISE-K4M2
+     *
+     * Tarih öndedir; banka ekstresini tararken hangi güne ait olduğu
+     * doğrudan görülür. Son bölüm rastgeledir — saat kullanılsaydı aynı
+     * saniyede verilen iki sipariş aynı numarayı alırdı.
+     */
+    public static function yeniSiparisNumarasi(?\DateTimeInterface $tarih = null): string
+    {
+        $tarih = $tarih ? \Carbon\Carbon::instance($tarih) : now();
+
+        do {
+            $sonek = '';
+            for ($i = 0; $i < 4; $i++) {
+                $sonek .= self::NUMARA_KARAKTERLERI[random_int(0, strlen(self::NUMARA_KARAKTERLERI) - 1)];
+            }
+
+            $numara = $tarih->format('ymd') . '-WISE-' . $sonek;
+        } while (static::where('order_number', $numara)->exists());
+
+        return $numara;
+    }
+
+    protected static function booted(): void
+    {
+        // Numara sipariş oluşturulurken atanır; hiçbir çağrı yerinin bunu
+        // ayrıca hatırlaması gerekmesin diye modelin kendi sorumluluğunda.
+        static::creating(function (self $order) {
+            $order->order_number ??= static::yeniSiparisNumarasi();
+        });
+    }
+
+    /**
+     * Müşteriye ve panelde gösterilecek numara.
+     * Eski kayıtlarda numara yoksa id'ye düşer.
+     */
+    public function getDisplayNumberAttribute(): string
+    {
+        return $this->order_number ?: (string) $this->id;
+    }
 
     /** Havale/EFT ile ödenecek bir sipariş mi? */
     public function isBankTransfer(): bool

@@ -53,15 +53,40 @@ class OrderFulfiller
     /**
      * Sipariş e-postalarını gönderir. Gönderim başarısız olsa bile sipariş
      * geçerlidir; bu yüzden hata yalnızca loglanır.
+     *
+     * @param  bool  $notifyAdmin  Havale onayında false geçilir: yönetici
+     *   siparişten sipariş anında zaten haberdar edildi ve onayı kendisi
+     *   verdi; ikinci bir "yeni sipariş" e-postası yalnızca kafa karıştırır.
      */
-    public function sendConfirmationMails(Order $order): void
+    public function sendConfirmationMails(Order $order, bool $notifyAdmin = true): void
     {
         try {
             Mail::to($order->email)->send(new OrderConfirmedMail($order));
-            Mail::to(config('mail.admin_address'))->send(new AdminNewOrderMail($order));
         } catch (\Exception $e) {
-            Log::error('Sipariş e-postası gönderilemedi (Sipariş ID: ' . $order->id . '): ' . $e->getMessage());
+            Log::error('Sipariş e-postası gönderilemedi (Sipariş No: ' . $order->display_number . '): ' . $e->getMessage());
         }
+
+        if ($notifyAdmin) {
+            $this->notifyAdmin($order);
+        }
+    }
+
+    /**
+     * Yeni sipariş bildirimini yöneticiye iletir.
+     *
+     * İki kanal birbirinin yedeğidir: SMTP kesintisinde veya e-posta spam'e
+     * düştüğünde Telegram, Telegram yapılandırılmamışsa e-posta devrededir.
+     * Biri düşerse diğeri yine de denenir.
+     */
+    public function notifyAdmin(Order $order): void
+    {
+        try {
+            Mail::to(config('mail.order_notification_address'))->send(new AdminNewOrderMail($order));
+        } catch (\Exception $e) {
+            Log::error('Yönetici sipariş e-postası gönderilemedi (Sipariş No: ' . $order->display_number . '): ' . $e->getMessage());
+        }
+
+        (new TelegramNotifier())->notifyNewOrder($order);
     }
 
     /**

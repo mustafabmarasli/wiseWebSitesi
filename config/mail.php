@@ -127,4 +127,19 @@ return [
 
     'admin_address' => env('MAIL_ADMIN_ADDRESS', 'info@wisesolutions.com.tr'),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Sipariş Bildirim Adresi
+    |--------------------------------------------------------------------------
+    |
+    | Yeni sipariş uyarıları buraya gider. Kurumsal adresten ayrı tutulabilir:
+    | gönderen ve alıcı aynı adres olduğunda (info@ → info@) bazı sağlayıcılar
+    | mesajı spam'e atıyor veya hiç göstermiyor. Tanımlanmazsa admin_address
+    | kullanılır, yani mevcut davranış korunur.
+    |
+    */
+
+    'order_notification_address' => env('MAIL_ORDER_NOTIFY_ADDRESS')
+        ?: env('MAIL_ADMIN_ADDRESS', 'info@wisesolutions.com.tr'),
+
 ];

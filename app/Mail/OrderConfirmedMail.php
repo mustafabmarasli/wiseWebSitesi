@@ -30,7 +30,9 @@ class OrderConfirmedMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Siparişiniz Başarıyla Alındı! - #' . $this->order->id,
+            subject: $this->order->isBankTransfer()
+                ? 'Ödemeniz Alındı, Siparişiniz Hazırlanıyor - ' . $this->order->display_number
+                : 'Siparişiniz Başarıyla Alındı! - ' . $this->order->display_number,
         );
     }
 

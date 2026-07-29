@@ -23,6 +23,7 @@ class Setting extends Model
         'bank_iban',
         'bank_transfer_note',
         'card_payment_enabled',
+        'identity_required_threshold',
     ];
 
     protected $casts = [
@@ -33,6 +34,7 @@ class Setting extends Model
         'bank_transfer_enabled'   => 'boolean',
         'card_payment_enabled'    => 'boolean',
         'bank_transfer_discount_percent' => 'decimal:2',
+        'identity_required_threshold'    => 'decimal:2',
     ];
 
     /**
@@ -127,5 +129,34 @@ class Setting extends Model
         }
 
         return round(min($subtotal * $percent / 100, $subtotal), 2);
+    }
+
+    /**
+     * Bu sipariş için TC Kimlik No zorunlu mu?
+     *
+     * Vergi mükellefi olmayan nihai tüketiciye kesilen faturada TC Kimlik No
+     * zorunlu değildir; yalnızca tutar fatura düzenleme haddini aştığında
+     * e-Arşiv faturaya yazılması gerekir. Ticari faturada ise her hâlükârda
+     * VKN/TCKN gerekir. Gerekmiyorken toplamak KVKK'nın veri minimizasyonu
+     * ilkesiyle çelişir ve ödeme adımında terk sebebidir.
+     *
+     * @param  float  $netTotal   Ödenecek nihai tutar.
+     * @param  bool   $corporate  Ticari fatura isteniyor mu?
+     * @param  bool   $cardPayment  Kartla ödeme (iyzico bu alanı zorunlu tutar).
+     */
+    public function requiresIdentityNumber(float $netTotal, bool $corporate = false, bool $cardPayment = false): bool
+    {
+        if ($corporate || $cardPayment) {
+            return true;
+        }
+
+        $threshold = (float) $this->identity_required_threshold;
+
+        // Eşik 0 ise "her siparişte zorunlu" anlamına gelir.
+        if ($threshold <= 0) {
+            return true;
+        }
+
+        return $netTotal >= $threshold;
     }
 }

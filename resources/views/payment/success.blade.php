@@ -19,7 +19,7 @@
         <div class="bg-slate-50 rounded-2xl p-6 border border-slate-100 text-left mb-8">
             <h2 class="text-sm font-black text-slate-900 uppercase tracking-wider mb-4 border-b border-slate-200 pb-2 flex justify-between">
                 <span>Sipariş Bilgileri</span>
-                <span class="text-[#1B3A6B]">#{{ $order->id }}</span>
+                <span class="text-[#1B3A6B]">{{ $order->display_number }}</span>
             </h2>
             
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-semibold text-slate-600 mb-4">

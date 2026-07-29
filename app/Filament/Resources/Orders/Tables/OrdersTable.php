@@ -28,10 +28,14 @@ class OrdersTable
     {
         return $table
             ->columns([
-                TextColumn::make('id')
+                TextColumn::make('order_number')
                     ->label('Sipariş No')
-                    ->sortable()
-                    ->searchable(),
+                    // Siralama id uzerinden: numaradaki tarih onekiyle siralamak
+                    // ayni gunun siparislerini rastgele diziyordu.
+                    ->sortable(query: fn ($query, string $direction) => $query->orderBy('id', $direction))
+                    ->searchable()
+                    ->copyable()
+                    ->weight('bold'),
                 TextColumn::make('full_name')
                     ->label('Müşteri')
                     ->weight('medium')

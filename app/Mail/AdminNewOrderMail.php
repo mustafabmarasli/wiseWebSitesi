@@ -27,9 +27,14 @@ class AdminNewOrderMail extends Mailable
      */
     public function envelope(): Envelope
     {
-        return new Envelope(
-            subject: 'Yeni Sipariş Alındı! - #' . $this->order->id,
-        );
+        // Konu satırı ödemenin alınıp alınmadığını söylemeli: havale
+        // siparişlerinde para henüz gelmemiştir, "Yeni sipariş" başlığı
+        // yanıltıcı olur ve kargoya erken verilmesine yol açabilir.
+        $konu = $this->order->status === \App\Enums\OrderStatus::Pending->value
+            ? 'ÖDEME BEKLENİYOR — Yeni Sipariş ' . $this->order->display_number
+            : 'Yeni Sipariş Alındı! - ' . $this->order->display_number;
+
+        return new Envelope(subject: $konu);
     }
 
     /**

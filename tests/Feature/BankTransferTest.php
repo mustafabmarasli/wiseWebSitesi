@@ -192,7 +192,37 @@ it('banka bilgileri ve siparis numarasi sayfada gosterilir', function () {
         ->assertOk()
         ->assertSee($setting->bank_iban)
         ->assertSee($setting->bank_account_holder)
-        ->assertSee('Sipariş No: ' . $siparis->id, escape: false);
+        ->assertSee('Sipariş No: ' . $siparis->order_number, escape: false);
+});
+
+it('siparis numarasi tarih-WISE-sonek bicimindedir', function () {
+    havaleAyarla();
+    Mail::fake();
+
+    $siparis = havaleSiparisi(havaleUrunu());
+
+    // Otomatik artan id disariya siparis sayisini sizdiriyordu.
+    expect($siparis->order_number)->toMatch('/^\d{6}-WISE-[A-Z2-9]{4}$/');
+    expect($siparis->order_number)->toStartWith(now()->format('ymd'));
+});
+
+it('siparis numarasi benzersizdir', function () {
+    havaleAyarla();
+    Mail::fake();
+
+    $numaralar = collect(range(1, 30))->map(fn () => Order::yeniSiparisNumarasi());
+
+    expect($numaralar->unique())->toHaveCount(30);
+});
+
+it('siparis numarasinda karistirilabilir karakter bulunmaz', function () {
+    // Numara telefonda okunacak ve havale aciklamasina elle yazilacak:
+    // 0/O ve 1/I/L ayrimi hataya cok acik.
+    $sonekler = collect(range(1, 50))
+        ->map(fn () => substr(Order::yeniSiparisNumarasi(), -4))
+        ->implode('');
+
+    expect($sonekler)->not->toMatch('/[01OIL]/');
 });
 
 it('baskasinin havale sayfasi goruntulenemez', function () {
@@ -216,6 +246,59 @@ it('musteriye banka bilgilerini iceren e-posta gonderilir', function () {
     $siparis = havaleSiparisi($urun);
 
     Mail::assertSent(BankTransferOrderMail::class, fn ($mail) => $mail->order->id === $siparis->id);
+});
+
+it('siparis verilir verilmez yoneticiye bildirim gider', function () {
+    havaleAyarla();
+    Mail::fake();
+
+    $urun    = havaleUrunu();
+    $siparis = havaleSiparisi($urun);
+
+    Mail::assertSent(
+        \App\Mail\AdminNewOrderMail::class,
+        fn ($mail) => $mail->hasTo(config('mail.order_notification_address')) && $mail->order->id === $siparis->id
+    );
+});
+
+it('yoneticiye ayni siparis icin iki kez bildirim gitmez', function () {
+    havaleAyarla();
+    Mail::fake();
+
+    $urun    = havaleUrunu();
+    $siparis = havaleSiparisi($urun);
+
+    // Onayi yonetici kendisi verdi; ikinci bir "yeni siparis" e-postasi
+    // gercek yeni siparislerle karisir.
+    (new OrderFulfiller())->sendConfirmationMails($siparis->refresh(), notifyAdmin: false);
+
+    Mail::assertSent(\App\Mail\AdminNewOrderMail::class, 1);
+});
+
+it('odeme beklerken yoneticiye giden bildirim bunu konu satirinda belirtir', function () {
+    havaleAyarla();
+    Mail::fake();
+
+    $urun    = havaleUrunu();
+    $siparis = havaleSiparisi($urun);
+
+    Mail::assertSent(\App\Mail\AdminNewOrderMail::class, function ($mail) {
+        return str_contains($mail->envelope()->subject, 'ÖDEME BEKLENİYOR');
+    });
+});
+
+it('yonetici bildiriminde TC kimlik no yer almaz', function () {
+    havaleAyarla();
+    Mail::fake();
+
+    $urun    = havaleUrunu();
+    $siparis = havaleSiparisi($urun);
+
+    // TC veritabaninda sifreli tutuluyor; ayni veriyi e-posta ile duz metin
+    // gondermek bu korumayi anlamsiz kilardi.
+    Mail::assertSent(\App\Mail\AdminNewOrderMail::class, function ($mail) {
+        return ! str_contains($mail->render(), GECERLI_TC);
+    });
 });
 
 it('odeme onaylandiktan sonra havale sayfasi basari sayfasina yonlenir', function () {

@@ -48,6 +48,7 @@ class ShippingSettings extends Page
             'bank_iban',
             'bank_transfer_note',
             'card_payment_enabled',
+            'identity_required_threshold',
         ]));
     }
 
@@ -130,6 +131,20 @@ class ShippingSettings extends Page
                             ->helperText('Kapalıyken müşteriye "Çok Yakında" olarak pasif gösterilir. iyzico başvurunuz onaylandığında burayı açmanız yeterli.'),
                     ]),
 
+                Section::make('Fatura ve Kimlik Bilgisi')
+                    ->description('Vergi mükellefi olmayan nihai tüketiciye kesilen faturada TC Kimlik No zorunlu değildir; yalnızca tutar fatura düzenleme haddini aştığında gerekir. Bu had her yıl yeniden değerleme ile artar.')
+                    ->schema([
+                        TextInput::make('identity_required_threshold')
+                            ->label('TC Kimlik No İsteme Sınırı')
+                            ->helperText('Sipariş tutarı bu değerin üzerindeyse TC Kimlik No zorunlu olur, altındaysa isteğe bağlı. Ticari faturada ve kartla ödemede tutara bakılmaksızın zorunludur. 2025: 9.900 ₺ — 2026: 12.000 ₺. Her siparişte istemek için 0 yazın.')
+                            ->prefix('₺')
+                            ->numeric()
+                            ->minValue(0)
+                            ->maxValue(10000000)
+                            ->default(12000)
+                            ->required(),
+                    ]),
+
                 Section::make('Bölümler')
                     ->description('Sitede hangi bölümlerin görüneceğini buradan açıp kapatabilirsiniz.')
                     ->schema([
@@ -186,6 +201,7 @@ class ShippingSettings extends Page
                     ? strtoupper(preg_replace('/\s+/', '', $data['bank_iban']))
                     : null,
                 'bank_transfer_note'      => $data['bank_transfer_note'] ?? null,
+                'identity_required_threshold' => $data['identity_required_threshold'] ?? 0,
             ]);
 
             Notification::make()

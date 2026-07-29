@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Enums\OrderStatus;
-use App\Mail\AdminNewOrderMail;
 use App\Mail\BankTransferOrderMail;
+use App\Services\OrderFulfiller;
 use App\Models\Coupon;
 use App\Models\Order;
 use App\Models\OrderItem;
@@ -380,11 +380,20 @@ class CartController extends Controller
                 ->values()
             : collect();
 
+        // İlk çizimde alanın zorunlu görünüp görünmeyeceği; kullanıcı ödeme
+        // yöntemini veya fatura tipini değiştirdiğinde JS aynı kuralı uygular.
+        $tcZorunlu = $setting->requiresIdentityNumber(
+            (float) $totals['netTotal'],
+            (bool) old('is_corporate'),
+            $defaultPaymentType === 'card'
+        );
+
         return view('checkout', array_merge($totals, compact(
             'provinces',
             'savedAddresses',
             'setting',
-            'defaultPaymentType'
+            'defaultPaymentType',
+            'tcZorunlu'
         )));
     }
 
@@ -393,6 +402,58 @@ class CartController extends Controller
      */
     public function initiatePayment(Request $request)
     {
+        // Seçilen yöntem gerçekten açık mı? Formdaki alan istemciden geliyor;
+        // kapalı bir yöntem POST edilerek zorlanamamalı. Bu kontrol alan
+        // doğrulamasından ÖNCE yapılır çünkü TC'nin zorunlu olup olmadığı
+        // ödeme yöntemine ve tutara bağlı.
+        $setting     = Setting::current();
+        $paymentType = $request->input('payment_type');
+
+        $izinli = ($paymentType === 'bank_transfer' && $setting->offersBankTransfer())
+            || ($paymentType === 'card' && $setting->offersCardPayment());
+
+        if (! $izinli) {
+            return redirect()->route('checkout')->with(
+                'error',
+                'Seçtiğiniz ödeme yöntemi şu anda kullanılamıyor. Lütfen tekrar deneyin.'
+            );
+        }
+
+        $isBankTransfer = $paymentType === 'bank_transfer';
+        $hadCoupon      = (bool) session()->get('coupon');
+
+        [
+            'cart'          => $cart,
+            'total'         => $total,
+            'discount'      => $discount,
+            'shippingCost'  => $shippingCost,
+            'bankDiscount'  => $bankDiscount,
+            'netTotal'      => $netTotal,
+            'coupon'        => $coupon,
+            'couponDropped' => $couponDropped,
+            'removed'       => $removed,
+            'adjusted'      => $adjusted,
+        ] = $this->calculateTotals($request->input('email'), $isBankTransfer);
+
+        if (empty($cart)) {
+            return redirect()->route('cart.index')->with('error', 'Sepetiniz boş.');
+        }
+
+        // TC Kimlik No yalnızca gerektiğinde istenir: ticari faturada,
+        // fatura düzenleme haddini aşan tutarlarda ve kartla ödemede
+        // (iyzico API'si bu alanı zorunlu tutuyor).
+        $tcZorunlu = $setting->requiresIdentityNumber(
+            (float) $netTotal,
+            $request->boolean('is_corporate'),
+            ! $isBankTransfer
+        );
+
+        // Boş metin "nullable" kuralını tetiklemez; null'a çevrilmezse
+        // zorunlu olmadığı hâlde "11 haneli olmalı" hatası verirdi.
+        if ($request->input('identity_number') === '') {
+            $request->merge(['identity_number' => null]);
+        }
+
         $request->validate([
             'first_name'      => 'required|string|max:100',
             'last_name'       => 'required|string|max:100',
@@ -404,7 +465,7 @@ class CartController extends Controller
             'address_detail'  => 'required|string|max:500',
             'zip_code'        => 'nullable|string|max:20',
             'identity_number' => [
-                'required',
+                $tcZorunlu ? 'required' : 'nullable',
                 'string',
                 'size:11',
                 'regex:/^[0-9]{11}$/',
@@ -472,41 +533,6 @@ class CartController extends Controller
             'agree_kvkk.accepted'      => 'KVKK Aydınlatma Metni\'ni onaylamanız gerekmektedir.',
             'agree_accuracy.accepted'  => 'Bilgilerin doğruluğundan sorumlu olduğunuzu onaylamanız gerekmektedir.',
         ]);
-
-        // Seçilen yöntem gerçekten açık mı? Formdaki alan istemciden geliyor;
-        // kapalı bir yöntem POST edilerek zorlanamamalı.
-        $setting     = Setting::current();
-        $paymentType = $request->input('payment_type');
-
-        $izinli = ($paymentType === 'bank_transfer' && $setting->offersBankTransfer())
-            || ($paymentType === 'card' && $setting->offersCardPayment());
-
-        if (! $izinli) {
-            return redirect()->route('checkout')->with(
-                'error',
-                'Seçtiğiniz ödeme yöntemi şu anda kullanılamıyor. Lütfen tekrar deneyin.'
-            );
-        }
-
-        $isBankTransfer = $paymentType === 'bank_transfer';
-        $hadCoupon      = (bool) session()->get('coupon');
-
-        [
-            'cart'          => $cart,
-            'total'         => $total,
-            'discount'      => $discount,
-            'shippingCost'  => $shippingCost,
-            'bankDiscount'  => $bankDiscount,
-            'netTotal'      => $netTotal,
-            'coupon'        => $coupon,
-            'couponDropped' => $couponDropped,
-            'removed'       => $removed,
-            'adjusted'      => $adjusted,
-        ] = $this->calculateTotals($request->email, $isBankTransfer);
-
-        if (empty($cart)) {
-            return redirect()->route('cart.index')->with('error', 'Sepetiniz boş.');
-        }
 
         // Stok bu arada değiştiyse ödemeyi başlatma — kullanıcı gördüğü sepetten
         // farklı bir siparişe onay vermiş olmasın.
@@ -612,10 +638,13 @@ class CartController extends Controller
 
             try {
                 Mail::to($order->email)->send(new BankTransferOrderMail($order, $setting));
-                Mail::to(config('mail.admin_address'))->send(new AdminNewOrderMail($order));
             } catch (\Exception $e) {
-                Log::error('Havale sipariş e-postası gönderilemedi (Sipariş ID: ' . $order->id . '): ' . $e->getMessage());
+                Log::error('Havale sipariş e-postası gönderilemedi (Sipariş No: ' . $order->display_number . '): ' . $e->getMessage());
             }
+
+            // Yönetici bildirimi (e-posta + Telegram) ayrı ele alınır:
+            // müşteriye giden e-posta başarısız olsa da bildirim gitmeli.
+            (new OrderFulfiller())->notifyAdmin($order);
 
             session()->forget(['cart', 'coupon']);
 

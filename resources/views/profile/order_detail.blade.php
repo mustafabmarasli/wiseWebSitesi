@@ -69,7 +69,7 @@
                         </a>
                         <h1 class="text-xl font-black text-slate-900">Sipariş Detayı</h1>
                     </div>
-                    <span class="text-xs font-black text-slate-400 bg-slate-50 border border-slate-100 px-3 py-1 rounded-lg">#{{ $order->id }}</span>
+                    <span class="text-xs font-black text-slate-400 bg-slate-50 border border-slate-100 px-3 py-1 rounded-lg">{{ $order->display_number }}</span>
                 </div>
 
                 <!-- Sipariş Takip Stepper -->

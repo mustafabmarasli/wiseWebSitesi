@@ -1,9 +1,15 @@
 <x-mail::message>
 # Sayın {{ $order->full_name }},
 
+@if ($order->isBankTransfer())
+{{-- Havale müşterisi "siparişinizi aldık" e-postasını zaten almıştı;
+     bu ikinci e-posta ödemenin hesaba geçtiğini bildirir. --}}
+**Ödemeniz hesabımıza ulaşmıştır.** Siparişiniz hazırlık sürecine başlanmıştır. Bizi tercih ettiğiniz için teşekkür ederiz!
+@else
 Siparişiniz başarıyla alınmıştır ve hazırlık sürecine başlanmıştır. Bizi tercih ettiğiniz için teşekkür ederiz!
+@endif
 
-### Sipariş Özeti (Sipariş No: #{{ $order->id }})
+### Sipariş Özeti (Sipariş No: {{ $order->display_number }})
 
 <x-mail::table>
 | Ürün Adı | Adet | Fiyat | Toplam |

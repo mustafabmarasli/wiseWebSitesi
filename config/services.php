@@ -41,4 +41,11 @@ return [
         'redirect' => env('GOOGLE_REDIRECT_URI', '/auth/google/callback'),
     ],
 
+    // Sipariş bildirimi için Telegram botu. İkisi de boşsa bildirim
+    // gönderilmez; uygulama yapılandırma olmadan da sorunsuz çalışır.
+    'telegram' => [
+        'bot_token' => env('TELEGRAM_BOT_TOKEN'),
+        'chat_id'   => env('TELEGRAM_CHAT_ID'),
+    ],
+
 ];

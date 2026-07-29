@@ -13,17 +13,17 @@ Siparişinizi aldık. Aşağıdaki hesaba **{{ number_format($order->total_amoun
 | **Banka** | {{ $setting->bank_name }} |
 @endif
 | **IBAN** | {{ $setting->bank_iban }} |
-| **Açıklama** | Sipariş No: {{ $order->id }} |
+| **Açıklama** | Sipariş No: {{ $order->display_number }} |
 | **Tutar** | {{ number_format($order->total_amount, 2, ',', '.') }} TL |
 </x-mail::table>
 
-**Önemli:** Havale/EFT açıklamasına mutlaka **Sipariş No: {{ $order->id }}** yazınız. Açıklama olmayan ödemelerin eşleştirilmesi gecikebilir.
+**Önemli:** Havale/EFT açıklamasına mutlaka **Sipariş No: {{ $order->display_number }}** yazınız. Açıklama olmayan ödemelerin eşleştirilmesi gecikebilir.
 
 @if ($setting->bank_transfer_note)
 {{ $setting->bank_transfer_note }}
 @endif
 
-### Sipariş Özeti (Sipariş No: #{{ $order->id }})
+### Sipariş Özeti (Sipariş No: {{ $order->display_number }})
 
 <x-mail::table>
 | Ürün Adı | Adet | Fiyat | Toplam |

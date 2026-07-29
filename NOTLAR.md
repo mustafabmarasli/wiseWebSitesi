@@ -91,6 +91,61 @@ php artisan config:clear && php artisan view:clear && php artisan route:clear
 
 ---
 
+## 4.5. Sunucuda `.env` düzenleme
+
+`.env` git'e girmez — bilgisayarındaki değişiklik sunucuya **gitmez**, elle yapman gerekir.
+
+Önce klasöre gir:
+
+```bash
+cd ~/domains/wisesolutions.com.tr/public_html
+```
+
+### Yeni bir satır ekleyeceksen (en kolayı)
+
+Önce gerçekten yok mu bak:
+
+```bash
+grep MAIL_ORDER_NOTIFY_ADDRESS .env
+```
+
+Hiçbir şey yazmadıysa yok demektir, sona ekle:
+
+```bash
+echo 'MAIL_ORDER_NOTIFY_ADDRESS="mustafabmarasli@gmail.com"' >> .env
+```
+
+> `>>` ekler, `>` **dosyanın tamamını siler**. Tek `>` yazma.
+
+### Var olan bir satırı değiştireceksen (nano)
+
+```bash
+nano .env
+```
+
+- Ok tuşlarıyla gez, normal yazı yazar gibi düzenle
+- Kaydet: **Ctrl+O** → **Enter**
+- Çık: **Ctrl+X**
+- Vazgeç: **Ctrl+X** → **N**
+
+Fare çalışmaz, kopyala-yapıştır için sağ tık kullan.
+
+### Her değişiklikten sonra
+
+```bash
+php artisan config:clear
+```
+
+Bunu yapmazsan Laravel eski değeri kullanmaya devam eder.
+
+Kontrol:
+
+```bash
+grep -E "^MAIL_|^TELEGRAM_" .env
+```
+
+---
+
 ## 5. Sık kullanılan komutlar (sunucuda)
 
 | Ne yapar | Komut |
@@ -111,6 +166,57 @@ php artisan config:clear && php artisan view:clear && php artisan route:clear
 - Ürün görsellerini **canlı panelden** yükle: https://wisesolutions.com.tr/admin
 - Toplu yükleme: Admin → **Toplu Görsel Yükle**
 - Görseller otomatik **WebP**'ye çevrilir ve küçültülür (tarayıcıda, yüklemeden önce)
+
+---
+
+## 6.5. Sipariş bildirimleri
+
+Her yeni siparişte **iki kanaldan** haber verilir. Biri çalışmazsa diğeri devrede kalsın diye ikisi de var.
+
+**E-posta** — sunucudaki `.env`'de:
+
+```
+MAIL_ADMIN_ADDRESS="info@wisesolutions.com.tr"      ← iletişim formu buraya gider
+MAIL_ORDER_NOTIFY_ADDRESS="mustafabmarasli@gmail.com" ← sipariş uyarısı buraya gider
+```
+
+İkisi ayrı olmalı: gönderen ve alıcı aynı adres olduğunda (`info@` → `info@`) bazı sağlayıcılar mesajı spam'e atıyor.
+
+**Telegram** — anlık, telefona bildirim düşer:
+
+1. Telegram'da **@BotFather**'a yaz, `/newbot` gönder, bir isim ver. Sana bir **token** verir.
+2. Oluşturduğun bota bir mesaj at (örn. "merhaba").
+3. Tarayıcıda aç: `https://api.telegram.org/bot<TOKEN>/getUpdates`
+4. Dönen metinde `"chat":{"id":123456789` — o sayı senin **chat id**'in.
+5. Sunucudaki `.env`'e ekle:
+
+```
+TELEGRAM_BOT_TOKEN=1234567890:AAH...
+TELEGRAM_CHAT_ID=123456789
+```
+
+6. Sunucuda dene:
+
+```bash
+php artisan telegram:test
+```
+
+Boş bırakırsan Telegram bildirimi gönderilmez, e-posta çalışmaya devam eder.
+
+---
+
+## 6.6. Havale / EFT ile satış
+
+Panel → **Site Ayarları → Ödeme Yöntemleri**:
+
+- **Hesap Adı / Şirket Tam Ünvanı** ve **IBAN** doldurulmadan havale seçeneği müşteriye gösterilmez ve ödeme sayfası kapalı kalır.
+- **Havale / EFT İndirimi**: yüzde. İstemiyorsan 0 yaz.
+- **Kredi / Banka Kartı**: iyzico onaylanınca burayı aç.
+
+**Para geldiğinde:** Panel → Siparişler → siparişi aç → **"Ödeme Geldi, Onayla"**.
+Stok ancak o düğmeye basınca düşer. **Onaylamadan kargoya verme.**
+
+Sipariş numaraları `260729-WISE-K4M2` biçiminde. Müşteri havale açıklamasına bunu yazar; banka ekstresinde bu numarayla eşleştirirsin.
 
 ---
 

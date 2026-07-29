@@ -99,7 +99,7 @@ class OrderExporter
         $subtotal = $items->sum('total_price');
 
         return [
-            $order->id,
+            $order->display_number,
             $order->created_at?->format('d.m.Y H:i'),
             self::STATUS_LABELS[$order->status] ?? $order->status,
             $order->user_id ? 'Üye' : 'Misafir',

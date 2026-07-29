@@ -23,7 +23,7 @@ class ViewOrder extends ViewRecord
         /** @var Order $order */
         $order = $this->getRecord();
 
-        return "Sipariş #{$order->id} — {$order->full_name}";
+        return "Sipariş {$order->display_number} — {$order->full_name}";
     }
 
     protected function getHeaderActions(): array
@@ -57,7 +57,7 @@ class ViewOrder extends ViewRecord
                         return;
                     }
 
-                    $fulfiller->sendConfirmationMails($record->refresh());
+                    $fulfiller->sendConfirmationMails($record->refresh(), notifyAdmin: false);
 
                     Notification::make()
                         ->title('Ödeme onaylandı')

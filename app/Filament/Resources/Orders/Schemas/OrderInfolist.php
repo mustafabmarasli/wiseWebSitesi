@@ -16,7 +16,7 @@ class OrderInfolist
             Section::make('Sipariş Özeti')
                 ->columns(4)
                 ->schema([
-                    TextEntry::make('id')->label('Sipariş No')->prefix('#')->weight('bold'),
+                    TextEntry::make('order_number')->label('Sipariş No')->copyable()->weight('bold'),
                     TextEntry::make('created_at')->label('Sipariş Tarihi')->dateTime('d.m.Y H:i'),
                     TextEntry::make('status')
                         ->label('Durum')

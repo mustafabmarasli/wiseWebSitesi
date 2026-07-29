@@ -79,7 +79,7 @@
                                     <div class="flex items-center gap-4">
                                         <div>
                                             <span class="block text-[10px] text-slate-400 font-bold uppercase tracking-wider">Sipariş No</span>
-                                            <span class="text-slate-800 font-black">#{{ $order->id }}</span>
+                                            <span class="text-slate-800 font-black">{{ $order->display_number }}</span>
                                         </div>
                                         <div>
                                             <span class="block text-[10px] text-slate-400 font-bold uppercase tracking-wider">Tarih</span>

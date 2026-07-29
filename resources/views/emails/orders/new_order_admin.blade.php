@@ -1,9 +1,15 @@
 <x-mail::message>
 # Sayın Yönetici,
 
-Sitenizden yeni bir sipariş verildi ve ödemesi başarıyla tamamlandı.
+@if ($order->status === \App\Enums\OrderStatus::Pending->value)
+Sitenizden yeni bir sipariş verildi. **Ödeme henüz alınmadı** — müşteri havale/EFT ile ödeyecek.
 
-### Sipariş Özeti (Sipariş No: #{{ $order->id }})
+Para hesabınıza geçtiğinde yönetim panelinden **"Ödeme Geldi, Onayla"** düğmesine basın. Stok ancak o zaman düşer ve müşteriye onay e-postası gider. **Onaylamadan kargoya vermeyin.**
+@else
+Sitenizden yeni bir sipariş verildi ve ödemesi başarıyla tamamlandı.
+@endif
+
+### Sipariş Özeti (Sipariş No: {{ $order->display_number }})
 
 <x-mail::table>
 | Ürün Adı | Adet | Fiyat | Toplam |
@@ -22,9 +28,21 @@ Sitenizden yeni bir sipariş verildi ve ödemesi başarıyla tamamlandı.
 - **Adres:** {{ $order->address }}
 - **Şehir/Posta Kodu:** {{ !empty($order->zip_code) ? $order->zip_code : '' }} {{ $order->city }}
 - **Ödeme Yöntemi:** {{ $order->payment_method }}
-- **TC Kimlik Numarası:** {{ $order->identity_number ?? 'Belirtilmedi' }}
+@if ($order->is_corporate)
+- **Fatura Tipi:** Ticari — {{ $order->company_name }} / VD: {{ $order->tax_office }} / VKN: {{ $order->tax_number }}
+@endif
+@if ($order->coupon_code)
+- **Kullanılan Kupon:** {{ $order->coupon_code }} (-{{ number_format((float) $order->discount_amount, 2, ',', '.') }} TL)
+@endif
 
-Detayları görüntülemek ve siparişi yönetmek için yönetim panelini ziyaret edebilirsiniz.
+{{-- TC Kimlik No bilerek buraya yazılmıyor: veritabanında şifreli tutulan
+     bir veriyi e-posta ile düz metin göndermek KVKK açısından tutarsız olur.
+     Fatura için gerektiğinde panelden veya Excel çıktısından görülebilir. --}}
+TC Kimlik No dahil tüm bilgiler yönetim panelindeki sipariş detayında yer alır.
+
+<x-mail::button :url="route('filament.admin.resources.orders.view', $order->id)">
+Siparişi Panelde Aç
+</x-mail::button>
 
 Teşekkürler,<br>
 **Buy WISEly & Wise Solutions Otomasyon Sistemi**

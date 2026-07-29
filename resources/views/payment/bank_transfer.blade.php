@@ -16,7 +16,7 @@
 
             <h1 class="text-2xl sm:text-3xl font-black text-slate-900 mb-2">Siparişinizi Aldık!</h1>
             <p class="text-slate-500 text-sm mb-2">
-                Sipariş numaranız <span class="font-black text-slate-800">#{{ $order->id }}</span>
+                Sipariş numaranız <span class="font-black text-slate-800">{{ $order->display_number }}</span>
             </p>
             <p class="text-slate-500 text-sm mb-8">
                 Ödemeniz hesabımıza geçtiğinde siparişiniz hazırlanmaya başlanacaktır.
@@ -59,7 +59,7 @@
                 <div>
                     <dt class="text-[10px] font-bold text-amber-700 uppercase tracking-wider mb-1">Açıklama (Zorunlu)</dt>
                     <dd class="flex flex-wrap items-center gap-2">
-                        <span id="aciklama-text" class="text-sm font-black text-slate-900">Sipariş No: {{ $order->id }}</span>
+                        <span id="aciklama-text" class="text-sm font-black text-slate-900">Sipariş No: {{ $order->display_number }}</span>
                         <button type="button" onclick="kopyala('aciklama-text', this)"
                                 class="shrink-0 bg-white hover:bg-amber-100 border border-amber-300 text-amber-800 font-extrabold px-3 py-1.5 rounded-lg text-[11px] transition-colors">
                             Kopyala
@@ -74,7 +74,7 @@
             </dl>
 
             <p class="mt-5 text-xs text-amber-900 font-semibold leading-relaxed bg-amber-100/70 rounded-xl px-4 py-3">
-                Havale/EFT açıklamasına mutlaka <span class="font-black">Sipariş No: {{ $order->id }}</span> yazınız.
+                Havale/EFT açıklamasına mutlaka <span class="font-black">Sipariş No: {{ $order->display_number }}</span> yazınız.
                 Açıklaması olmayan ödemelerin siparişinizle eşleştirilmesi gecikebilir.
             </p>
 
@@ -87,7 +87,7 @@
         <div class="bg-slate-50 rounded-2xl p-6 border border-slate-100 text-left mb-8">
             <h2 class="text-sm font-black text-slate-900 uppercase tracking-wider mb-4 border-b border-slate-200 pb-2 flex justify-between">
                 <span>Sipariş Bilgileri</span>
-                <span class="text-[#1B3A6B]">#{{ $order->id }}</span>
+                <span class="text-[#1B3A6B]">{{ $order->display_number }}</span>
             </h2>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-semibold text-slate-600 mb-4">

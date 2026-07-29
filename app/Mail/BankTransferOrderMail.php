@@ -29,7 +29,7 @@ class BankTransferOrderMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Siparişinizi Aldık — Ödeme Bilgileri #' . $this->order->id,
+            subject: 'Siparişinizi Aldık — Ödeme Bilgileri ' . $this->order->display_number,
         );
     }
 

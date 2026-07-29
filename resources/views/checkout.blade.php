@@ -135,12 +135,23 @@
                                 class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-trendyol focus:bg-white focus:border-transparent transition-all duration-200"
                                 placeholder="+90 545 545 54 45" required>
                         </div>
+                        {{-- TC Kimlik No koşullu: ticari faturada, fatura düzenleme
+                             haddini aşan tutarlarda ve kartla ödemede zorunlu.
+                             Zorunluluk sunucuda da yeniden denetleniyor. --}}
                         <div>
-                            <label for="identity_number" class="block text-xs font-extrabold text-slate-600 uppercase tracking-wider mb-1.5">TC Kimlik No *</label>
+                            <label for="identity_number" class="block text-xs font-extrabold text-slate-600 uppercase tracking-wider mb-1.5">
+                                TC Kimlik No <span id="tc-yildiz" class="{{ $tcZorunlu ? '' : 'hidden' }}">*</span>
+                            </label>
                             <input type="text" id="identity_number" name="identity_number" value="{{ old('identity_number') }}"
                                 maxlength="11" inputmode="numeric"
                                 class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-trendyol focus:bg-white focus:border-transparent transition-all duration-200"
-                                placeholder="11 haneli TC Kimlik No" required>
+                                placeholder="11 haneli TC Kimlik No" @required($tcZorunlu)>
+                            <p id="tc-aciklama" class="text-[11px] text-slate-500 font-semibold mt-1.5 {{ $tcZorunlu ? 'hidden' : '' }}">
+                                Bu tutarda fatura için gerekmiyor, boş bırakabilirsiniz.
+                            </p>
+                            <p id="tc-aciklama-zorunlu" class="text-[11px] text-slate-500 font-semibold mt-1.5 {{ $tcZorunlu ? '' : 'hidden' }}">
+                                Fatura mevzuatı gereği bu sipariş için zorunludur.
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -665,6 +676,9 @@
                 document.getElementById('tax_number').removeAttribute('required');
                 document.getElementById('tax_office').removeAttribute('required');
             }
+
+            // Ticari faturada TC/VKN her hâlükârda gerekir
+            tcZorunluGuncelle();
         }
 
         /* ---------- Ödeme yöntemi: indirim satırı ve toplam ----------
@@ -703,6 +717,31 @@
             document.querySelectorAll('.odeme-secenegi').forEach(function (kutu) {
                 kutu.classList.toggle('secili', !!kutu.querySelector('input:checked'));
             });
+
+            tcZorunluGuncelle();
+        }
+
+        /* TC Kimlik No zorunluluğu ödeme yöntemine, ticari fatura tercihine ve
+           tutara bağlı. Sunucu aynı kuralı yeniden uygular; buradaki yalnızca
+           kullanıcıya doğru alanı göstermek içindir. */
+        const TC_ESIK = {{ round((float) $setting->identity_required_threshold, 2) }};
+
+        function tcZorunluGuncelle() {
+            const secili  = document.querySelector('input[name="payment_type"]:checked');
+            const kart    = secili && secili.value === 'card';
+            const havale  = secili && secili.value === 'bank_transfer';
+            const ticari  = document.getElementById('corporate-invoice-toggle')?.checked;
+            const indirim = havale ? Math.min(ARA_TOPLAM * HAVALE_YUZDE / 100, ARA_TOPLAM) : 0;
+            const toplam  = ARA_TOPLAM - indirim + KARGO;
+
+            const zorunlu = !!(kart || ticari || TC_ESIK <= 0 || toplam >= TC_ESIK);
+
+            const alan = document.getElementById('identity_number');
+            if (alan) alan.required = zorunlu;
+
+            document.getElementById('tc-yildiz')?.classList.toggle('hidden', !zorunlu);
+            document.getElementById('tc-aciklama')?.classList.toggle('hidden', zorunlu);
+            document.getElementById('tc-aciklama-zorunlu')?.classList.toggle('hidden', !zorunlu);
         }
 
         odemeYontemiDegisti();
@@ -710,7 +749,9 @@
         // Form submit handler with TC validation
         document.getElementById('checkout-form').addEventListener('submit', function (e) {
             const tcInput = document.getElementById('identity_number');
-            if (tcInput) {
+            // Zorunlu olmadığında boş bırakılabilir; yalnızca girilmişse
+            // doğruluğu kontrol edilir.
+            if (tcInput && (tcInput.required || tcInput.value.trim() !== '')) {
                 const tcVal = tcInput.value.trim();
                 if (!isValidTcKimlik(tcVal)) {
                     e.preventDefault();
