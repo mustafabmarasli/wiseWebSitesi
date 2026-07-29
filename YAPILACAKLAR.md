@@ -8,40 +8,15 @@ Sıralama önem derecesine göre: üsttekiler önce yapılmalı.
 
 | Sıra | İş | Kim | Süre |
 |---|---|---|---|
-| 1 | Stok bildirimi gerçekten çalışsın (madde 1) | Claude | Orta |
-| 2 | Vitrin tıklama + favori görünürlüğü (madde 2, 3) | Claude | Küçük |
-| 3 | Kategori açıklamaları (madde 5) | **Mustafa** | Yarım saat |
-| 4 | Blog altyapısı (madde 6) | Claude | Yarım gün |
-| 5 | Paylaşım düğmeleri (madde 4) | Claude | Küçük |
-| 6 | Ürün SSS (madde 7) | Claude + Mustafa | Kısa |
-| 7 | İçerik yazımı (madde 8) | **Mustafa** | Sürekli |
+| 1 | Vitrin tıklama + favori görünürlüğü (madde 2, 3) | Claude | Küçük |
+| 2 | Kategori açıklamaları (madde 5) | **Mustafa** | Yarım saat |
+| 3 | Blog altyapısı (madde 6) | Claude | Yarım gün |
+| 4 | Paylaşım düğmeleri (madde 4) | Claude | Küçük |
+| 5 | Ürün SSS (madde 7) | Claude + Mustafa | Kısa |
+| 6 | İçerik yazımı (madde 8) | **Mustafa** | Sürekli |
 
-3. sıradaki iş kod gerektirmiyor — Claude başka bir şey yaparken paralel
+2. sıradaki iş kod gerektirmiyor — Claude başka bir şey yaparken paralel
 ilerleyebilirsin.
-
----
-
-## 🔴 Önce bunlar — müşteriye yanlış söz veriyoruz
-
-### 1. "Stok Gelince Haber Ver" hiçbir şey kaydetmiyor
-
-**Durum:** Buton var, müşteriye *"E-posta adresiniz kaydedildi, ürün stoklarımıza girdiğinde bilgilendirme gönderilecektir"* diyor — ama **hiçbir yere kaydetmiyor ve hiçbir zaman e-posta göndermiyor.**
-
-Sadece bir açılır pencere gösteriyor. Sunucuya istek gitmiyor, veritabanında tablo yok, gönderim yok.
-
-**Nerede:** `resources/views/layouts/app.blade.php` → `notifyStock()` fonksiyonu.
-Buton üç yerde: ürün detay sayfası, ürün kartları, anasayfa vitrin kartları.
-
-**Neden acil:** Stokta olmayan ürüne ilgi duyan müşteri en değerli müşteri. Şu an onlara yalan söylüyoruz; bekleyip haber gelmeyince bir daha gelmezler.
-
-**Yapılacak:**
-- `stock_notifications` tablosu (ürün, e-posta, kullanıcı, bildirildi mi, tarih)
-- Butondan gerçek POST — aynı e-posta + ürün için tekrar kayıt açılmasın
-- Panelden stok 0'dan yukarı çıkınca bekleyenlere e-posta
-- Panelde "kaç kişi bekliyor" göstergesi — hangi ürünü tedarik edeceğini bu söyler
-- KVKK: e-posta toplanıyor, aydınlatma metnine eklenmeli
-
-**Ara çözüm (5 dakika):** Düzeltene kadar butonun metnini dürüst yap veya butonu gizle.
 
 ---
 
@@ -198,3 +173,42 @@ rehberin sonunda satılan ürün sende.
 ## Bitenler
 
 _(iş bitince buraya taşı, tarih yaz)_
+
+### Kargo rozeti gerçek koşulu gösteriyor — 29.07.2026
+
+Ürün sayfası koşulsuz **"Kargo Bedava & Bugün Kargoda!"**, anasayfa şeridi
+**"Ücretsiz Kargo / Tüm siparişlerde"** diyordu — panelde ücretsiz kargo alt
+limiti tanımlıyken bile. Müşteri ödeme adımında sürpriz kargo ücretiyle
+karşılaşıyordu.
+
+Artık metin `Setting::shippingNotice()`'ten geliyor:
+- Kargo ücreti 0 → "Ücretsiz Kargo · Tüm siparişlerde"
+- Eşik tanımlı, ürün fiyatı eşiğin altında → "Ücretsiz Kargo · 500,00 TL ve üzeri siparişlerde"
+- Eşik tanımlı, ürün fiyatı eşiği geçiyor → "Ücretsiz Kargo · Bu ürün için geçerli"
+- Kampanya yok → "Standart Kargo · 49,90 TL" (ücreti gizlemek yerine yazıyoruz)
+
+6 test; biri rozetin `shippingCostFor()` ile aynı sonucu vermesini garanti
+ediyor, ikisi birbirinden kopamaz.
+
+**Detay:** `GELISTIRICI-NOTLARI.md` → madde 9
+
+---
+
+### 1. "Stok Gelince Haber Ver" artık gerçekten çalışıyor — 29.07.2026
+
+Buton sadece bir açılır pencere gösteriyor, hiçbir yere kaydetmiyordu.
+
+Yapılanlar:
+- `stock_notifications` tablosu — ürün, e-posta, kullanıcı, `notified_at`
+- Üç düğme de (detay, ürün kartı, vitrin) gerçek POST atıyor; e-posta üye
+  girişliyse hesaptan alınıyor, misafirse soruluyor
+- Aynı e-posta + ürün için ikinci kayıt açılmıyor; ürün gelip tekrar
+  tükenirse aynı kişi ikinci turda da haber alıyor
+- Stok 0'dan yukarı çıktığı anda bekleyenlere e-posta gidiyor
+  (`ProductObserver` → `StockNotifier`)
+- Panel → Ürünler'de **"Stok Bekleyen"** sütunu + filtresi; sıralanabilir,
+  hangi ürünü önce tedarik edeceğini söyler
+- KVKK aydınlatma metnine e-posta toplama maddesi eklendi
+- 11 test
+
+**Detay:** `GELISTIRICI-NOTLARI.md` → madde 10.6

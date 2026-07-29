@@ -3,7 +3,9 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    
+    {{-- JS'ten yapılan POST'lar (stok bildirimi) bu jetonu okur. --}}
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
     <!-- SEO Optimization -->
     <link rel="icon" type="image/jpeg" href="{{ asset('img/strong-modern-logo-for--wise-solutions---large-bol (1).jpg') }}">
     <title>@yield('title', 'Buy WISEly - Geliştirme Kartları ve Sağlık Ürünleri')</title>
@@ -527,15 +529,71 @@
             }
         }
 
+        /**
+         * Stok bildirimi kaydı. Kayıt SUNUCUDA açılır — burada yalnızca
+         * sunucunun döndürdüğü mesaj gösterilir. Ekranda "kaydedildi" yazıp
+         * hiçbir yere yazmamak müşteriye verilmiş boş bir sözdür.
+         */
+        function submitStockNotification(productId, email) {
+            return fetch("{{ route('stock.notify') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify({ product_id: productId, email: email })
+            }).then(function (response) {
+                return response.json().catch(function () { return {}; }).then(function (data) {
+                    if (response.ok) {
+                        return data;
+                    }
+                    // 422 doğrulama hatası ve 429 hız sınırı buraya düşer.
+                    var mesaj = (data.errors && data.errors.email && data.errors.email[0])
+                        || data.message
+                        || 'Kayıt oluşturulamadı, lütfen daha sonra tekrar deneyin.';
+                    throw new Error(response.status === 429
+                        ? 'Çok fazla deneme yaptınız. Lütfen bir dakika sonra tekrar deneyin.'
+                        : mesaj);
+                });
+            }, function () {
+                // İki argümanlı `then`: yalnızca ağ hatası buraya düşer,
+                // yukarıda fırlatılan sunucu hataları kendi mesajını korur.
+                throw new Error('Bağlantı kurulamadı, lütfen tekrar deneyin.');
+            });
+        }
+
+        function stockNotificationResult(data) {
+            Swal.fire({
+                title: data.status === 'created' ? 'Kaydınız Alındı' : 'Bilgi',
+                text: data.message,
+                icon: data.status === 'in_stock' ? 'info' : 'success',
+                confirmButtonText: 'Tamam',
+                confirmButtonColor: '#005B96'
+            });
+        }
+
         function notifyStock(productId) {
             @auth
                 var userEmail = "{{ auth()->user()->email }}";
                 Swal.fire({
-                    title: 'Stok Bildirimi',
-                    text: 'Bu ürün stoklarımıza girdiğinde ' + userEmail + ' adresine e-posta gönderilecektir.',
-                    icon: 'success',
-                    confirmButtonText: 'Tamam',
-                    confirmButtonColor: '#005B96'
+                    title: 'Stok Gelince Haber Ver',
+                    text: 'Bu ürün stoklarımıza girdiğinde ' + userEmail + ' adresine e-posta gönderelim mi?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Evet, haber ver',
+                    cancelButtonText: 'İptal',
+                    confirmButtonColor: '#005B96',
+                    showLoaderOnConfirm: true,
+                    allowOutsideClick: () => !Swal.isLoading(),
+                    preConfirm: function () {
+                        return submitStockNotification(productId, null)
+                            .catch(function (error) { Swal.showValidationMessage(error.message); });
+                    }
+                }).then(function (result) {
+                    if (result.isConfirmed && result.value) {
+                        stockNotificationResult(result.value);
+                    }
                 });
             @else
                 Swal.fire({
@@ -547,20 +605,21 @@
                     confirmButtonText: 'Bildirim Oluştur',
                     cancelButtonText: 'İptal',
                     confirmButtonColor: '#005B96',
+                    footer: '<span style="font-size:11px;color:#64748b">E-posta adresiniz yalnızca bu bildirim için kullanılır, pazarlama amacıyla kullanılmaz.</span>',
+                    showLoaderOnConfirm: true,
+                    allowOutsideClick: () => !Swal.isLoading(),
                     inputValidator: (value) => {
                         if (!value) {
                             return 'Lütfen geçerli bir e-posta adresi girin!'
                         }
+                    },
+                    preConfirm: function (email) {
+                        return submitStockNotification(productId, email)
+                            .catch(function (error) { Swal.showValidationMessage(error.message); });
                     }
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        Swal.fire({
-                            title: 'Başarılı!',
-                            text: 'E-posta adresiniz (' + result.value + ') başarıyla kaydedildi. Ürün stoklarımıza girdiğinde bilgilendirme gönderilecektir.',
-                            icon: 'success',
-                            confirmButtonText: 'Tamam',
-                            confirmButtonColor: '#005B96'
-                        });
+                }).then(function (result) {
+                    if (result.isConfirmed && result.value) {
+                        stockNotificationResult(result.value);
                     }
                 });
             @endauth

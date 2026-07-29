@@ -98,6 +98,52 @@ class Setting extends Model
     }
 
     /**
+     * Vitrinde gösterilecek kargo rozetinin metni.
+     *
+     * Ürün sayfası, anasayfa şeridi ve kategori kartları buradan beslenir;
+     * hiçbiri "kargo bedava"yı KENDİ BAŞINA yazmamalı. Eşik panelden
+     * değiştirilebiliyor ve müşteriye ödeme adımında farklı bir tutar
+     * çıkması en pahalı sepet terk sebebidir.
+     *
+     * @param  float|null  $subtotal  Bilinen tutar — ürün sayfasında o ürünün
+     *   fiyatı, sepette ara toplam. null geçilirse tutardan bağımsız,
+     *   koşulu açıkça yazan genel ifade döner.
+     * @return array{free: bool, title: string, detail: string}
+     *   `free`: bu bağlamda kargo gerçekten ücretsiz mi (rozetin yeşil
+     *   olup olmayacağını bu belirler).
+     */
+    public function shippingNotice(?float $subtotal = null): array
+    {
+        $cost = (float) $this->standard_shipping_cost;
+
+        // Kargo ücreti hiç tanımlanmamış: her siparişte gerçekten ücretsiz.
+        if ($cost <= 0) {
+            return ['free' => true, 'title' => 'Ücretsiz Kargo', 'detail' => 'Tüm siparişlerde'];
+        }
+
+        $threshold = $this->free_shipping_threshold;
+
+        // Kampanya kapalı: ücreti gizlemek yerine açıkça yazıyoruz.
+        if ($threshold === null) {
+            return [
+                'free'   => false,
+                'title'  => 'Standart Kargo',
+                'detail' => number_format($cost, 2, ',', '.') . ' TL',
+            ];
+        }
+
+        if ($subtotal !== null && $subtotal >= (float) $threshold) {
+            return ['free' => true, 'title' => 'Ücretsiz Kargo', 'detail' => 'Bu ürün için geçerli'];
+        }
+
+        return [
+            'free'   => false,
+            'title'  => 'Ücretsiz Kargo',
+            'detail' => number_format((float) $threshold, 2, ',', '.') . ' TL ve üzeri siparişlerde',
+        ];
+    }
+
+    /**
      * Havale/EFT seçeneği müşteriye sunulabilir mi?
      * Banka bilgileri eksikse açık olsa bile sunulmaz — aksi hâlde müşteri
      * siparişi tamamlayıp ödeme yapacak hesabı göremezdi.

@@ -123,6 +123,65 @@ it('kargo ucreti siparise kaydedilir', function () {
     expect((float) $order->total_amount)->toEqual(149.90);
 });
 
+it('urun sayfasi esik altinda kosulsuz kargo bedava demez', function () {
+    setShipping(49.90, threshold: 500.00);
+    $product = shipProduct(100.00);
+
+    $this->get(route('product.detail', $product->slug))
+        ->assertOk()
+        ->assertSee('500,00 TL ve üzeri siparişlerde')
+        ->assertDontSee('Kargo Bedava &');
+});
+
+it('urun fiyati esigi geciyorsa kargo bedava yazar', function () {
+    setShipping(49.90, threshold: 500.00);
+    $product = shipProduct(750.00);
+
+    $this->get(route('product.detail', $product->slug))
+        ->assertOk()
+        ->assertSee('Bu ürün için geçerli');
+});
+
+it('kampanya yokken urun sayfasi kargo ucretini yazar', function () {
+    setShipping(49.90, threshold: null);
+    $product = shipProduct(100.00);
+
+    $this->get(route('product.detail', $product->slug))
+        ->assertOk()
+        ->assertSee('Standart Kargo')
+        ->assertSee('49,90 TL');
+});
+
+it('kargo ucreti sifirken urun sayfasi tum siparislerde ucretsiz der', function () {
+    setShipping(0.00);
+    $product = shipProduct(100.00);
+
+    $this->get(route('product.detail', $product->slug))
+        ->assertOk()
+        ->assertSee('Tüm siparişlerde');
+});
+
+it('anasayfa seridi kargo kosulunu ayardan okur', function () {
+    setShipping(49.90, threshold: 500.00);
+
+    $this->get(route('electronics.home'))
+        ->assertOk()
+        ->assertSee('500,00 TL ve üzeri siparişlerde')
+        ->assertDontSee('Tüm siparişlerde');
+});
+
+it('kargo rozeti ayarla sepet hesabiyla ayni sonucu verir', function () {
+    setShipping(49.90, threshold: 500.00);
+    $setting = Setting::current()->fresh();
+
+    // Rozet "ücretsiz" dediğinde sepet de 0 TL hesaplamalı; ikisi ayrışırsa
+    // müşteri ödeme adımında sürpriz ücretle karşılaşır.
+    foreach ([100.00, 499.99, 500.00, 900.00] as $tutar) {
+        expect($setting->shippingNotice($tutar)['free'])
+            ->toBe($setting->shippingCostFor($tutar) === 0.0);
+    }
+});
+
 it('kargo ayarlari sayfasi admin panelinde acilir', function () {
     $admin = User::factory()->create(['is_admin' => true]);
 

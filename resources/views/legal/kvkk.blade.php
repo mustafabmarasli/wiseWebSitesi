@@ -52,6 +52,7 @@
                         <li>Şirketimiz tarafından sunulan mikroişlemci kartı, LED aydınlatma ve tıbbi lens aparatlarının satış ve teslimat süreçlerinin yürütülmesi,</li>
                         <li>Siparişlerinizin faturalandırılması ve mali yükümlülüklerin yerine getirilmesi,</li>
                         <li>Müşteri destek, soru, öneri ve taleplerinizin cevaplanması amacıyla iletişim formu verilerinin işlenmesi,</li>
+                        <li>Talep etmeniz hâlinde, stoğu tükenen bir ürünün yeniden temin edildiğinin tarafınıza bildirilmesi,</li>
                         <li>Web sitesi kullanım deneyiminizin iyileştirilmesi, yasal gerekliliklerin ve iyzico/sanal pos ödeme güvenliğinin sağlanması.</li>
                     </ul>
                 </section>
@@ -64,6 +65,7 @@
                         <li><strong>İletişim Bilgisi:</strong> E-posta adresiniz, telefon numaranız, teslimat ve fatura adresiniz.</li>
                         <li><strong>İşlem Güvenliği Bilgisi:</strong> IP adresiniz, sipariş geçmişiniz, sepet hareketleriniz, çerez onay tercihiniz.</li>
                     </ul>
+                    <p class="mt-3"><strong>Stok bildirimi:</strong> Tükenen bir ürün için “Stok Gelince Haber Ver” bildirimi oluşturduğunuzda yalnızca e-posta adresiniz ve ilgili ürün bilgisi kaydedilir. Bu adres <strong>tek seferlik</strong> stok bilgilendirmesi dışında kullanılmaz, pazarlama/bülten gönderimine eklenmez ve üçüncü kişilerle paylaşılmaz. Kaydınızın silinmesini dilediğiniz an aşağıdaki iletişim adresinden talep edebilirsiniz.</p>
                 </section>
 
                 <section>

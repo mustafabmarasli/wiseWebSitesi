@@ -37,6 +37,12 @@ Route::post('/odeme/baslat', [CartController::class, 'initiatePayment'])->name('
 Route::post('/kupon/uygula', [CartController::class, 'applyCoupon'])->name('coupon.apply');
 Route::post('/kupon/kaldir', [CartController::class, 'removeCoupon'])->name('coupon.remove');
 
+// Stoğu biten ürün için "gelince haber ver" kaydı.
+// Hız sınırı: e-posta toplayan açık bir uç nokta, kötüye kullanıma açık.
+Route::post('/stok-bildirimi', [\App\Http\Controllers\StockNotificationController::class, 'store'])
+    ->middleware('throttle:10,1')
+    ->name('stock.notify');
+
 // Dynamic Location Routes
 Route::get('/location/districts', [\App\Http\Controllers\LocationController::class, 'getDistricts'])->name('location.districts');
 Route::get('/location/neighborhoods', [\App\Http\Controllers\LocationController::class, 'getNeighborhoods'])->name('location.neighborhoods');

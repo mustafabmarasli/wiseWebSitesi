@@ -293,11 +293,10 @@
                                 @endif
                             </div>
                             
-                            <!-- Delivery Badge -->
-                            <div class="flex items-center gap-1.5 text-emerald-600 font-bold text-xs mt-3">
-                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>
-                                <span>Kargo Bedava & Bugün Kargoda!</span>
-                            </div>
+                            {{-- Kargo rozeti: koşulu ayardan okur. Buraya "Kargo
+                                 Bedava" yazmak, eşiğin altındaki sepette ödeme
+                                 adımında sürpriz ücret çıkarmak demekti. --}}
+                            @include('partials.shipping_notice', ['subtotal' => $product->price])
                         </div>
 
                         <!-- Social Proof Badge -->

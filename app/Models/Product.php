@@ -49,6 +49,21 @@ class Product extends Model
         return $this->hasMany(ProductView::class);
     }
 
+    /** Bu ürün için açılmış tüm "stok gelince haber ver" kayıtları. */
+    public function stockNotifications(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(StockNotification::class);
+    }
+
+    /**
+     * Henüz bilgilendirilmemiş bekleyenler. Panelde "kaç kişi bekliyor"
+     * sütunu ve stok girişindeki gönderim bu ilişkiden yürür.
+     */
+    public function pendingStockNotifications(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->stockNotifications()->whereNull('notified_at');
+    }
+
     /**
      * Görüntülenme başına satış oranı (%). Hiç görüntülenmemişse null.
      */

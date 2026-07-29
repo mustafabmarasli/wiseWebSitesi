@@ -120,13 +120,16 @@
 
             <!-- Neden Biz? Features Strip -->
             <div class="flex flex-wrap items-center justify-between gap-2 bg-white border border-slate-100 px-4 py-3 rounded-2xl shadow-sm">
+                {{-- Koşul ayardan gelir; "Tüm siparişlerde" sabiti eşik
+                     tanımlıyken yanlış söz veriyordu. --}}
+                @php $kargoBilgisi = \App\Models\Setting::current()->shippingNotice(); @endphp
                 <div class="flex items-center gap-2">
-                    <div class="bg-emerald-50 text-emerald-600 p-1.5 rounded-lg shrink-0">
+                    <div class="{{ $kargoBilgisi['free'] ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-500' }} p-1.5 rounded-lg shrink-0">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10"/></svg>
                     </div>
                     <div>
-                        <p class="text-[11px] font-extrabold text-slate-800">Ücretsiz Kargo</p>
-                        <p class="text-[10px] text-slate-400 font-medium">Tüm siparişlerde</p>
+                        <p class="text-[11px] font-extrabold text-slate-800">{{ $kargoBilgisi['title'] }}</p>
+                        <p class="text-[10px] text-slate-400 font-medium">{{ $kargoBilgisi['detail'] }}</p>
                     </div>
                 </div>
                 <div class="w-px h-8 bg-slate-100 hidden sm:block"></div>

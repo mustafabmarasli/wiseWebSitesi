@@ -8,6 +8,8 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ExportBulkAction;
 use Filament\Actions\ViewAction;
+use Filament\Tables\Filters\Filter;
+use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\ToggleColumn;
@@ -63,9 +65,20 @@ class ProductsTable
                     ->sortable()
                     ->badge()
                     ->color('info'),
+                // Hangi tükenmiş ürünü öncelikle tedarik etmek gerektiğini
+                // söyleyen sütun: bekleyen sayısı yüksek olan ürün, hazır
+                // müşterisi olan üründür.
+                TextColumn::make('pending_stock_notifications_count')
+                    ->label('Stok Bekleyen')
+                    ->counts('pendingStockNotifications')
+                    ->badge()
+                    ->color(fn ($state) => $state > 0 ? 'warning' : 'gray')
+                    ->sortable(),
             ])
             ->filters([
-                //
+                Filter::make('stok_bekleyen_var')
+                    ->label('Stok bildirimi bekleyen var')
+                    ->query(fn (Builder $query) => $query->whereHas('pendingStockNotifications')),
             ])
             ->recordActions([
                 ViewAction::make()->label('Detay'),

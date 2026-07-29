@@ -237,6 +237,22 @@ Yani bunları değiştirmek için deploy gerekmez. Ama tersi de doğru:
 
 `Setting::current()` her zaman bir satır döndürür (yoksa oluşturur).
 
+### Vitrinde "kargo bedava" yazma
+
+Kargo koşulu **tek yerden** gelir: `Setting::shippingNotice()`. Ürün sayfası ve
+anasayfa şeridi bu metodu kullanır (`partials/shipping_notice.blade.php`).
+
+Görünen metin ile tahsil edilen tutar ayrışırsa müşteri ödeme adımında sürpriz
+ücretle karşılaşır — en pahalı sepet terk sebebi budur. `ShippingTest` içindeki
+"kargo rozeti ayarla sepet hesabıyla aynı sonucu verir" testi bu ikisinin
+birbirinden kopmasını engeller: rozet "ücretsiz" diyorsa `shippingCostFor()`
+de 0 dönmek zorunda.
+
+> **Geçmiş hata:** Ürün sayfasında koşulsuz "Kargo Bedava & Bugün Kargoda!",
+> anasayfada "Ücretsiz Kargo / Tüm siparişlerde" yazıyordu — eşik panelde
+> tanımlıyken bile. Google Merchant beslemesi (`MerchantFeedController`) ise
+> gerçek ücreti bildiriyordu; yani Google'a doğru, müşteriye yanlış söyleniyordu.
+
 ---
 
 ## 10. KVKK / gizlilik
@@ -270,6 +286,31 @@ gitmedi diye müşterinin siparişi düşmemeli.**
 
 ---
 
+## 10.6. Stok bildirimi model olayına bağlı
+
+"Stok Gelince Haber Ver" kayıtları `stock_notifications` tablosunda tutulur.
+Gönderimi tetikleyen tek yer `ProductObserver::updated()`: stok **0'dan yukarı
+çıktığı anda** bekleyenlere e-posta gider.
+
+- Bu yalnızca **model üzerinden** yapılan kayıtlarda çalışır. Stoğu bir yerde
+  `Product::where(...)->update(...)` ile artırırsan model olayı üretilmez ve
+  **kimseye haber gitmez** — orada `StockNotifier`'ı elle çağır.
+  (`OrderFulfiller` stoğu yalnızca düşürür, sorun yaratmaz.)
+- `notified_at` **yalnızca e-posta gerçekten çıktığında** dolar. SMTP hatasında
+  kayıt bekleyen olarak kalır; panelde "bildirildi" görünüp müşteriye hiçbir şey
+  gitmemesi en kötü sonuç olurdu.
+- Bildirim gönderimindeki hata ürün kaydetmeyi **düşürmez**, yalnızca loglanır.
+  Yönetici stoğu girdi, iş bitti.
+- `(product_id, email)` **benzersizdir**. Aynı kişi ikinci kez tıklarsa yeni kayıt
+  açılmaz; ürün daha önce gelip tekrar tükendiyse `notified_at` sıfırlanır ve
+  müşteri ikinci turda da haber alır.
+- Panelde **Ürünler → "Stok Bekleyen"** sütunu ve aynı adlı filtre: hangi
+  tükenmiş ürünün hazır müşterisi olduğunu bu söyler.
+- Uç nokta (`POST /stok-bildirimi`) açıkta e-posta topluyor, `throttle:10,1`
+  ile sınırlı. Bu sınırı kaldırma.
+
+---
+
 ## 11. Kuyruk `sync`
 
 `QUEUE_CONNECTION=sync`. Filament'in Excel içe/dışa aktarması kuyruk işi olarak
@@ -297,5 +338,5 @@ php artisan telegram:test       # sipariş bildirimi ayarlarını sına
 php artisan test
 ```
 
-**210 test** var ve hepsi geçmeli. Özellikle ödeme, sepet, kupon ve yetkilendirme
+**227 test** var ve hepsi geçmeli. Özellikle ödeme, sepet, kupon ve yetkilendirme
 testleri geçmişte gerçek hatalar yakaladı — kırmızı görürsen düzeltmeden push etme.
