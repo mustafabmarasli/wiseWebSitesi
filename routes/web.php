@@ -25,6 +25,10 @@ Route::get('/arama', [ProductController::class, 'search'])->name('product.search
 Route::get('/kategori/{slug}', [ProductController::class, 'category'])->name('category');
 Route::get('/urun/{slug}', [ProductController::class, 'detail'])->name('product.detail');
 
+// Blog / rehber yazıları
+Route::get('/blog', [\App\Http\Controllers\PostController::class, 'index'])->name('blog.index');
+Route::get('/blog/{slug}', [\App\Http\Controllers\PostController::class, 'show'])->name('blog.show');
+
 // Session-based Shopping Cart
 Route::get('/sepet', [CartController::class, 'index'])->name('cart.index');
 Route::post('/sepet/ekle', [CartController::class, 'add'])->name('cart.add');

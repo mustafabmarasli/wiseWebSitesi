@@ -335,6 +335,7 @@
                     @if ($danismanlikAcik)
                     <li><a href="{{ route('consulting') }}" class="hover:text-accentTeal hover:translate-x-1 duration-200 transition-all inline-block py-1">Danışmanlık Hizmetleri</a></li>
                     @endif
+                    <li><a href="{{ route('blog.index') }}" class="hover:text-accentTeal hover:translate-x-1 duration-200 transition-all inline-block py-1">Rehberler ve Yazılar</a></li>
                     <li><a href="{{ route('contact') }}" class="hover:text-accentTeal hover:translate-x-1 duration-200 transition-all inline-block py-1">Müşteri İletişimi</a></li>
                 </ul>
             </div>
@@ -664,75 +665,7 @@
     </div>
 
     <!-- Toast Notification Component -->
-    <div x-data="{ 
-            show: false, 
-            message: '', 
-            type: 'success',
-            init() {
-                @if(session('success'))
-                    this.showToast('{{ session('success') }}', 'success');
-                @endif
-                @if(session('error'))
-                    this.showToast('{{ session('error') }}', 'error');
-                @endif
-                @if(session('info'))
-                    this.showToast('{{ session('info') }}', 'info');
-                @endif
-            },
-            showToast(msg, type = 'success') {
-                this.message = msg;
-                this.type = type;
-                this.show = true;
-                setTimeout(() => { this.show = false; }, 4000);
-            }
-        }"
-        @show-toast.window="showToast($event.detail.message, $event.detail.type || 'success')"
-        x-show="show"
-        x-transition:enter="transition ease-out duration-300 transform"
-        x-transition:enter-start="translate-y-2 opacity-0 sm:translate-y-0 sm:translate-x-2"
-        x-transition:enter-end="translate-y-0 opacity-100 sm:translate-x-0"
-        x-transition:leave="transition ease-in duration-200"
-        x-transition:leave-start="opacity-100"
-        x-transition:leave-end="opacity-0"
-        class="fixed bottom-5 right-5 z-[9999] max-w-sm w-full bg-white rounded-2xl shadow-2xl border border-slate-100 p-4 flex items-start gap-3"
-        style="display: none;"
-    >
-        <!-- Icon -->
-        <template x-if="type === 'success'">
-            <div class="bg-emerald-50 text-emerald-500 rounded-full p-1.5 shrink-0">
-                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4" />
-                </svg>
-            </div>
-        </template>
-        <template x-if="type === 'error'">
-            <div class="bg-rose-50 text-rose-500 rounded-full p-1.5 shrink-0">
-                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-            </div>
-        </template>
-        <template x-if="type === 'info'">
-            <div class="bg-sky-50 text-sky-500 rounded-full p-1.5 shrink-0">
-                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-            </div>
-        </template>
-
-        <!-- Content -->
-        <div class="flex-grow">
-            <h4 class="text-xs font-black text-slate-800" x-text="{ success: 'Başarılı!', error: 'Hata!', info: 'Bilgi' }[type]"></h4>
-            <p class="text-xs font-medium text-slate-500 mt-0.5" x-text="message"></p>
-        </div>
-
-        <!-- Close button -->
-        <button @click="show = false" class="text-slate-400 hover:text-slate-655 focus:outline-none">
-            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-        </button>
-    </div>
+    @include('partials.toast')
 
     <!-- Mobile Sticky Bottom Navigation Bar -->
     <div class="fixed bottom-0 inset-x-0 bg-white/90 backdrop-blur-md border-t border-slate-200/80 z-[49] flex items-center justify-around py-2.5 md:hidden pb-safe-bottom shadow-lg">

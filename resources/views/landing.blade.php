@@ -239,5 +239,10 @@
 
     </div>
 
+    {{-- Giriş, kayıt ve çıkış hep BU sayfaya yönleniyor. Bildirim kutusu
+         burada olmadığı sürece "Başarıyla giriş yaptınız" mesajı üretiliyor
+         ama hiçbir zaman gösterilmiyordu. --}}
+    @include('partials.toast')
+
 </body>
 </html>

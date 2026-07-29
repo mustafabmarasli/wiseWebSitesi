@@ -9,12 +9,11 @@ Sıralama önem derecesine göre: üsttekiler önce yapılmalı.
 | Sıra | İş | Kim | Süre |
 |---|---|---|---|
 | 1 | Kategori açıklamaları (madde 5) | **Mustafa** | Yarım saat |
-| 2 | Blog altyapısı (madde 6) | Claude | Yarım gün |
-| 3 | Ürün SSS (madde 7) | Claude + Mustafa | Kısa |
-| 4 | İçerik yazımı (madde 8) | **Mustafa** | Sürekli |
+| 2 | Ürün SSS (madde 7) | Claude + Mustafa | Kısa |
+| 3 | İçerik yazımı (madde 8) | **Mustafa** | Sürekli |
 
-1. sıradaki iş kod gerektirmiyor — Claude başka bir şey yaparken paralel
-ilerleyebilirsin.
+Kalan işlerin ikisi sende: **altyapı hazır, içerik yok.** Blog panelden
+yazılabiliyor (Panel → Blog Yazıları), kategori açıklama alanı zaten vardı.
 
 ---
 
@@ -31,19 +30,6 @@ eklemekten daha hızlı sonuç verir.
 gerçek metin** yaz. Kategori sayfalarının arama sıralamasını doğrudan etkiler.
 
 **Kim:** Mustafa · **Süre:** Yarım saat · **Nerede:** Panel → Kategoriler
-
----
-
-### 6. Blog / rehber altyapısı
-
-Panelden yazı eklenebilen, SEO uyumlu bir bölüm.
-
-- `posts` tablosu: başlık, slug, özet, içerik, kapak görseli, kanal, yayın tarihi, taslak/yayında
-- `/blog` liste + `/blog/{slug}` detay sayfası
-- `Article` JSON-LD şeması, Open Graph, sitemap'e otomatik ekleme
-- Yazı içinden ürüne link verebilme — **asıl para bu bağlantıda**
-
-**Kim:** Claude · **Süre:** Yarım gün
 
 ---
 
@@ -107,6 +93,49 @@ rehberin sonunda satılan ürün sende.
 ## Bitenler
 
 _(iş bitince buraya taşı, tarih yaz)_
+
+### 6. Blog / rehber altyapısı — 29.07.2026
+
+Panelden yazı eklenebilen SEO uyumlu bölüm hazır: **Panel → Blog Yazıları**.
+
+- `posts` tablosu: başlık, slug, özet, içerik, kapak görseli, kanal,
+  yayın tarihi, taslak/yayında, meta başlık/açıklama
+- `/blog` liste (kanal süzgeci + sayfalama) ve `/blog/{slug}` detay
+- `Article` + `BreadcrumbList` JSON-LD, Open Graph (`og:type=article`),
+  site haritasına otomatik ekleme — **yalnızca yayındakiler**
+- Yazı içinden ürüne bağlantı verilebiliyor (zengin metin editörü)
+- Yazı altında paylaş düğmeleri (madde 4'teki ortak parça)
+- **Zamanlanmış yayın:** ileri tarih verilirse yazı o tarihe kadar
+  görünmez. Yayında sayılmak `is_published` + `published_at` ikisine birden
+  bağlı
+- Sağlık bölümü seçilen yazının altına **tıbbi uyarı otomatik** ekleniyor
+- Alt bilgiye "Rehberler ve Yazılar" bağlantısı eklendi
+
+16 test. **Detay:** `GELISTIRICI-NOTLARI.md` → madde 10.8
+
+> **Sıradaki iş sende:** altyapı hazır, içerik yok. En güçlü kozun DMV
+> yetkili satıcılığı — madde 8'e bak.
+
+---
+
+### Giriş/çıkış bildirimi artık görünüyor — 29.07.2026
+
+Giriş, kayıt ve çıkış `with('success', ...)` mesajı gönderiyordu ama
+**hiçbiri ekranda görünmüyordu.** Sebep: üçü de portal sayfasına (`/`)
+yönlendiriyor ve `landing.blade.php` `layouts.app`'i kullanmıyor — bildirim
+kutusu orada hiç yoktu.
+
+- Bildirim kutusu `partials/toast.blade.php` içine alındı, hem layout'a hem
+  portal sayfasına dâhil edildi
+- Alpine bağımlılığı kaldırıldı (portal sayfası Alpine yüklemiyor);
+  `show-toast` olay arayüzü aynı kaldı
+- Sağ **alttan sağ üste** taşındı — "Sepete Eklendi" bildirimiyle aynı köşe.
+  Altta mobil gezinme çubuğunun arkasında kalıyordu
+- İki bildirim üst üste binmesin diye sepet bildirimi gelince diğeri çekiliyor
+
+7 test. **Detay:** `GELISTIRICI-NOTLARI.md` → madde 2.5
+
+---
 
 ### 4. Ürün paylaşma kısayolları — 29.07.2026
 

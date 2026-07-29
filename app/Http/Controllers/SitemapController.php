@@ -62,6 +62,19 @@ class SitemapController extends Controller
             }
         });
 
+        // Blog — yalnızca yayında olan yazılar. Taslak adresler dizine
+        // girerse Google onları 404 olarak görür.
+        $urls[] = $this->url(route('blog.index'), '0.7', 'weekly');
+
+        foreach (\App\Models\Post::published()->select('slug', 'updated_at')->get() as $post) {
+            $urls[] = $this->url(
+                route('blog.show', $post->slug),
+                '0.6',
+                'monthly',
+                $post->updated_at
+            );
+        }
+
         // Yasal sayfalar — nadiren değişir, düşük öncelik.
         // DİKKAT: Buradaki değerler URL slug'larıdır (TİRE ile), görünüm dosyası
         // adları değil (onlar alt çizgi kullanıyor). PageController::procedural()

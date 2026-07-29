@@ -311,6 +311,21 @@ Gönderimi tetikleyen tek yer `ProductObserver::updated()`: stok **0'dan yukarı
 
 ---
 
+## 2.5. `landing.blade.php` layout kullanmaz
+
+Portal sayfası (`/`) **bağımsız bir HTML dosyasıdır**; `layouts/app.blade.php`'i
+extend etmez ve Alpine yüklemez. Layout'a eklediğin hiçbir şey orada çıkmaz.
+
+> **Geçmiş hata:** Giriş, kayıt ve çıkış üçü de `landing`'e yönlendiriyor ve
+> `with('success', ...)` mesajı gönderiyordu. Bildirim kutusu yalnızca
+> layout'ta olduğu için mesaj her seferinde üretilip **hiç gösterilmedi.**
+> Kutu artık `partials/toast.blade.php` içinde ve iki yere de dâhil ediliyor;
+> Alpine'a bağımlı olmaması bu yüzden.
+
+Layout'a bir bileşen eklerken portal sayfasında da gerekip gerekmediğine bak.
+
+---
+
 ## 10.7. JS'ten POST: `expectsJson()`, `ajax()` değil
 
 `$request->ajax()` **yalnızca** `X-Requested-With: XMLHttpRequest` başlığına
@@ -324,6 +339,27 @@ yaptığını sandığın düğme sessizce sayfayı yeniler.
 
 JS'ten POST atarken CSRF jetonu `<head>`'deki `<meta name="csrf-token">`
 etiketinden okunur.
+
+---
+
+## 10.8. Blog: yayın iki koşula bağlı
+
+Bir yazının sitede görünmesi için `is_published` açık **VE** `published_at`
+geçmişte olmalı (`Post::published()` scope'u). Tek bir bayrak olsaydı
+zamanlanmış yayın yapılamazdı.
+
+- **Yalnızca `Post::published()` üzerinden listele.** Taslak adresin
+  paylaşılması ya da site haritasına girmesi Google'da 404 demektir.
+- `slug` yayına alındıktan sonra **değiştirilmemeli** — gelen bağlantılar ve
+  arama sıralaması ona bağlı. Panelde slug yalnızca yeni kayıtta başlıktan
+  otomatik türetilir; düzenlemede dokunulmaz.
+- Yazı gövdesi zengin metin editöründen **HTML** olarak gelir ve
+  `{!! !!}` ile basılır. Yalnızca yönetici yazabildiği için güvenlidir;
+  bu alanı kullanıcıya açarsan önce temizlemen gerekir.
+- `channel === 'health'` seçilen yazının altına **tıbbi uyarı otomatik**
+  eklenir (`blog/show.blade.php`). Sağlık içeriğinde bu uyarı zorunlu.
+- Yazı gövdesinin başlık/liste/bağlantı stilleri `blog/show.blade.php`
+  içindeki `.blog-body` bloğundan gelir — Tailwind typography eklentisi yok.
 
 ---
 
@@ -354,5 +390,5 @@ php artisan telegram:test       # sipariş bildirimi ayarlarını sına
 php artisan test
 ```
 
-**240 test** var ve hepsi geçmeli. Özellikle ödeme, sepet, kupon ve yetkilendirme
+**263 test** var ve hepsi geçmeli. Özellikle ödeme, sepet, kupon ve yetkilendirme
 testleri geçmişte gerçek hatalar yakaladı — kırmızı görürsen düzeltmeden push etme.
