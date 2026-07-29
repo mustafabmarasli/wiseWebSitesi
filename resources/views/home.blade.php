@@ -274,24 +274,25 @@
             {{-- ===== / VİTRİN ÜRÜNLER ===== --}}
 
 
-            <!-- Tüm Ürünler Section -->
-            <div id="tum-urunler">
-                <div class="flex items-center justify-between mb-6">
+            {{-- İndirimli Ürünler Section --}}
+            @if ($discountedProducts->count() > 0)
+            <div class="bg-orange-50/50 py-10 px-6 rounded-3xl border border-orange-100/50 font-sans">
+                <div class="flex items-center justify-between mb-8">
                     <div class="flex items-center gap-2">
                         <span class="w-2.5 h-6 bg-trendyol rounded-sm"></span>
-                        <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">Tüm Ürünler</h2>
+                        <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">İndirimli Ürünler</h2>
                     </div>
-                    <span class="text-xs sm:text-sm text-slate-500 font-medium">Geniş stok, hızlı gönderi</span>
+                    <span class="text-xs sm:text-sm text-trendyol font-extrabold uppercase tracking-wider bg-orange-100 px-3 py-1 rounded-full">Kaçırılmayacak Fiyatlar</span>
                 </div>
 
                 <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-                    @foreach ($allProducts as $product)
-                        @include('partials.product_card', ['product' => $product])
+                    @foreach ($discountedProducts as $product)
+                        @include('partials.product_card', ['product' => $product, 'isDiscount' => true])
                     @endforeach
                 </div>
             </div>
-
-            <!-- Popüler Ürünler Section -->
+            @endif
+            {{-- Popüler Ürünler Section --}}
             @if ($popularProducts->count() > 0)
             <div class="bg-slate-50/50 py-10 px-6 rounded-3xl border border-slate-100 font-sans">
                 <div class="flex items-center justify-between mb-8">
@@ -310,24 +311,37 @@
             </div>
             @endif
 
-            <!-- İndirimli Ürünler Section -->
-            @if ($discountedProducts->count() > 0)
-            <div class="bg-orange-50/50 py-10 px-6 rounded-3xl border border-orange-100/50 font-sans">
-                <div class="flex items-center justify-between mb-8">
+
+            {{-- Yeni Eklenenler Section --}}
+            @if ($newProducts->count() > 0)
+            <div class="font-sans">
+                <div class="flex items-center justify-between mb-6">
                     <div class="flex items-center gap-2">
                         <span class="w-2.5 h-6 bg-trendyol rounded-sm"></span>
-                        <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">İndirimli Ürünler</h2>
+                        <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">Yeni Eklenenler</h2>
                     </div>
-                    <span class="text-xs sm:text-sm text-trendyol font-extrabold uppercase tracking-wider bg-orange-100 px-3 py-1 rounded-full">Kaçırılmayacak Fiyatlar</span>
+                    <span class="text-xs sm:text-sm text-slate-500 font-medium">Stoğa yeni giren ürünler</span>
                 </div>
 
                 <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-                    @foreach ($discountedProducts as $product)
-                        @include('partials.product_card', ['product' => $product, 'isDiscount' => true])
+                    @foreach ($newProducts as $product)
+                        @include('partials.product_card', ['product' => $product])
                     @endforeach
                 </div>
             </div>
             @endif
+
+            {{-- Tum urunlere giden acik bir yol: anasayfa artik hepsini
+                 listelemiyor, ziyaretci kategorilerden veya buradan gezer. --}}
+            <div class="text-center py-4" id="tum-urunler">
+                <a href="{{ route('product.search', ['channel' => $channel]) }}"
+                   class="inline-flex items-center gap-2 bg-white hover:bg-slate-50 border-2 border-trendyol text-trendyol font-extrabold px-8 py-3.5 rounded-xl text-sm transition-all shadow-sm hover:shadow">
+                    Tüm Ürünleri Gör
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    </svg>
+                </a>
+            </div>
 
         </div>
     </div>

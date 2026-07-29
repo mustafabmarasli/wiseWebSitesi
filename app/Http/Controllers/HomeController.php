@@ -21,51 +21,7 @@ class HomeController extends Controller
      */
     public function electronics()
     {
-        $channel = 'electronics';
-        $channelTitle = 'Elektronik';
-        
-        $categories = Category::where('channel', 'electronics')->get();
-        $categoryIds = $categories->pluck('id');
-
-        // 1. All Products
-        $allProducts = Product::with('category')->whereIn('category_id', $categoryIds)->get();
-
-        // 2. Popular Products (first 8 by satis_sayisi desc)
-        $popularProducts = Product::with('category')->whereIn('category_id', $categoryIds)
-            ->orderBy('satis_sayisi', 'desc')
-            ->take(8)
-            ->get();
-
-        // 3. Discounted Products (where eski_fiyat > price)
-        $discountedProducts = Product::with('category')->whereIn('category_id', $categoryIds)
-            ->whereNotNull('eski_fiyat')
-            ->whereColumn('eski_fiyat', '>', 'price')
-            ->get();
-
-        // 4. Showcase Products (featured with fallback)
-        $showcaseProducts = Product::with('category')
-            ->whereIn('category_id', $categoryIds)
-            ->where('is_featured', true)
-            ->orderByDesc('stock')
-            ->take(2)
-            ->get();
-
-        if ($showcaseProducts->count() < 2) {
-            $excludeIds = $showcaseProducts->pluck('id')->toArray();
-            $fallback = Product::with('category')
-                ->whereIn('category_id', $categoryIds)
-                ->whereNotIn('id', $excludeIds)
-                ->orderByDesc('satis_sayisi')
-                ->get()
-                ->sortByDesc(fn ($p) => $p->stock > 0)
-                ->take(2 - $showcaseProducts->count());
-
-            $showcaseProducts = $showcaseProducts->concat($fallback);
-        }
-
-        $slides = \App\Models\Slide::forChannel($channel);
-
-        return view('home', compact('categories', 'popularProducts', 'discountedProducts', 'allProducts', 'showcaseProducts', 'channel', 'channelTitle', 'slides'));
+        return $this->kanalSayfasi('electronics', 'Elektronik');
     }
 
     /**
@@ -73,28 +29,55 @@ class HomeController extends Controller
      */
     public function health()
     {
-        $channel = 'health';
-        $channelTitle = 'Sağlık & Lens';
+        return $this->kanalSayfasi('health', 'Sağlık & Lens');
+    }
 
-        $categories = Category::where('channel', 'health')->get();
+    /**
+     * İki kanalın anasayfası aynı kurgudur; yalnızca kanal adı değişir.
+     */
+    private function kanalSayfasi(string $channel, string $channelTitle)
+    {
+        $categories = Category::where('channel', $channel)->get();
         $categoryIds = $categories->pluck('id');
 
-        // 1. All Products
-        $allProducts = Product::with('category')->whereIn('category_id', $categoryIds)->get();
+        // Anasayfa bölümleri BİRBİRİNİ TEKRAR ETMEZ: her bölüm, kendinden
+        // öncekilerde gösterilen ürünleri dışarıda bırakır. Önceden "Tüm Ürünler"
+        // her şeyi döküyor, sonraki bölümler aynı ürünleri tekrar gösteriyordu.
+        $gosterilen = [];
 
-        // 2. Popular Products (first 8 by satis_sayisi desc)
-        $popularProducts = Product::with('category')->whereIn('category_id', $categoryIds)
-            ->orderBy('satis_sayisi', 'desc')
+        // 1. İndirimli ürünler — en dikkat çekici olan, önce gelir
+        $discountedProducts = Product::with('category')
+            ->whereIn('category_id', $categoryIds)
+            ->whereNotNull('eski_fiyat')
+            ->whereColumn('eski_fiyat', '>', 'price')
+            ->orderByDesc('satis_sayisi')
             ->take(8)
             ->get();
 
-        // 3. Discounted Products (where eski_fiyat > price)
-        $discountedProducts = Product::with('category')->whereIn('category_id', $categoryIds)
-            ->whereNotNull('eski_fiyat')
-            ->whereColumn('eski_fiyat', '>', 'price')
+        $gosterilen = array_merge($gosterilen, $discountedProducts->pluck('id')->all());
+
+        // 2. Popüler ürünler — hiç satılmamış ürün "popüler" sayılmaz.
+        // Bu filtre olmadan kalan tüm ürünler bu bölüme doluyor ve
+        // "Yeni Eklenenler" bölümüne hiçbir şey kalmıyordu.
+        $popularProducts = Product::with('category')
+            ->whereIn('category_id', $categoryIds)
+            ->whereNotIn('id', $gosterilen)
+            ->where('satis_sayisi', '>', 0)
+            ->orderByDesc('satis_sayisi')
+            ->take(8)
             ->get();
 
-        // 4. Showcase Products (featured with fallback)
+        $gosterilen = array_merge($gosterilen, $popularProducts->pluck('id')->all());
+
+        // 3. Yeni eklenenler — kalanlardan, sayfaya tazelik katar
+        $newProducts = Product::with('category')
+            ->whereIn('category_id', $categoryIds)
+            ->whereNotIn('id', $gosterilen)
+            ->latest('id')
+            ->take(8)
+            ->get();
+
+        // 4. Vitrin — panelden işaretlenenler
         $showcaseProducts = Product::with('category')
             ->whereIn('category_id', $categoryIds)
             ->where('is_featured', true)
@@ -117,6 +100,6 @@ class HomeController extends Controller
 
         $slides = \App\Models\Slide::forChannel($channel);
 
-        return view('home', compact('categories', 'popularProducts', 'discountedProducts', 'allProducts', 'showcaseProducts', 'channel', 'channelTitle', 'slides'));
+        return view('home', compact('categories', 'popularProducts', 'discountedProducts', 'newProducts', 'showcaseProducts', 'channel', 'channelTitle', 'slides'));
     }
 }
