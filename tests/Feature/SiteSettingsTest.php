@@ -9,6 +9,10 @@ function ayarAdmin(): User
     return User::factory()->create(['is_admin' => true]);
 }
 
+// Havale/EFT acikken hesap adi ve IBAN zorunludur; ayar sayfasinin diger
+// bolumlerini sinayan testler formu gecerli bir baslangic durumuyla acmali.
+beforeEach(fn () => havaleAyarla());
+
 it('duyuru acilip kaydedilebilir', function () {
     Livewire::actingAs(ayarAdmin())
         ->test(ShippingSettings::class)

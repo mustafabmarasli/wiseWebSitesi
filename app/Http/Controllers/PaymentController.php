@@ -4,12 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Enums\OrderStatus;
 use App\Models\Address;
-use App\Models\Coupon;
 use App\Models\Order;
-use App\Models\Product;
+use App\Models\Setting;
 use App\Models\User;
-use App\Mail\AdminNewOrderMail;
-use App\Mail\OrderConfirmedMail;
+use App\Services\OrderFulfiller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -19,6 +17,8 @@ use Illuminate\Support\Facades\URL;
 
 class PaymentController extends Controller
 {
+    use \App\Http\Controllers\Concerns\GrantsOrderAccess;
+
     /**
      * Sipariş sonuç sayfalarının imzalı bağlantısı ne kadar geçerli kalsın.
      */
@@ -103,67 +103,14 @@ class PaymentController extends Controller
         }
 
         // Ödeme başarılı — stok ve kupon sayacı tek transaction içinde güncellenir.
-        $order->loadMissing('items');
+        $fulfiller = new OrderFulfiller();
 
-        DB::transaction(function () use ($order, $checkoutForm) {
-            $order->update([
-                'status'                => OrderStatus::Paid->value,
-                'iyzico_payment_id'     => $checkoutForm->getPaymentId(),
-                'iyzico_payment_status' => $checkoutForm->getPaymentStatus(),
-            ]);
+        $fulfiller->markPaid($order, [
+            'iyzico_payment_id'     => $checkoutForm->getPaymentId(),
+            'iyzico_payment_status' => $checkoutForm->getPaymentStatus(),
+        ]);
 
-            // Stok düşümü koşullu ve atomiktir: iki müşteri son ürünü aynı anda
-            // satın alırsa ikincisinin UPDATE'i 0 satır etkiler ve stok negatife
-            // düşmez. Ödeme zaten alındığı için sipariş iptal edilmez, operasyon
-            // ekibinin görebilmesi için loglanır.
-            foreach ($order->items as $item) {
-                if (!$item->product_id) {
-                    continue;
-                }
-
-                $affected = Product::where('id', $item->product_id)
-                    ->where('stock', '>=', $item->quantity)
-                    ->decrement('stock', $item->quantity);
-
-                if ($affected === 0) {
-                    Log::warning('Stok yetersiz kaldı, sipariş fazla satış içeriyor', [
-                        'order_id'   => $order->id,
-                        'product_id' => $item->product_id,
-                        'quantity'   => $item->quantity,
-                    ]);
-                }
-            }
-
-            if ($order->coupon_code) {
-                // Satır kilitlenir: iki ödeme callback'i aynı anda gelirse ikincisi
-                // bekler ve güncel sayacı görür. Kilitsiz increment'te ikisi de eski
-                // değeri okuyup limiti aşabiliyordu.
-                $coupon = Coupon::where('code', $order->coupon_code)->lockForUpdate()->first();
-
-                if ($coupon) {
-                    if ($coupon->max_uses !== null && $coupon->used_count >= $coupon->max_uses) {
-                        // Ödeme tahsil edildiği için sipariş iptal edilmez;
-                        // operasyonun görebilmesi için kaydedilir.
-                        Log::warning('Kupon kullanım limiti aşıldı', [
-                            'order_id'   => $order->id,
-                            'coupon'     => $coupon->code,
-                            'max_uses'   => $coupon->max_uses,
-                            'used_count' => $coupon->used_count,
-                        ]);
-                    }
-
-                    $coupon->increment('used_count');
-                }
-            }
-        });
-
-        // E-posta gönderimi (başarısız olsa bile sipariş geçerlidir)
-        try {
-            Mail::to($order->email)->send(new OrderConfirmedMail($order));
-            Mail::to(config('mail.admin_address'))->send(new AdminNewOrderMail($order));
-        } catch (\Exception $e) {
-            Log::error('Sipariş e-postası gönderilemedi (Sipariş ID: ' . $order->id . '): ' . $e->getMessage());
-        }
+        $fulfiller->sendConfirmationMails($order);
 
         // Sepeti ve kuponu temizle
         session()->forget(['cart', 'coupon']);
@@ -185,6 +132,36 @@ class PaymentController extends Controller
         $order->loadMissing('items');
 
         return view('payment.success', compact('order'));
+    }
+
+    /**
+     * Havale/EFT siparişi sonrası "siparişinizi aldık" sayfası.
+     *
+     * Ödeme henüz alınmadığı için sipariş "beklemede" durumdadır; müşteri
+     * havaleyi bu sayfadaki banka bilgileriyle yapar. Ödeme geldiğinde
+     * yönetici panelden onaylar ve sipariş "ödendi"ye geçer.
+     */
+    public function bankTransfer(Request $request, Order $order)
+    {
+        $this->authorizeOrderAccess($request, $order);
+
+        if (! $order->isBankTransfer()) {
+            return redirect()->route('landing');
+        }
+
+        // Ödeme onaylandıysa artık normal başarı sayfası gösterilir.
+        if ($order->status === OrderStatus::Paid->value) {
+            return $this->redirectToResult($order);
+        }
+
+        if ($order->status !== OrderStatus::Pending->value) {
+            return redirect()->route('landing');
+        }
+
+        $order->loadMissing('items');
+        $setting = Setting::current();
+
+        return view('payment.bank_transfer', compact('order', 'setting'));
     }
 
     /**
@@ -285,19 +262,6 @@ class PaymentController extends Controller
     }
 
     /**
-     * Bu tarayıcı oturumuna siparişi görüntüleme izni ver.
-     */
-    private function grantOrderAccess(Order $order): void
-    {
-        $granted = session()->get('order_access', []);
-
-        if (!in_array($order->id, $granted, true)) {
-            $granted[] = $order->id;
-            session()->put('order_access', $granted);
-        }
-    }
-
-    /**
      * Siparişe erişim yetkisi üç yoldan biriyle kanıtlanabilir:
      *  1) Siparişin sahibi olarak giriş yapmış olmak,
      *  2) Ödemeyi başlatan tarayıcı oturumuna sahip olmak,
@@ -309,7 +273,7 @@ class PaymentController extends Controller
             return;
         }
 
-        if (in_array($order->id, session()->get('order_access', []), true)) {
+        if ($this->hasOrderAccess($order)) {
             return;
         }
 

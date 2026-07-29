@@ -91,8 +91,32 @@ function odemePayload(array $overrides = []): array
         'address_detail'  => 'Test Sokak No:1 Daire:2',
         'identity_number' => GECERLI_TC,
         'billing_same'    => '1',
+        'payment_type'    => 'bank_transfer',
         'agree_sales'     => '1',
         'agree_kvkk'      => '1',
         'agree_accuracy'  => '1',
     ], testLocation(), $overrides);
+}
+
+/**
+ * Havale/EFT ödemesini kullanılabilir hâle getirir.
+ *
+ * Banka bilgileri girilmemişken ödeme sayfası bilerek kapalıdır (müşteri
+ * parayı nereye göndereceğini göremezdi); ödeme akışını sınayan testlerin
+ * bu kurulumu yapması gerekir.
+ */
+function havaleAyarla(float $indirimYuzdesi = 0, bool $kartAcik = false): \App\Models\Setting
+{
+    $setting = \App\Models\Setting::current();
+
+    $setting->update([
+        'bank_transfer_enabled'          => true,
+        'bank_transfer_discount_percent' => $indirimYuzdesi,
+        'bank_account_holder'            => 'Wise Solutions Ltd. Sti.',
+        'bank_name'                      => 'Test Bankasi',
+        'bank_iban'                      => 'TR330006100519786457841326',
+        'card_payment_enabled'           => $kartAcik,
+    ]);
+
+    return $setting->refresh();
 }

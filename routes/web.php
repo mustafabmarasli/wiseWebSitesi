@@ -50,6 +50,8 @@ Route::post('/odeme/callback', [App\Http\Controllers\PaymentController::class, '
 Route::get('/siparis/basarili/{order}', [App\Http\Controllers\PaymentController::class, 'success'])->name('payment.success');
 Route::post('/siparis/uye-ol/{order}', [App\Http\Controllers\PaymentController::class, 'registerFromOrder'])->name('payment.register-guest');
 Route::get('/siparis/basarisiz/{order}', [App\Http\Controllers\PaymentController::class, 'failed'])->name('payment.failed');
+// Havale/EFT siparişi sonrası banka bilgilerinin gösterildiği sayfa
+Route::get('/siparis/havale/{order}', [App\Http\Controllers\PaymentController::class, 'bankTransfer'])->name('payment.bank-transfer');
 
 // Contact Pages
 Route::get('/iletisim', [PageController::class, 'contact'])->name('contact');

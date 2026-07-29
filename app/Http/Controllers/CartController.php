@@ -3,16 +3,22 @@
 namespace App\Http\Controllers;
 
 use App\Enums\OrderStatus;
+use App\Mail\AdminNewOrderMail;
+use App\Mail\BankTransferOrderMail;
 use App\Models\Coupon;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\Setting;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
 class CartController extends Controller
 {
+    use Concerns\GrantsOrderAccess;
+
     /**
      * Tek bir üründen sepete eklenebilecek azami adet.
      */
@@ -33,7 +39,7 @@ class CartController extends Controller
      * @param  string|null  $email  Misafir kullanıcının ödeme formunda girdiği e-posta.
      * @return array{cart: array, total: float, discount: float, netTotal: float, coupon: array|null, couponDropped: bool, removed: array, adjusted: array}
      */
-    private function calculateTotals(?string $email = null): array
+    private function calculateTotals(?string $email = null, bool $bankTransfer = false): array
     {
         ['cart' => $cart, 'total' => $total, 'removed' => $removed, 'adjusted' => $adjusted] = $this->syncCart();
 
@@ -70,8 +76,16 @@ class CartController extends Controller
         // İndirim sonrası ara toplam; kargo bunun üzerinden belirlenir.
         $subtotal = max(0, $total - $discount);
 
-        $setting      = Setting::current();
+        $setting = Setting::current();
+
+        // Kargo ve ücretsiz kargo eşiği KUPON sonrası tutar üzerinden belirlenir.
+        // Havale indirimi bu karşılaştırmaya karışmaz: ödeme yöntemini değiştirmek
+        // müşterinin kargo hakkını kaybettirmemeli.
         $shippingCost = $cart ? $setting->shippingCostFor($subtotal) : 0.0;
+
+        $bankDiscount = ($cart && $bankTransfer)
+            ? $setting->bankTransferDiscountFor($subtotal)
+            : 0.0;
 
         return [
             'cart'          => $cart,
@@ -80,8 +94,9 @@ class CartController extends Controller
             'subtotal'      => $subtotal,
             'shippingCost'  => $shippingCost,
             'freeShippingRemaining' => $cart ? $setting->remainingForFreeShipping($subtotal) : null,
-            // Ödenecek nihai tutar: indirimli ara toplam + kargo
-            'netTotal'      => $subtotal + $shippingCost,
+            'bankDiscount'  => $bankDiscount,
+            // Ödenecek nihai tutar: indirimli ara toplam − havale indirimi + kargo
+            'netTotal'      => $subtotal - $bankDiscount + $shippingCost,
             'coupon'        => $coupon,
             'couponDropped' => $couponDropped,
             'removed'       => $removed,
@@ -326,7 +341,22 @@ class CartController extends Controller
      */
     public function showCheckout()
     {
-        $totals = $this->calculateTotals();
+        // Ödeme yöntemi seçenekleri panelden yönetilir. Kart kapalıyken
+        // havale varsayılan seçili gelir; ikisi de kapalıysa sipariş alınamaz.
+        $setting = Setting::current();
+
+        if (! $setting->offersBankTransfer() && ! $setting->offersCardPayment()) {
+            return redirect()->route('cart.index')->with(
+                'error',
+                'Şu anda çevrimiçi sipariş alınamıyor. Lütfen bizimle iletişime geçin.'
+            );
+        }
+
+        $defaultPaymentType = $setting->offersBankTransfer() ? 'bank_transfer' : 'card';
+
+        // Toplamlar varsayılan seçili yönteme göre hesaplanır; aksi hâlde
+        // havale seçili görünürken indirimsiz tutar yazardı.
+        $totals = $this->calculateTotals(null, $defaultPaymentType === 'bank_transfer');
 
         // Sepet ödeme sayfasında değiştiyse kullanıcıyı sepete geri gönder;
         // beklemediği bir tutarla ödeme adımına girmesin.
@@ -350,7 +380,12 @@ class CartController extends Controller
                 ->values()
             : collect();
 
-        return view('checkout', array_merge($totals, compact('provinces', 'savedAddresses')));
+        return view('checkout', array_merge($totals, compact(
+            'provinces',
+            'savedAddresses',
+            'setting',
+            'defaultPaymentType'
+        )));
     }
 
     /**
@@ -412,6 +447,8 @@ class CartController extends Controller
             'company_name'    => 'nullable|string|max:255',
             'tax_number'      => 'nullable|string|max:10',
             'tax_office'      => 'nullable|string|max:100',
+            // Ödeme yöntemi
+            'payment_type'    => 'required|in:bank_transfer,card',
             // Onay kutuları
             'agree_sales'     => 'accepted',
             'agree_kvkk'      => 'accepted',
@@ -429,24 +466,43 @@ class CartController extends Controller
             'identity_number.required' => 'TC Kimlik No zorunludur.',
             'identity_number.size'     => 'TC Kimlik No 11 haneli olmalıdır.',
             'identity_number.regex'    => 'TC Kimlik No yalnızca rakamlardan oluşmalıdır.',
+            'payment_type.required'    => 'Ödeme yöntemi seçiniz.',
+            'payment_type.in'          => 'Geçersiz ödeme yöntemi.',
             'agree_sales.accepted'     => 'Mesafeli Satış Sözleşmesi\'ni onaylamanız gerekmektedir.',
             'agree_kvkk.accepted'      => 'KVKK Aydınlatma Metni\'ni onaylamanız gerekmektedir.',
             'agree_accuracy.accepted'  => 'Bilgilerin doğruluğundan sorumlu olduğunuzu onaylamanız gerekmektedir.',
         ]);
 
-        $hadCoupon = (bool) session()->get('coupon');
+        // Seçilen yöntem gerçekten açık mı? Formdaki alan istemciden geliyor;
+        // kapalı bir yöntem POST edilerek zorlanamamalı.
+        $setting     = Setting::current();
+        $paymentType = $request->input('payment_type');
+
+        $izinli = ($paymentType === 'bank_transfer' && $setting->offersBankTransfer())
+            || ($paymentType === 'card' && $setting->offersCardPayment());
+
+        if (! $izinli) {
+            return redirect()->route('checkout')->with(
+                'error',
+                'Seçtiğiniz ödeme yöntemi şu anda kullanılamıyor. Lütfen tekrar deneyin.'
+            );
+        }
+
+        $isBankTransfer = $paymentType === 'bank_transfer';
+        $hadCoupon      = (bool) session()->get('coupon');
 
         [
             'cart'          => $cart,
             'total'         => $total,
             'discount'      => $discount,
             'shippingCost'  => $shippingCost,
+            'bankDiscount'  => $bankDiscount,
             'netTotal'      => $netTotal,
             'coupon'        => $coupon,
             'couponDropped' => $couponDropped,
             'removed'       => $removed,
             'adjusted'      => $adjusted,
-        ] = $this->calculateTotals($request->email);
+        ] = $this->calculateTotals($request->email, $isBankTransfer);
 
         if (empty($cart)) {
             return redirect()->route('cart.index')->with('error', 'Sepetiniz boş.');
@@ -515,7 +571,9 @@ class CartController extends Controller
             'company_name'            => $request->company_name,
             'tax_number'              => $request->tax_number,
             'tax_office'              => $request->tax_office,
-            'payment_method'          => 'iyzico Kredi Kartı',
+            'payment_method'          => $isBankTransfer ? 'Havale / EFT' : 'iyzico Kredi Kartı',
+            'payment_type'            => $paymentType,
+            'bank_transfer_discount'  => $bankDiscount,
             'shipping_method'         => $shippingCost > 0 ? 'Standart Kargo' : 'Ücretsiz Kargo',
             'shipping_cost'           => $shippingCost,
             'estimated_delivery_at'   => now()->addDays(3),
@@ -545,6 +603,23 @@ class CartController extends Controller
                 'unit_price'   => $details['price'],
                 'total_price'  => $details['price'] * $details['quantity'],
             ]);
+        }
+
+        // HAVALE / EFT: kart altyapısına hiç uğranmaz. Sipariş "beklemede"
+        // kalır; stok ve kupon sayacı, yönetici ödemeyi onaylayınca işlenir.
+        if ($isBankTransfer) {
+            $this->grantOrderAccess($order);
+
+            try {
+                Mail::to($order->email)->send(new BankTransferOrderMail($order, $setting));
+                Mail::to(config('mail.admin_address'))->send(new AdminNewOrderMail($order));
+            } catch (\Exception $e) {
+                Log::error('Havale sipariş e-postası gönderilemedi (Sipariş ID: ' . $order->id . '): ' . $e->getMessage());
+            }
+
+            session()->forget(['cart', 'coupon']);
+
+            return redirect()->route('payment.bank-transfer', $order->id);
         }
 
         // iyzico yapılandırması

@@ -24,6 +24,9 @@ function sepetleGir(Product $p): void
     test()->post(route('cart.add'), ['product_id' => $p->id, 'quantity' => 1]);
 }
 
+// Odeme yontemi yapilandirilmamissa /odeme sepete geri yonlendirir.
+beforeEach(fn () => havaleAyarla());
+
 it('kayitli adres yoksa secim bolumu gosterilmez', function () {
     $urun = adresUrunu();
     sepetleGir($urun);

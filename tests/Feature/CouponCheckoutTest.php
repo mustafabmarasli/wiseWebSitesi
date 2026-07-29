@@ -45,6 +45,10 @@ function checkoutPayload(array $overrides = []): array
     return odemePayload($overrides);
 }
 
+// Odeme yontemi yapilandirilmamissa /odeme sepete geri yonlendirir.
+// Havale indirimi 0: bu dosya kupon indirimini olcuyor.
+beforeEach(fn () => havaleAyarla());
+
 it('sepette gorunen indirim odeme adiminda da gecerlidir', function () {
     $product = testProduct(['price' => 200.00]);
 

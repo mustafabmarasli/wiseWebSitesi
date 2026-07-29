@@ -41,7 +41,13 @@
             256-bit SSL Güvenli Ödeme
         </div>
         <h1 class="text-2xl sm:text-3xl font-black text-slate-900">Siparişi Tamamla</h1>
-        <p class="text-slate-500 text-sm mt-1">Kart bilgileriniz iyzico altyapısıyla şifrelenerek işlenir. Sitemize ulaşmaz.</p>
+        <p class="text-slate-500 text-sm mt-1">
+            @if ($setting->offersCardPayment())
+                Kart bilgileriniz iyzico altyapısıyla şifrelenerek işlenir. Sitemize ulaşmaz.
+            @else
+                Bilgileriniz 256-bit SSL ile şifrelenerek iletilir.
+            @endif
+        </p>
     </div>
 
     @if ($errors->any())
@@ -297,14 +303,68 @@
                 </div>
 
 
-                <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 flex items-center gap-4">
-                    <svg class="h-8 w-8 text-emerald-555 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                    </svg>
-                    <div>
-                        <p class="text-xs font-extrabold text-slate-700">iyzico Güvenceli Ödeme</p>
-                        <p class="text-xs text-slate-500 font-medium mt-0.5">Kart bilgileriniz hiçbir zaman sitemizde saklanmaz. Tüm işlemler iyzico'nun PCI-DSS sertifikalı altyapısıyla gerçekleşir.</p>
+                {{-- ÖDEME YÖNTEMİ --}}
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+                    <h2 class="text-base font-extrabold text-slate-800 mb-5 flex items-center gap-2">
+                        <div class="bg-trendyol text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-black">4</div>
+                        Ödeme Yöntemi
+                    </h2>
+
+                    <div class="space-y-3">
+                        @if ($setting->offersBankTransfer())
+                            <label class="odeme-secenegi flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all">
+                                <input type="radio" name="payment_type" value="bank_transfer" required
+                                       @checked(old('payment_type', $defaultPaymentType) === 'bank_transfer')
+                                       onchange="odemeYontemiDegisti()"
+                                       class="mt-0.5 w-4 h-4 text-trendyol focus:ring-trendyol accent-trendyol shrink-0">
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <span class="text-sm font-extrabold text-slate-800">Havale / EFT</span>
+                                        @if ((float) $setting->bank_transfer_discount_percent > 0)
+                                            <span class="text-[10px] font-black text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full uppercase tracking-wide">
+                                                %{{ rtrim(rtrim(number_format((float) $setting->bank_transfer_discount_percent, 2, ',', '.'), '0'), ',') }} İndirim
+                                            </span>
+                                        @endif
+                                    </div>
+                                    <p class="text-xs text-slate-500 font-medium mt-1 leading-relaxed">
+                                        Siparişinizi tamamladıktan sonraki adımda banka bilgileri gösterilecektir.
+                                    </p>
+                                </div>
+                            </label>
+                        @endif
+
+                        @if ($setting->offersCardPayment())
+                            <label class="odeme-secenegi flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all">
+                                <input type="radio" name="payment_type" value="card" required
+                                       @checked(old('payment_type', $defaultPaymentType) === 'card')
+                                       onchange="odemeYontemiDegisti()"
+                                       class="mt-0.5 w-4 h-4 text-trendyol focus:ring-trendyol accent-trendyol shrink-0">
+                                <div class="flex-1 min-w-0">
+                                    <span class="text-sm font-extrabold text-slate-800">Kredi / Banka Kartı</span>
+                                    <p class="text-xs text-slate-500 font-medium mt-1 leading-relaxed">
+                                        Kart bilgileriniz hiçbir zaman sitemizde saklanmaz. Tüm işlemler iyzico'nun PCI-DSS sertifikalı altyapısıyla gerçekleşir.
+                                    </p>
+                                </div>
+                            </label>
+                        @else
+                            {{-- Kart altyapısı henüz açılmadı; seçenek gizlenmek yerine
+                                 pasif gösteriliyor ki müşteri yakında geleceğini bilsin. --}}
+                            <div class="flex items-start gap-3 p-4 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/60 cursor-not-allowed">
+                                <div class="mt-0.5 w-4 h-4 rounded-full border-2 border-slate-300 shrink-0"></div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <span class="text-sm font-extrabold text-slate-400">Kredi / Banka Kartı</span>
+                                        <span class="text-[10px] font-black text-slate-500 bg-slate-200 px-2 py-0.5 rounded-full uppercase tracking-wide">Çok Yakında</span>
+                                    </div>
+                                    <p class="text-xs text-slate-400 font-medium mt-1">Kart ile ödeme seçeneği çok yakında hizmetinizde olacaktır.</p>
+                                </div>
+                            </div>
+                        @endif
                     </div>
+
+                    @error('payment_type')
+                        <p class="text-rose-500 text-xs mt-3 font-bold">{{ $message }}</p>
+                    @enderror
                 </div>
 
             </div>
@@ -382,6 +442,12 @@
                                 <span>-{{ number_format($discount, 2, ',', '.') }} ₺</span>
                             </div>
                         @endif
+                        {{-- Havale indirimi ödeme yöntemine bağlı; JS ile açılıp kapanır. --}}
+                        <div id="havale-indirim-satiri"
+                             class="flex justify-between text-sm text-emerald-600 font-bold {{ ($bankDiscount ?? 0) > 0 ? '' : 'hidden' }}">
+                            <span>Havale / EFT İndirimi</span>
+                            <span id="havale-indirim-tutari">-{{ number_format($bankDiscount ?? 0, 2, ',', '.') }} ₺</span>
+                        </div>
                         <div class="flex justify-between text-sm text-slate-650 font-semibold">
                             <span>Kargo</span>
                             @if (($shippingCost ?? 0) > 0)
@@ -392,7 +458,7 @@
                         </div>
                         <div class="flex justify-between text-base font-black text-slate-900 pt-2 border-t border-slate-100">
                             <span>Toplam</span>
-                            <span class="text-trendyol">{{ number_format($netTotal, 2, ',', '.') }} ₺</span>
+                            <span class="text-trendyol" id="genel-toplam">{{ number_format($netTotal, 2, ',', '.') }} ₺</span>
                         </div>
                         <p class="text-[10px] text-slate-400 font-semibold text-right">KDV Dahil</p>
                     </div>
@@ -434,7 +500,7 @@
                         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
                         </svg>
-                        Güvenli Ödemeye Geç
+                        <span id="pay-btn-text">Güvenli Ödemeye Geç</span>
                     </button>
 
                     <p class="text-[10px] text-center text-slate-400 mt-3 font-medium">
@@ -452,6 +518,25 @@
     <!-- Select2 CSS CDN -->
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <style>
+        /* Ödeme yöntemi seçenekleri. Tailwind'in has-[:checked] varyantı
+           yerine düz CSS: CDN sürümü sabitlenmemiş ve eski bir sürüme
+           düşerse seçili kutu hiç vurgulanmazdı. */
+        .odeme-secenegi {
+            border-color: #E2E8F0; /* slate-200 */
+        }
+        .odeme-secenegi:hover {
+            border-color: #CBD5E1; /* slate-300 */
+        }
+        .odeme-secenegi:has(input:checked) {
+            border-color: #F27A1A; /* trendyol */
+            background-color: #FFF7ED; /* orange-50 */
+        }
+        /* :has() desteklemeyen tarayıcılarda JS aynı sınıfı ekler. */
+        .odeme-secenegi.secili {
+            border-color: #F27A1A;
+            background-color: #FFF7ED;
+        }
+
         /* Modern Select2 Styling matching Tailwind CSS */
         .select2-container {
             width: 100% !important;
@@ -581,6 +666,46 @@
                 document.getElementById('tax_office').removeAttribute('required');
             }
         }
+
+        /* ---------- Ödeme yöntemi: indirim satırı ve toplam ----------
+           Sunucu ilk yüklemede seçili yönteme göre doğru tutarı basar; burada
+           yalnızca kullanıcı yöntemi DEĞİŞTİRDİĞİNDE ekran güncellenir.
+           Nihai tutar her hâlükârda sunucuda yeniden hesaplanır. */
+        const HAVALE_YUZDE = {{ (float) $setting->bank_transfer_discount_percent }};
+        const ARA_TOPLAM   = {{ round((float) ($subtotal ?? 0), 2) }};   // kupon sonrası, kargo hariç
+        const KARGO        = {{ round((float) ($shippingCost ?? 0), 2) }};
+
+        function tlYaz(tutar) {
+            return tutar.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₺';
+        }
+
+        function odemeYontemiDegisti() {
+            const secili  = document.querySelector('input[name="payment_type"]:checked');
+            const havale  = secili && secili.value === 'bank_transfer';
+            const indirim = havale ? Math.min(ARA_TOPLAM * HAVALE_YUZDE / 100, ARA_TOPLAM) : 0;
+
+            const satir = document.getElementById('havale-indirim-satiri');
+            if (satir) {
+                satir.classList.toggle('hidden', indirim <= 0);
+                document.getElementById('havale-indirim-tutari').textContent = '-' + tlYaz(indirim);
+            }
+
+            const toplam = document.getElementById('genel-toplam');
+            if (toplam) {
+                toplam.textContent = tlYaz(ARA_TOPLAM - indirim + KARGO);
+            }
+
+            const btnText = document.getElementById('pay-btn-text');
+            if (btnText) {
+                btnText.textContent = havale ? 'Siparişi Tamamla' : 'Güvenli Ödemeye Geç';
+            }
+
+            document.querySelectorAll('.odeme-secenegi').forEach(function (kutu) {
+                kutu.classList.toggle('secili', !!kutu.querySelector('input:checked'));
+            });
+        }
+
+        odemeYontemiDegisti();
 
         // Form submit handler with TC validation
         document.getElementById('checkout-form').addEventListener('submit', function (e) {

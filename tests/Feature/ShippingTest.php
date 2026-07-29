@@ -107,6 +107,7 @@ it('kargo ucreti sifirsa daima ucretsizdir', function () {
 });
 
 it('kargo ucreti siparise kaydedilir', function () {
+    havaleAyarla();
     setShipping(49.90);
     $product = shipProduct(100.00);
 

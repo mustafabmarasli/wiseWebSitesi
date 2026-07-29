@@ -25,6 +25,9 @@ class Order extends Model
         'tax_number',
         'tax_office',
         'payment_method',
+        'payment_type',
+        'payment_confirmed_at',
+        'bank_transfer_discount',
         'shipping_method',
         'shipping_cost',
         'estimated_delivery_at',
@@ -54,9 +57,17 @@ class Order extends Model
         'total_amount'          => 'decimal:2',
         'shipping_cost'         => 'decimal:2',
         'estimated_delivery_at' => 'datetime',
-        'discount_amount'       => 'decimal:2',
-        'is_corporate'          => 'boolean',
+        'discount_amount'        => 'decimal:2',
+        'bank_transfer_discount' => 'decimal:2',
+        'payment_confirmed_at'   => 'datetime',
+        'is_corporate'           => 'boolean',
     ];
+
+    /** Havale/EFT ile ödenecek bir sipariş mi? */
+    public function isBankTransfer(): bool
+    {
+        return $this->payment_type === 'bank_transfer';
+    }
 
     public function items(): HasMany
     {
