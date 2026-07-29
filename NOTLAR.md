@@ -182,24 +182,65 @@ MAIL_ORDER_NOTIFY_ADDRESS="mustafabmarasli@gmail.com" ← sipariş uyarısı bur
 
 İkisi ayrı olmalı: gönderen ve alıcı aynı adres olduğunda (`info@` → `info@`) bazı sağlayıcılar mesajı spam'e atıyor.
 
-**Telegram** — anlık, telefona bildirim düşer:
+**Telegram** — anlık, telefona bildirim düşer. Kod yazmana gerek yok, hazır.
 
-1. Telegram'da **@BotFather**'a yaz, `/newbot` gönder, bir isim ver. Sana bir **token** verir.
-2. Oluşturduğun bota bir mesaj at (örn. "merhaba").
-3. Tarayıcıda aç: `https://api.telegram.org/bot<TOKEN>/getUpdates`
-4. Dönen metinde `"chat":{"id":123456789` — o sayı senin **chat id**'in.
-5. Sunucudaki `.env`'e ekle:
+**1) Botu oluştur.** Telegram'da arama kutusuna `@BotFather` yaz, mavi tikli olanı aç, **Start**'a bas.
 
 ```
-TELEGRAM_BOT_TOKEN=1234567890:AAH...
-TELEGRAM_CHAT_ID=123456789
+/newbot
 ```
 
-6. Sunucuda dene:
+Sırayla iki şey sorar:
+- **Görünen ad** — serbest: `Buy WISEly Sipariş`
+- **Kullanıcı adı** — benzersiz olmalı ve `bot` ile bitmeli: `buywisely_siparis_bot`
+
+Sonunda sana şuna benzer bir **token** verir:
+
+```
+8123456789:AAHx1yZq-BcDeFgHiJkLmNoPqRsTuVwXyZ0
+```
+
+> Bu token şifre gibidir. Ele geçiren senin adına mesaj atabilir. Kimseyle paylaşma, ekran görüntüsüne alma.
+
+**2) Bota ilk mesajı SEN at.** Telegram'da botlar kendiliğinden sana yazamaz. BotFather'ın verdiği `t.me/...` bağlantısına tıkla, **Start**'a bas, sonra bir şey yaz (`merhaba` yeter).
+
+> Bu adımı atlarsan sonraki adım boş döner. En sık takılınan yer burası.
+
+**3) Chat ID'yi al.** Tarayıcıda aç (`<TOKEN>` yerine kendi token'ın, `bot` yazısı bitişik):
+
+```
+https://api.telegram.org/bot8123456789:AAHx1yZq.../getUpdates
+```
+
+Dönen metinde ara:
+
+```json
+"chat":{"id":123456789,"first_name":"Mustafa"
+```
+
+`123456789` senin **chat id**'in.
+
+- `{"ok":true,"result":[]}` görüyorsan → 2. adımı yapmamışsın, bota mesaj at ve sayfayı yenile.
+- `{"ok":false,...401}` görüyorsan → token yanlış kopyalanmış.
+
+**4) Sunucudaki `.env`'e ekle:**
+
+```bash
+cd ~/domains/wisesolutions.com.tr/public_html
+echo 'TELEGRAM_BOT_TOKEN=8123456789:AAHx1yZq-BcDeFgHiJkLmNoPqRsTuVwXyZ0' >> .env
+echo 'TELEGRAM_CHAT_ID=123456789' >> .env
+php artisan config:clear
+```
+
+**5) Dene:**
 
 ```bash
 php artisan telegram:test
 ```
+
+Telegram'a mesaj düşerse tamamdır.
+
+**Birden fazla kişiye bildirim** istersen: bir Telegram grubu kur, botu gruba ekle, gruba bir mesaj at, `getUpdates`'i tekrar aç. Grubun id'si **eksi ile başlar** (`-1001234567890`) — onu yaz.
 
 Boş bırakırsan Telegram bildirimi gönderilmez, e-posta çalışmaya devam eder.
 
