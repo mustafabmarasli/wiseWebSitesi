@@ -8,79 +8,13 @@ Sıralama önem derecesine göre: üsttekiler önce yapılmalı.
 
 | Sıra | İş | Kim | Süre |
 |---|---|---|---|
-| 1 | Vitrin tıklama + favori görünürlüğü (madde 2, 3) | Claude | Küçük |
-| 2 | Kategori açıklamaları (madde 5) | **Mustafa** | Yarım saat |
-| 3 | Blog altyapısı (madde 6) | Claude | Yarım gün |
-| 4 | Paylaşım düğmeleri (madde 4) | Claude | Küçük |
-| 5 | Ürün SSS (madde 7) | Claude + Mustafa | Kısa |
-| 6 | İçerik yazımı (madde 8) | **Mustafa** | Sürekli |
+| 1 | Kategori açıklamaları (madde 5) | **Mustafa** | Yarım saat |
+| 2 | Blog altyapısı (madde 6) | Claude | Yarım gün |
+| 3 | Ürün SSS (madde 7) | Claude + Mustafa | Kısa |
+| 4 | İçerik yazımı (madde 8) | **Mustafa** | Sürekli |
 
-2. sıradaki iş kod gerektirmiyor — Claude başka bir şey yaparken paralel
+1. sıradaki iş kod gerektirmiyor — Claude başka bir şey yaparken paralel
 ilerleyebilirsin.
-
----
-
-## 🟠 Hata
-
-### 2. Vitrin ürünlerinde görsele/başlığa tıklanınca ürün açılmıyor
-
-**Durum:** Anasayfadaki iki büyük vitrin kartında **sadece küçük "İncele" düğmesi** bağlantı. Ürün görseline veya adına tıklamak hiçbir şey yapmıyor.
-
-Herkes içgüdüsel olarak görsele tıklar. Şu an o tıklamalar boşa gidiyor.
-
-**Nerede:** `resources/views/home.blade.php` → "VİTRİN ÜRÜNLER" bölümü (görsel `<div>`'i ve `<h3>` bağlantı değil).
-
-**Yapılacak:** Görseli ve başlığı `<a href="{{ route('product.detail', $feat->slug) }}">` içine al.
-
-> Kartın **tamamını** bağlantı yapma — içinde sepete ekleme formu var, bağlantı içine buton/form koymak geçersiz HTML.
-
-**Zorluk:** Küçük. Yarım saat.
-
----
-
-### 3. Favori düğmesi ürün sayfasında fark edilmiyor
-
-**Durum:** Favori özelliği çalışıyor ama düğme görünmüyor denecek kadar siliktir.
-
-Ürün detay sayfasında kalp, satırın **en sonunda**: önce adet seçici, sonra koca turuncu "Sepete Ekle", en sağda gri çerçeveli içi boş bir kalp. Yazısı yok.
-
-Mobilde daha kötü: satır `flex-col` olduğu için kalp, sepete ekle düğmesinin **altına** düşüyor — ekranda görmek için aşağı kaydırmak gerekiyor.
-
-**Nerede:** `resources/views/detail.blade.php` → "Buy / Add to Cart Form" bölümü, `<!-- Favorite button -->`.
-
-**Yapılacak — önerilen çözüm:** Kalbi bu satırdan çıkar, **ürün adının hizasına, sağ üst köşeye** taşı. Trendyol, Hepsiburada ve Amazon hep orada tutuyor; müşteri oraya bakmaya alışkın.
-
-- Ürün başlığı ile aynı satır, sağa yaslı
-- İçi dolu/boş kalp farkı belirgin olsun (favorideyken dolu ve pembe, değilken çerçeveli)
-- Yanına küçük "Favorilerime Ekle" yazısı — sadece simge ne demek olduğunu anlatmıyor
-- Tıklayınca sayfa yenilenmesin (AJAX) — sayfa başa dönünce kullanıcı nerede kaldığını kaybediyor
-
-**Alternatif (daha az iş):** Yerinde kalsın ama pembe zemin + "Favorilerime Ekle" yazısı eklensin, mobilde sepete ekle düğmesinin **üstüne** alınsın.
-
-> Ürün **kartlarındaki** kalp (görselin sağ üstü) zaten doğru yerde, ona dokunma.
-
-**Zorluk:** Küçük. AJAX'sız yarım saat, AJAX'lı 1–2 saat.
-
----
-
-## 🟢 Yeni özellik
-
-### 4. Ürün paylaşma kısayolları (WhatsApp + sosyal medya)
-
-**Durum:** Yok.
-
-**Yapılacak:** Ürün detay sayfasına paylaş düğmeleri:
-- **WhatsApp** — Türkiye'de en çok kullanılan, önceliği bu
-- X, Facebook, "Bağlantıyı kopyala"
-- Mobilde cihazın kendi paylaşım menüsü (`navigator.share`) — destekliyorsa onu kullan, desteklemiyorsa düğmeleri göster
-
-**Notlar:**
-- Paylaşılan bağlantının WhatsApp'ta görsel + başlıkla görünmesi için Open Graph etiketleri gerekli — **bunlar zaten var**, ek iş yok
-- Paylaşım linklerine `?utm_source=whatsapp` ekle; Analytics'te hangi kanaldan geldiğini görürsün
-
-**Zorluk:** Küçük–orta. Yarım gün.
-
----
 
 ---
 
@@ -159,20 +93,69 @@ rehberin sonunda satılan ürün sende.
 
 ### Ürünü favoriye ekleme
 
-**Çalışıyor.** Ürün detay sayfasında fiyatın yanındaki kalp düğmesi, ürün kartlarında sağ üst köşedeki kalp. Giriş yapmamış kullanıcı giriş sayfasına yönlendiriliyor. Favoriler **Hesabım → Favorilerim** altında listeleniyor.
+**Çalışıyor.** Ürün detay sayfasında başlığın sağ üstündeki kalp düğmesi, ürün kartlarında sağ üst köşedeki kalp. Giriş yapmamış kullanıcı giriş sayfasına yönlendiriliyor. Favoriler **Hesabım → Favorilerim** altında listeleniyor.
 
 `ProfileController::toggleFavorite()` + `favorites` tablosu.
 
-**Ama görünürlüğü sorunlu** → 3 numaralı maddeye bak.
-
 **Geliştirilebilir (isteğe bağlı):**
-- Favorilere eklenen ürün indirime girince e-posta — satış getirir, ama önce 1 numaradaki bildirim altyapısı kurulmalı, ikisi aynı işi yapar
+- Favorilere eklenen ürün indirime girince e-posta — satış getirir. Stok
+  bildirimi altyapısı (`StockNotifier` + `ProductObserver`) artık kurulu,
+  aynı kalıpla `price` düşüşünü izlemek yeterli
 
 ---
 
 ## Bitenler
 
 _(iş bitince buraya taşı, tarih yaz)_
+
+### 4. Ürün paylaşma kısayolları — 29.07.2026
+
+Ürün detayında, sepete ekle satırının altında paylaş kutusu:
+WhatsApp (önce, Türkiye'de baskın kanal), X, Facebook, "Bağlantıyı Kopyala".
+
+- Mobilde (`pointer: coarse` + `navigator.share`) cihazın kendi paylaşım
+  menüsü açılıyor, düğmeler gizleniyor. Masaüstünde düğmeler açık kalıyor —
+  orada tek "Paylaş" düğmesi hangi kanala gideceğini gizlerdi.
+- Her bağlantı `utm_source` + `utm_medium=share` taşıyor; Analytics'te kanal
+  ayrımı ancak böyle görünüyor. `canonical` etiketi `url()->current()`
+  kullandığı için sorgu dizisi SEO'yu bölmüyor.
+- Kopyalama, `clipboard` API'si yoksa (http üzerinden yerel test) gizli
+  `textarea` ile yedekleniyor.
+- Open Graph etiketleri zaten vardı, ek iş çıkmadı.
+
+**Nerede:** `resources/views/partials/share_buttons.blade.php` — blog yazıları
+için de kullanılabilir. 4 test.
+
+---
+
+### 3. Favori düğmesi artık görünüyor — 29.07.2026
+
+Kalp, sepete ekle satırının en sonundaydı ve yazısı yoktu; mobilde `flex-col`
+yüzünden turuncu düğmenin **altına** düşüyor, görmek için kaydırmak
+gerekiyordu.
+
+- Kalp **ürün adının hizasına, sağ üst köşeye** taşındı
+- Yanında "Favorilerime Ekle" / "Favorilerimde" yazısı (mobilde yalnız simge)
+- Favorideyken içi dolu pembe, değilken çerçeveli gri — fark belirgin
+- Tıklayınca **sayfa yenilenmiyor** (AJAX), sağ üstte kısa bir bildirim çıkıyor
+- `ProfileController::toggleFavorite()` artık `expectsJson()` kullanıyor;
+  `ajax()` sadece `X-Requested-With` başlığına baktığı için fetch çağrısı
+  yönlendirme alıp sessizce sayfayı yeniliyordu
+- Ürün kartlarındaki kalbe dokunulmadı, o zaten doğru yerde
+
+7 test (favori özelliğinin daha önce hiç testi yoktu).
+
+---
+
+### 2. Vitrin ürünlerinde görsel ve başlık tıklanabilir — 29.07.2026
+
+Anasayfa vitrin kartlarında yalnızca küçük "İncele" düğmesi bağlantıydı;
+görsele ve ürün adına yapılan tıklamalar boşa gidiyordu.
+
+Görsel `<a>` içine alındı (`aria-label` ile), başlık bağlantı oldu.
+Kartın tamamı bağlantı yapılmadı — içinde sepete ekleme formu var. 2 test.
+
+---
 
 ### Kargo rozeti gerçek koşulu gösteriyor — 29.07.2026
 

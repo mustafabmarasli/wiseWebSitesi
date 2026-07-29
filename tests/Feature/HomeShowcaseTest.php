@@ -73,6 +73,27 @@ it('stokta olan urun anasayfadan sepete eklenir', function () {
     expect(session('cart')[$product->id]['quantity'])->toBe(1);
 });
 
+it('vitrin kartinda gorsele tiklanabilir', function () {
+    $product = showcaseProduct('Tiklanabilir Urun', stock: 10, sales: 500);
+
+    $this->get(route('electronics.home'))
+        ->assertOk()
+        // Görsel bağlantısı: yalnızca vitrin kartında bulunan aria-label.
+        ->assertSee('href="' . route('product.detail', $product->slug) . '"', false)
+        ->assertSee('aria-label="' . $product->name . ' ürün detayı"', false);
+});
+
+it('vitrin kartinda baslik da urune baglanir', function () {
+    $product = showcaseProduct('Baslik Baglantisi', stock: 10, sales: 500);
+
+    $html = $this->get(route('electronics.home'))->assertOk()->getContent();
+
+    $url = preg_quote(route('product.detail', $product->slug), '/');
+
+    // Başlık <h3> içindeki metin bağlantı olmalı — kullanıcı ürün adına da tıklar.
+    expect($html)->toMatch('/<h3[^>]*>\s*<a href="' . $url . '"/');
+});
+
 it('vitrin is_featured olan urunu onceliklendirir', function () {
     // En cok satan ama is_featured olmayan
     $notFeatured = showcaseProduct('Normal Populer', stock: 10, sales: 500);

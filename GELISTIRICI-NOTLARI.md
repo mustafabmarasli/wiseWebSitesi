@@ -311,6 +311,22 @@ Gönderimi tetikleyen tek yer `ProductObserver::updated()`: stok **0'dan yukarı
 
 ---
 
+## 10.7. JS'ten POST: `expectsJson()`, `ajax()` değil
+
+`$request->ajax()` **yalnızca** `X-Requested-With: XMLHttpRequest` başlığına
+bakar. `fetch` bu başlığı kendiliğinden göndermez; yalnızca
+`Accept: application/json` gönderen bir istek `ajax()` kontrolünden geçemez ve
+controller JSON yerine **yönlendirme** döner. Tarayıcıda belirti şudur: AJAX
+yaptığını sandığın düğme sessizce sayfayı yeniler.
+
+`expectsJson()` ikisini de kapsar. JS'ten çağrılan uçlarda onu kullan.
+(`ProfileController::toggleFavorite()` bu yüzden değiştirildi.)
+
+JS'ten POST atarken CSRF jetonu `<head>`'deki `<meta name="csrf-token">`
+etiketinden okunur.
+
+---
+
 ## 11. Kuyruk `sync`
 
 `QUEUE_CONNECTION=sync`. Filament'in Excel içe/dışa aktarması kuyruk işi olarak
@@ -338,5 +354,5 @@ php artisan telegram:test       # sipariş bildirimi ayarlarını sına
 php artisan test
 ```
 
-**227 test** var ve hepsi geçmeli. Özellikle ödeme, sepet, kupon ve yetkilendirme
+**240 test** var ve hepsi geçmeli. Özellikle ödeme, sepet, kupon ve yetkilendirme
 testleri geçmişte gerçek hatalar yakaladı — kırmızı görürsen düzeltmeden push etme.

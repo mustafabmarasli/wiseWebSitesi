@@ -184,7 +184,10 @@ class ProfileController extends Controller
             $message = 'Ürün favorilerinize eklendi.';
         }
 
-        if ($request->ajax()) {
+        // `ajax()` YALNIZCA `X-Requested-With` başlığına bakar; `Accept:
+        // application/json` gönderen bir fetch çağrısı yönlendirme alıp
+        // sessizce sayfayı yeniliyordu. `expectsJson()` ikisini de kapsar.
+        if ($request->expectsJson()) {
             return response()->json([
                 'success' => true,
                 'status' => $status,
@@ -192,6 +195,7 @@ class ProfileController extends Controller
             ]);
         }
 
+        // Ürün kartlarındaki kalp hâlâ normal form gönderimi yapıyor.
         return redirect()->back()->with('success', $message);
     }
 

@@ -208,8 +208,12 @@
                     <div class="absolute inset-0 opacity-20" style="background: radial-gradient(circle at 80% 50%, {{ $accent }}55 0%, transparent 60%);"></div>
 
                     <div class="relative z-10 flex items-center gap-4 p-5">
-                        {{-- Görsel --}}
-                        <div class="shrink-0 w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center">
+                        {{-- Görsel — herkes içgüdüsel olarak görsele tıklar.
+                             Kartın TAMAMINI bağlantı yapma: içinde sepete ekleme
+                             formu var, <a> içine form/buton koymak geçersiz HTML. --}}
+                        <a href="{{ route('product.detail', $feat->slug) }}"
+                           class="shrink-0 w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center"
+                           aria-label="{{ $feat->name }} ürün detayı">
                             @if ($feat->image_url)
                                 <img src="{{ $feat->image_url }}" alt="{{ $feat->name }}"
                                      class="w-full h-full object-contain drop-shadow-lg transition-transform duration-500 group-hover:scale-110">
@@ -220,7 +224,7 @@
                                     </svg>
                                 </div>
                             @endif
-                        </div>
+                        </a>
 
                         {{-- Bilgi --}}
                         <div class="flex-1 min-w-0">
@@ -231,7 +235,9 @@
                                 </span>
                                 Vitrin Ürün
                             </span>
-                            <h3 class="text-sm font-extrabold text-white leading-snug line-clamp-2 mb-2">{{ $feat->name }}</h3>
+                            <h3 class="text-sm font-extrabold text-white leading-snug line-clamp-2 mb-2">
+                                <a href="{{ route('product.detail', $feat->slug) }}" class="hover:underline decoration-2 underline-offset-2">{{ $feat->name }}</a>
+                            </h3>
 
                             {{-- Fiyat --}}
                             <div class="flex items-center gap-2 mb-3">

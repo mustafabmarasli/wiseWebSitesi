@@ -259,10 +259,42 @@
                             {{ $product->category->name }}
                         </div>
                         
-                        <!-- Title -->
-                        <h1 class="text-xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mb-3" id="product-detail-title">
-                            {{ $product->name }}
-                        </h1>
+                        {{-- Başlık + favori.
+                             Kalp bilerek BURADA: eskiden sepete ekle satırının
+                             en sonundaydı, mobilde flex-col yüzünden turuncu
+                             düğmenin altına düşüyor ve görmek için kaydırmak
+                             gerekiyordu. Sağ üst köşe müşterinin bakmaya
+                             alışkın olduğu yer. --}}
+                        <div class="flex items-start justify-between gap-3 mb-3">
+                            <h1 class="text-xl sm:text-3xl font-extrabold text-slate-900 tracking-tight" id="product-detail-title">
+                                {{ $product->name }}
+                            </h1>
+
+                            @auth
+                                @php $isFav = auth()->user()->favoriteProducts->contains($product->id); @endphp
+                                <button type="button"
+                                    id="fav-btn"
+                                    data-product="{{ $product->id }}"
+                                    data-fav="{{ $isFav ? '1' : '0' }}"
+                                    onclick="toggleFavorite()"
+                                    class="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-extrabold transition-all active:scale-95 {{ $isFav ? 'border-rose-200 bg-rose-50 text-rose-600' : 'border-slate-200 text-slate-500 hover:border-rose-200 hover:text-rose-600 hover:bg-rose-50' }}">
+                                    <svg id="fav-icon" class="h-5 w-5 shrink-0" fill="{{ $isFav ? 'currentColor' : 'none' }}" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                    </svg>
+                                    {{-- Yalnız simge ne demek olduğunu anlatmıyor. --}}
+                                    <span id="fav-label" class="hidden sm:inline whitespace-nowrap">{{ $isFav ? 'Favorilerimde' : 'Favorilerime Ekle' }}</span>
+                                </button>
+                            @else
+                                <a href="{{ route('login') }}"
+                                    class="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 text-slate-500 hover:border-rose-200 hover:text-rose-600 hover:bg-rose-50 text-xs font-extrabold transition-all active:scale-95"
+                                    title="Favorilerime eklemek için giriş yapın">
+                                    <svg class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                    </svg>
+                                    <span class="hidden sm:inline whitespace-nowrap">Favorilerime Ekle</span>
+                                </a>
+                            @endauth
+                        </div>
                         
                         <!-- Ratings -->
                         @if ($product->rating > 0)
@@ -370,37 +402,15 @@
                                 </button>
                             @endif
 
-                            <!-- Favorite button -->
-                            @auth
-                                @php
-                                    $isFav = auth()->user()->favoriteProducts->contains($product->id);
-                                 @endphp
-                                <button type="button" onclick="document.getElementById('fav-toggle-form').submit();" 
-                                    class="p-3 rounded-xl border border-slate-200 text-rose-500 hover:bg-rose-50 transition-all flex items-center justify-center shrink-0 shadow-sm hover:scale-[1.01] active:scale-95" 
-                                    title="Favorilerime Ekle/Çıkar">
-                                    <svg class="h-5.5 w-5.5 {{ $isFav ? 'fill-current' : '' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                                    </svg>
-                                </button>
-                            @else
-                                <a href="{{ route('login') }}" 
-                                    class="p-3 rounded-xl border border-slate-200 text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-all flex items-center justify-center shrink-0 shadow-sm hover:scale-[1.01] active:scale-95" 
-                                    title="Favorilerime eklemek için giriş yapın">
-                                    <svg class="h-5.5 w-5.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                                    </svg>
-                                </a>
-                            @endauth
-
                         </div>
                     </form>
-                    
-                    @auth
-                    <form id="fav-toggle-form" action="{{ route('favorite.toggle') }}" method="POST" class="hidden">
-                        @csrf
-                        <input type="hidden" name="product_id" value="{{ $product->id }}">
-                    </form>
-                    @endauth
+
+                    {{-- Paylaşım kısayolları. Open Graph etiketleri layout'ta
+                         zaten var, paylaşılan bağlantı görsel + başlıkla çıkar. --}}
+                    @include('partials.share_buttons', [
+                        'shareUrl'   => route('product.detail', $product->slug),
+                        'shareTitle' => $product->name,
+                    ])
 
                     @if (in_array($product->category->slug, ['dmv-urunleri', 'lens-aksesuarlari']))
                         <!-- Sağlık & Kullanım Bilgilendirmesi Box -->
@@ -541,6 +551,73 @@
                 target.appendChild(clone);
             }
         }
+    }
+
+    /**
+     * Favori ekle/çıkar — sayfa yenilenmeden.
+     *
+     * Eskiden gizli bir form submit ediliyordu; sayfa başa dönünce kullanıcı
+     * ürünün neresinde kaldığını kaybediyordu.
+     */
+    function toggleFavorite() {
+        const btn = document.getElementById('fav-btn');
+        if (!btn || btn.dataset.busy === '1') return;
+
+        btn.dataset.busy = '1';
+
+        fetch("{{ route('favorite.toggle') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                // Controller `$request->ajax()` ile JSON dönmeye bu başlıkla karar veriyor.
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            },
+            body: JSON.stringify({ product_id: btn.dataset.product })
+        })
+        .then(response => response.ok ? response.json() : Promise.reject(response))
+        .then(data => {
+            setFavoriteState(data.status === 'added');
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'success',
+                title: data.message,
+                showConfirmButton: false,
+                timer: 2000,
+                timerProgressBar: true
+            });
+        })
+        .catch(() => {
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'error',
+                title: 'İşlem tamamlanamadı, lütfen tekrar deneyin.',
+                showConfirmButton: false,
+                timer: 2500
+            });
+        })
+        .finally(() => { btn.dataset.busy = '0'; });
+    }
+
+    /** Kalbin dolu/boş hâli ve yazısı. Fark belirgin olmalı: içi dolu pembe
+     *  kalp "favorimde", çerçeveli gri kalp "değil" demek. */
+    function setFavoriteState(isFav) {
+        const btn   = document.getElementById('fav-btn');
+        const icon  = document.getElementById('fav-icon');
+        const label = document.getElementById('fav-label');
+
+        const favClasses    = ['border-rose-200', 'bg-rose-50', 'text-rose-600'];
+        const nonFavClasses = ['border-slate-200', 'text-slate-500', 'hover:border-rose-200', 'hover:text-rose-600', 'hover:bg-rose-50'];
+
+        btn.dataset.fav = isFav ? '1' : '0';
+        btn.classList.remove(...(isFav ? nonFavClasses : favClasses));
+        btn.classList.add(...(isFav ? favClasses : nonFavClasses));
+
+        icon.setAttribute('fill', isFav ? 'currentColor' : 'none');
+        label.textContent = isFav ? 'Favorilerimde' : 'Favorilerime Ekle';
     }
 </script>
 @endsection
