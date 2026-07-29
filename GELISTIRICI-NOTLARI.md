@@ -145,7 +145,38 @@ gerekmez).
 
 ## 8. Ödeme akışında dokunma
 
-`PaymentController::callback()` içinde bilinçli olarak duran korumalar:
+### İki ödeme yolu var, ikisi de aynı yerde biter
+
+| Yol | Nasıl başlar | Sipariş durumu | Ödendi'ye kim geçirir |
+|---|---|---|---|
+| Havale / EFT | `CartController::initiatePayment()` → banka sayfası | `pending` | Yönetici, panelden **"Ödeme Geldi, Onayla"** |
+| Kredi kartı | iyzico Checkout Form | `pending` | `PaymentController::callback()` |
+
+**Stok düşümü ve kupon sayacı yalnızca `OrderFulfiller::markPaid()` içinde işlenir.**
+Bu mantığı ikinci bir yere kopyalama — iki yol ayrı ayrı yazılsaydı biri
+güncellenip diğeri unutulduğunda stok tutmazdı.
+
+`markPaid()` idempotenttir: sipariş `pending` değilse hiçbir şey yapmaz ve
+`false` döner. Bu erken çıkışı kaldırma.
+
+**Havale siparişinde stok, ödeme onaylanana kadar DÜŞMEZ.** Bilerek böyle:
+parası hiç gelmeyecek siparişler yüzünden gerçekte satılabilir ürünü rafta
+yokmuş gibi göstermemek için.
+
+### Ödeme yöntemi açık mı kontrolü
+
+`initiatePayment()`, alan doğrulamasından **önce** yöntemin panelde açık
+olduğunu denetler. İki sebeple bu sırada:
+
+1. Kapalı bir yöntem forma müdahale edilerek POST edilemesin
+2. TC Kimlik No'nun zorunlu olup olmadığı ödeme yöntemine ve tutara bağlı —
+   doğrulama kuralı kurulabilmesi için önce bunların bilinmesi gerekiyor
+
+`Setting::offersBankTransfer()` IBAN ve hesap adı doluysa `true` döner.
+**İkisi de boşken ödeme sayfası bilerek kapalıdır** — müşteriye parayı nereye
+göndereceğini söyleyemiyorsak sipariş almamalıyız.
+
+### `PaymentController::callback()` içinde bilinçli olarak duran korumalar:
 
 | Koruma | Ne için |
 |---|---|
@@ -160,9 +191,45 @@ başkasının adresini/telefonunu görebiliyordu.
 
 ---
 
+## 8.5. Sipariş numarası: `id` değil `order_number`
+
+Müşteriye gösterilen numara `260729-WISE-K4M2` biçimindedir (tarih + rastgele sonek).
+
+- **`id` birincil anahtar olarak yerinde durur** — yabancı anahtarlar, rotalar ve
+  daha önce gönderilmiş imzalı bağlantılar ona bağlı. Rota anahtarını değiştirme.
+- **Görünen her yerde `$order->display_number` kullan** — e-posta, havale sayfası,
+  panel, Excel. `$order->id` yazma.
+- Sonekte `0/O` ve `1/I/L` yok: numara telefonda okunuyor ve havale açıklamasına
+  elle yazılıyor.
+- Saat kullanılmadı çünkü aynı saniyedeki iki sipariş çakışırdı. Benzersizlik
+  hem `unique` indeksle hem üretim döngüsündeki kontrolle garanti altında.
+
+---
+
+## 8.6. TC Kimlik No koşullu zorunlu
+
+Nihai tüketiciye kesilen faturada TC Kimlik No **zorunlu değildir**; yalnızca
+tutar fatura düzenleme haddini aşarsa gerekir. Gerekmiyorken toplamak KVKK'nın
+veri minimizasyonu ilkesine aykırı ve ödeme adımında terk sebebi.
+
+`Setting::requiresIdentityNumber()` tek karar noktasıdır. `true` döndüğü haller:
+
+- Ticari fatura seçilmiş
+- Kartla ödeme (iyzico `buyer.identityNumber` alanını zorunlu tutuyor)
+- Tutar `identity_required_threshold` değerine eşit/üstünde (panelden yönetilir)
+
+Eşik **koda gömülmemeli** — her yıl yeniden değerleme ile değişiyor
+(2025: 9.900 ₺, 2026: 12.000 ₺).
+
+Zorunlu olmaması boş geçilebilmesi demek; **girilirse yine de TC algoritmasından
+geçer.** Bu doğrulamayı kaldırma.
+
+---
+
 ## 9. Ayarlar veritabanında, kodda değil
 
-Kargo ücreti, ücretsiz kargo limiti ve **site duyurusu** `settings` tablosunda tek
+Kargo ücreti, ücretsiz kargo limiti, **site duyurusu**, **banka/havale bilgileri**,
+**ödeme yöntemi açık/kapalı** ve **TC eşiği** `settings` tablosunda tek
 satırda tutulur → Panel → **Site Ayarları**.
 
 Yani bunları değiştirmek için deploy gerekmez. Ama tersi de doğru:
@@ -183,6 +250,26 @@ Yani bunları değiştirmek için deploy gerekmez. Ama tersi de doğru:
 
 ---
 
+## 10.5. Sipariş bildirimi iki kanaldan gider
+
+`OrderFulfiller::notifyAdmin()` hem e-posta hem Telegram gönderir; biri
+başarısız olsa da diğeri denenir. Hatalar yalnızca loglanır — **bildirim
+gitmedi diye müşterinin siparişi düşmemeli.**
+
+- E-posta adresi: `config('mail.order_notification_address')`.
+  Bu, iletişim formunun gittiği `admin_address`'ten **ayrıdır**. Gönderen ve
+  alıcı aynı adres olunca (`info@` → `info@`) bazı sağlayıcılar mesajı spam'e
+  atıyordu.
+- Telegram yapılandırılmamışsa sessizce devre dışıdır; testlerde ve yerelde
+  ayrıca bir şey yapmak gerekmez.
+- **Yönetici bildirimi sipariş anında gider.** Havale onayında tekrar
+  gönderilmez (`sendConfirmationMails($order, notifyAdmin: false)`) — onayı
+  yönetici zaten kendisi verdi.
+- Yönetici e-postasında **TC Kimlik No yer almaz.** Veritabanında şifreli tutulan
+  bir veriyi düz metin e-posta ile göndermek o korumayı anlamsız kılar.
+
+---
+
 ## 11. Kuyruk `sync`
 
 `QUEUE_CONNECTION=sync`. Filament'in Excel içe/dışa aktarması kuyruk işi olarak
@@ -199,6 +286,7 @@ Binlerce satırlık dosyalarla çalışmaya başlarsan `database`'e geç ve
 ```bash
 php artisan admin:create        # yönetici hesabı oluştur / mevcut hesabı yönetici yap
 php artisan locations:import    # il/ilçe/mahalle verisi (--fresh ile sıfırdan)
+php artisan telegram:test       # sipariş bildirimi ayarlarını sına
 ```
 
 ---
@@ -209,5 +297,5 @@ php artisan locations:import    # il/ilçe/mahalle verisi (--fresh ile sıfırda
 php artisan test
 ```
 
-**116 test** var ve hepsi geçmeli. Özellikle ödeme, sepet, kupon ve yetkilendirme
+**210 test** var ve hepsi geçmeli. Özellikle ödeme, sepet, kupon ve yetkilendirme
 testleri geçmişte gerçek hatalar yakaladı — kırmızı görürsen düzeltmeden push etme.

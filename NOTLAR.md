@@ -5,6 +5,8 @@ Bir şeyi unutursan buraya bak.
 
 > **Kod yazacaksan** önce [`GELISTIRICI-NOTLARI.md`](GELISTIRICI-NOTLARI.md) dosyasına
 > bak — bu projeye özgü teknik tuzaklar orada.
+>
+> **Yapılacak işler:** [`YAPILACAKLAR.md`](YAPILACAKLAR.md)
 
 ---
 
@@ -197,8 +199,10 @@ Sırayla iki şey sorar:
 Sonunda sana şuna benzer bir **token** verir:
 
 ```
-8123456789:AAHx1yZq-BcDeFgHiJkLmNoPqRsTuVwXyZ0
+<BOT_ID>:<BOTFATHER_TOKEN>
 ```
+
+Rakamlarla başlar, iki nokta üst üste, sonra uzun bir harf-rakam dizisi gelir.
 
 > Bu token şifre gibidir. Ele geçiren senin adına mesaj atabilir. Kimseyle paylaşma, ekran görüntüsüne alma.
 
@@ -209,16 +213,16 @@ Sonunda sana şuna benzer bir **token** verir:
 **3) Chat ID'yi al.** Tarayıcıda aç (`<TOKEN>` yerine kendi token'ın, `bot` yazısı bitişik):
 
 ```
-https://api.telegram.org/bot8123456789:AAHx1yZq.../getUpdates
+https://api.telegram.org/bot<BOT_ID>:<BOTFATHER_TOKEN>/getUpdates
 ```
 
 Dönen metinde ara:
 
 ```json
-"chat":{"id":123456789,"first_name":"Mustafa"
+"chat":{"id":987654321,"first_name":"..."
 ```
 
-`123456789` senin **chat id**'in.
+Oradaki sayı senin **chat id**'indir.
 
 - `{"ok":true,"result":[]}` görüyorsan → 2. adımı yapmamışsın, bota mesaj at ve sayfayı yenile.
 - `{"ok":false,...401}` görüyorsan → token yanlış kopyalanmış.
@@ -227,8 +231,8 @@ Dönen metinde ara:
 
 ```bash
 cd ~/domains/wisesolutions.com.tr/public_html
-echo 'TELEGRAM_BOT_TOKEN=8123456789:AAHx1yZq-BcDeFgHiJkLmNoPqRsTuVwXyZ0' >> .env
-echo 'TELEGRAM_CHAT_ID=123456789' >> .env
+echo 'TELEGRAM_BOT_TOKEN=<BOT_ID>:<BOTFATHER_TOKEN>' >> .env
+echo 'TELEGRAM_CHAT_ID=<CHAT_ID>' >> .env
 php artisan config:clear
 ```
 
@@ -276,6 +280,20 @@ MAIL_MAILER=smtp
 ```
 
 > **`APP_KEY`'i asla değiştirme ve yedekle.** TC kimlik numaraları onunla şifreleniyor; değişirse okunamaz hâle gelirler.
+
+### Şifreler ve anahtarlar hakkında kural
+
+**Şifre, token, API anahtarı sadece sunucudaki `.env` dosyasında durur.** Kod dosyasına, `NOTLAR.md`'ye, commit mesajına, hiçbir yere yazma.
+
+Sebep: GitHub deposu bir kez bile herkese açık olursa veya birine erişim verirsen, geçmişteki her commit okunabilir. `git`'ten silmek yetmez — eski commit'te durmaya devam eder.
+
+Bu yüzden dokümanlardaki örnekler `<BOT_ID>`, `...` gibi yer tutucudur; gerçek görünümlü örnek yazma.
+
+**GitHub "secret detected" uyarısı gelirse:**
+
+1. Uyarının gösterdiği satıra bak — **gerçek anahtar mı, örnek mi?**
+2. **Gerçekse:** önce anahtarı iptal et (Telegram için @BotFather → `/revoke`, iyzico için panelden yenile), sonra yenisini sadece `.env`'e yaz. Depodan silmek tek başına yetmez, anahtar zaten görülmüş sayılır.
+3. **Örnekse:** GitHub'da uyarıyı **Close as → False positive** ile kapat ve örneği yer tutucuyla değiştir ki tekrar tetiklenmesin.
 
 ---
 
