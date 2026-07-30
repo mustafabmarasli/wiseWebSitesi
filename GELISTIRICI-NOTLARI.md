@@ -112,24 +112,23 @@ eklenme/güncelleme tarihi, satış ve görüntülenme sayısı artık
 `toggleable(isToggledHiddenByDefault: true)` — varsayılan görünümü sade
 tutar, gerektiğinde açılabilir. Marka ve barkod sütunları aranabilir.
 
----
+**Sütun başına arama kutusu:** Kategori, Ürün Adı, Marka, Barkod, Fiyat,
+Eski Fiyat ve Stok sütunlarının başlığının hemen altında o sütuna özel bir
+arama kutusu var — `->searchable(isIndividual: true)`. Üstteki genel "Ara"
+kutusundan farklı: o tüm sütunları birden tarar, buradakiler yalnızca
+kendi sütununu daraltır.
 
-## 1.4. Kategoriye özel arama kutusu
+Fiyat/Eski Fiyat/Stok sütunlarında `isGlobal: false` de eklendi — yoksa
+üstteki genel aramaya da karışıp "500" yazınca isim eşleşmeleriyle
+birbirine girerdi. Kesin aralık arıyorsan (`500-1000 TL arası`) Filtreler
+panelindeki **Fiyat Aralığı** daha doğrudur; bu kutu hızlı/kaba eşleşme
+içindir.
 
-Kategori sayfasının başlığının altında, o kategoriyle **sınırlı** bir arama
-kutusu var (`category-search-input`). Üstteki genel arama tüm kanalı
-tarıyor; ziyaretçi zaten bir kategorinin içindeyse başa dönüp genel aramayı
-kullanmak zorunda kalmasın diye ayrı bir kutu eklendi.
-
-- `ProductController::category()` artık `q` parametresini kabul ediyor,
-  yalnızca o kategorinin ürünlerinde arıyor
-- Diğer filtrelerle (fiyat aralığı, sıralama) birlikte çalışır — form
-  `request()->except(['q','page'])` ile diğer parametreleri gizli alan
-  olarak taşır
-- Sonuç sayısı ve "aramayı temizle" bağlantısı başlığın altında çıkar
-- Aynı görünüm (`category.blade.php`) genel arama sayfasında da
-  kullanıldığı için (`ProductController::search()`), oradaki `q` kutusuyla
-  çakışmaz — farklı `<form>` etiketleri, farklı `id`ler
+> **Geçmiş hata:** Kullanıcı önce "kategori sayfasında arama kutusu" istedi,
+> sonra bunun aslında **admin panelindeki** Ürünler tablosu için olduğunu
+> belirtti. Site tarafına eklenen kategoriye özel arama kutusu ve
+> `ProductController::category()`'deki `q` işleme geri alındı
+> (`git checkout HEAD~1 -- ...`); yalnızca panel filtreleri kaldı.
 
 ---
 
@@ -721,5 +720,5 @@ php artisan campaigns:send      # sıraya alınmış toplu gönderimleri yürüt
 php artisan test
 ```
 
-**357 test** var ve hepsi geçmeli. Özellikle ödeme, sepet, kupon ve yetkilendirme
+**355 test** var ve hepsi geçmeli. Özellikle ödeme, sepet, kupon ve yetkilendirme
 testleri geçmişte gerçek hatalar yakaladı — kırmızı görürsen düzeltmeden push etme.

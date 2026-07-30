@@ -122,6 +122,42 @@ it('stok bekleyen var filtresi calisir', function () {
         ->assertCanNotSeeTableRecords([$bekleyensiz]);
 });
 
+it('urun adi sutun altindaki kutu ile daraltilabilir', function () {
+    // Sütun başlığının hemen altındaki kutu; üstteki genel "Ara" değil.
+    $eslesen = filtreUrun(['name' => 'ESP32 Kart']);
+    $eslesmeyen = filtreUrun(['name' => 'Lens Kutusu']);
+
+    Livewire::actingAs(filtreAdmin())
+        ->test(ListProducts::class)
+        ->searchTableColumns(['name' => 'ESP32'])
+        ->assertCanSeeTableRecords([$eslesen])
+        ->assertCanNotSeeTableRecords([$eslesmeyen]);
+});
+
+it('kategori sutun altindaki kutu ile daraltilabilir', function () {
+    $kat1 = filtreKategori('Gelistirme Kartlari');
+    $kat2 = filtreKategori('Lens Aksesuarlari');
+    $u1 = filtreUrun(['category_id' => $kat1->id, 'name' => 'Kart Urunu']);
+    $u2 = filtreUrun(['category_id' => $kat2->id, 'name' => 'Lens Urunu']);
+
+    Livewire::actingAs(filtreAdmin())
+        ->test(ListProducts::class)
+        ->searchTableColumns(['category.name' => 'Gelistirme'])
+        ->assertCanSeeTableRecords([$u1])
+        ->assertCanNotSeeTableRecords([$u2]);
+});
+
+it('fiyat sutun altindaki kutu genel aramaya karismaz', function () {
+    // isGlobal:false — üstteki genel kutuya fiyat eklenmemeli, karışık
+    // sonuç vermesin (isim ararken fiyatla eşleşmesin).
+    $urun = filtreUrun(['price' => 349.00, 'name' => 'Ozel Urun']);
+
+    Livewire::actingAs(filtreAdmin())
+        ->test(ListProducts::class)
+        ->searchTable('349')
+        ->assertCanNotSeeTableRecords([$urun]);
+});
+
 it('marka ve barkod sutunlari aramada calisir', function () {
     $urun = filtreUrun(['brand' => 'DMV', 'gtin' => '1234567890123', 'name' => 'Aranan Urun']);
 

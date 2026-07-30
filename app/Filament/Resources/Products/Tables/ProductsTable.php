@@ -26,24 +26,28 @@ class ProductsTable
     {
         return $table
             ->columns([
+                // `isIndividual: true` sütun başlığının hemen altına o sütuna
+                // özel bir arama kutusu ekler — her sütunu ayrı ayrı daraltmak
+                // için. Üstteki genel "Ara" kutusundan farklı: o tüm sütunları
+                // birden tarar, buradakiler yalnızca kendi sütununu.
                 TextColumn::make('category.name')
                     ->label('Kategori')
-                    ->searchable()
+                    ->searchable(isIndividual: true)
                     ->sortable(),
                 TextColumn::make('name')
                     ->label('Ürün Adı')
-                    ->searchable()
+                    ->searchable(isIndividual: true)
                     ->sortable(),
                 TextColumn::make('brand')
                     ->label('Marka')
-                    ->searchable()
+                    ->searchable(isIndividual: true)
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('gtin')
                     ->label('Barkod')
-                    ->searchable()
+                    ->searchable(isIndividual: true)
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('slug')
-                    ->searchable()
+                    ->searchable(isIndividual: true)
                     ->toggleable(isToggledHiddenByDefault: true),
                 // Fiyat, eski fiyat ve stok LİSTEDEN düzenlenebilir: her ürün
                 // için forma girip çıkmak, fiyat/stok güncellemesi gibi sık
@@ -57,7 +61,12 @@ class ProductsTable
                     ->type('number')
                     ->rules(['required', 'numeric', 'min:0'])
                     ->extraInputAttributes(['step' => '0.01', 'min' => '0', 'style' => 'width:6.5rem'])
-                    ->sortable(),
+                    ->sortable()
+                    // Üstteki genel aramaya karışmasın diye isGlobal: false —
+                    // "500" yazınca isim eşleşmeleriyle karışmadan yalnızca
+                    // bu sütunda daraltır. Kesin aralık için "Fiyat Aralığı"
+                    // filtresi zaten var; bu kutu hızlı/kaba eşleşme içindir.
+                    ->searchable(isIndividual: true, isGlobal: false),
 
                 TextInputColumn::make('eski_fiyat')
                     ->label('Eski Fiyat ₺')
@@ -70,14 +79,16 @@ class ProductsTable
                     })
                     ->type('number')
                     ->extraInputAttributes(['step' => '0.01', 'min' => '0', 'style' => 'width:6.5rem'])
-                    ->sortable(),
+                    ->sortable()
+                    ->searchable(isIndividual: true, isGlobal: false),
 
                 TextInputColumn::make('stock')
                     ->label('Stok')
                     ->type('number')
                     ->rules(['required', 'integer', 'min:0'])
                     ->extraInputAttributes(['step' => '1', 'min' => '0', 'style' => 'width:5rem'])
-                    ->sortable(),
+                    ->sortable()
+                    ->searchable(isIndividual: true, isGlobal: false),
                 ImageColumn::make('image_url')->label('Görsel'),
                 TextColumn::make('rating')
                     ->label('Puan')

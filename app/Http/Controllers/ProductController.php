@@ -35,17 +35,6 @@ class ProductController extends Controller
         $category = Category::where('slug', $slug)->firstOrFail();
         $query = Product::with('category')->where('category_id', $category->id);
 
-        // Bu kategoriyle sınırlı arama. Genel arama tüm kanalı tarıyor;
-        // ziyaretçi zaten bir kategorinin içindeyse yalnızca orada aramak
-        // istiyor olabilir — bunun için genel aramaya geri dönmesi gerekmesin.
-        if ($request->filled('q')) {
-            $term = $request->get('q');
-            $query->where(function ($q) use ($term) {
-                $q->where('name', 'LIKE', '%' . $term . '%')
-                  ->orWhere('description', 'LIKE', '%' . $term . '%');
-            });
-        }
-
         // Optional filtering by min/max price
         if ($request->filled('min_price')) {
             $query->where('price', '>=', $request->min_price);

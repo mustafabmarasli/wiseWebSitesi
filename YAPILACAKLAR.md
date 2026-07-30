@@ -94,23 +94,23 @@ rehberin sonunda satılan ürün sende.
 
 _(iş bitince buraya taşı, tarih yaz)_
 
-### Ürün paneli filtreleri + kategoriye özel arama — 29.07.2026
+### Ürün paneli filtreleri ve sütun başına arama — 29.07.2026
 
-**Panel → Ürünler:** filtreler ve sütun seçimi genişletildi.
+**Panel → Ürünler:** filtreler, sütun seçimi ve sütun başına arama genişletildi.
 
 - Yeni filtreler: **Kategori**, **Marka**, **Stok Durumu** (Tükendi/Az
   Stok/Stokta), **Vitrin**, **İndirimli**, **Fiyat Aralığı** (min-max)
 - "Kolonlar" düğmesi zenginleşti: marka, barkod, slug, puan, tarihler,
   satış ve görüntülenme sayısı artık açılıp kapatılabiliyor
-- Marka ve barkod sütunları aranabilir oldu
+- **Sütun başlıklarının hemen altına arama kutuları eklendi** — Kategori,
+  Ürün Adı, Marka, Barkod, Fiyat, Eski Fiyat, Stok sütunlarının her biri
+  kendi kutusundan daraltılabiliyor. Üstteki genel "Ara" kutusu tüm
+  sütunları birden tarıyor, bunlar yalnızca kendi sütununu
 
-**Kategori sayfasında yeni arama kutusu:** başlığın altında, **o
-kategoriyle sınırlı** arama. Üstteki genel arama tüm kanalı tarıyor;
-artık bir kategorinin içindeyken başa dönmeden orada arayabiliyorsun.
-Fiyat aralığı ve sıralamayla birlikte çalışır, sonuç sayısını ve
-"aramayı temizle" bağlantısını gösterir.
+12 test. **Detay:** `GELISTIRICI-NOTLARI.md` → madde 1.3
 
-19 test. **Detay:** `GELISTIRICI-NOTLARI.md` → madde 1.3 ve 1.4
+> Not: kategori sayfasına eklenen "o kategoriyle sınırlı arama kutusu"
+> geri alındı — istenen bu değil, admin panelindeki Ürünler tablosuymuş.
 
 ---
 
