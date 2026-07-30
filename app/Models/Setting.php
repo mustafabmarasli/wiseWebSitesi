@@ -16,6 +16,7 @@ class Setting extends Model
         'announcement_title',
         'announcement_text',
         'consulting_enabled',
+        'new_customer_telegram_enabled',
         'bank_transfer_enabled',
         'bank_transfer_discount_percent',
         'bank_account_holder',
@@ -31,6 +32,7 @@ class Setting extends Model
         'free_shipping_threshold' => 'decimal:2',
         'announcement_enabled'    => 'boolean',
         'consulting_enabled'      => 'boolean',
+        'new_customer_telegram_enabled' => 'boolean',
         'bank_transfer_enabled'   => 'boolean',
         'card_payment_enabled'    => 'boolean',
         'bank_transfer_discount_percent' => 'decimal:2',
@@ -153,6 +155,17 @@ class Setting extends Model
         return $this->bank_transfer_enabled
             && filled($this->bank_iban)
             && filled($this->bank_account_holder);
+    }
+
+    /**
+     * Yeni müşteri kaydında Telegram bildirimi gönderilsin mi?
+     *
+     * Panelden açılıp kapatılır; Telegram hiç yapılandırılmamışsa ayar açık
+     * olsa da `TelegramNotifier` sessizce devre dışı kalır.
+     */
+    public function notifiesNewCustomer(): bool
+    {
+        return (bool) $this->new_customer_telegram_enabled;
     }
 
     /** Kredi kartı seçeneği müşteriye sunulabilir mi? */

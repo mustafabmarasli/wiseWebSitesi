@@ -7,6 +7,36 @@ Günlük işletme komutları (SSH, deploy, yayınlama) için → [`NOTLAR.md`](N
 
 ---
 
+## 0. Filament v5: `Set` ve `Get` sınıfları taşındı
+
+```php
+use Filament\Schemas\Components\Utilities\Set;   // DOĞRU
+use Filament\Forms\Set;                          // YANLIŞ — v4 yolu
+```
+
+Eski yolu kullanan bir closure **açılışta değil, alan güncellenince** patlar:
+`TypeError: Argument #1 ($set) must be of type Filament\Forms\Set,
+Filament\Schemas\Components\Utilities\Set given`.
+
+Panelde görünen tek şey **"yüklenirken hata oluştu"**; `laravel.log`'a hiçbir
+şey düşmez, sayfa testleri de yakalamaz (sayfa 200 döner). Yakalamanın tek
+yolu form etkileşimini sınamaktır:
+
+```php
+Livewire::actingAs($admin)->test(CreatePost::class)
+    ->fillForm(['title' => 'Deneme'])
+    ->assertFormSet(['slug' => 'deneme']);
+```
+
+> **Geçmiş hata:** Ürün, kategori ve blog formlarının üçünde birden vardı —
+> "başlık yaz, slug otomatik dolsun" kodu her üçünde de eski yolu
+> kullanıyordu. `BlogPanelTest` üç formu birlikte kolluyor.
+
+Yeni bir form yazarken slug/otomatik doldurma kodunu **çalışır bir formdan
+kopyalamadan önce** import satırına bak.
+
+---
+
 ## 1. Filament panel: Tailwind sınıfları çalışmaz
 
 **Belirti:** Panelde yazdığın `hidden`, `h-10`, `grid-cols-3` gibi sınıflar hiçbir
@@ -229,8 +259,8 @@ geçer.** Bu doğrulamayı kaldırma.
 ## 9. Ayarlar veritabanında, kodda değil
 
 Kargo ücreti, ücretsiz kargo limiti, **site duyurusu**, **banka/havale bilgileri**,
-**ödeme yöntemi açık/kapalı** ve **TC eşiği** `settings` tablosunda tek
-satırda tutulur → Panel → **Site Ayarları**.
+**ödeme yöntemi açık/kapalı**, **TC eşiği** ve **yeni müşteri Telegram
+bildirimi** `settings` tablosunda tek satırda tutulur → Panel → **Site Ayarları**.
 
 Yani bunları değiştirmek için deploy gerekmez. Ama tersi de doğru:
 **kodu canlıya atmak ayarı açmaz** — canlı panelden ayrıca açman gerekir.
@@ -283,6 +313,21 @@ gitmedi diye müşterinin siparişi düşmemeli.**
   yönetici zaten kendisi verdi.
 - Yönetici e-postasında **TC Kimlik No yer almaz.** Veritabanında şifreli tutulan
   bir veriyi düz metin e-posta ile göndermek o korumayı anlamsız kılar.
+
+### Yeni müşteri bildirimi (isteğe bağlı)
+
+Sipariş bildiriminden **ayrıdır** ve panelden açılıp kapatılır:
+Panel → Site Ayarları → **Bildirimler**. Varsayılan **kapalı**.
+
+- Tetikleyici `UserObserver::created()`. Observer kullanılıyor çünkü kullanıcı
+  **dört ayrı yerde** oluşuyor: üyelik formu, Google ile giriş, misafir
+  siparişinden üyelik ve `admin:create`. Bildirimi dört yere kopyalasaydık
+  beşincisi eklendiğinde unutulurdu.
+- `is_admin` olan hesap müşteri sayılmaz, bildirim üretmez.
+- Mesajda **yalnızca ad, e-posta ve tarih** var. Telefon/adres bilinçli olarak
+  yok: Telegram mesajı sunucu dışına çıkan bir kayıttır, veri minimizasyonu.
+- Gönderim hatası üyelik işlemini **düşürmez** (`UserObserver` try/catch).
+- `php artisan telegram:test` bu ayarın açık mı kapalı mı olduğunu da yazar.
 
 ---
 
@@ -390,5 +435,5 @@ php artisan telegram:test       # sipariş bildirimi ayarlarını sına
 php artisan test
 ```
 
-**263 test** var ve hepsi geçmeli. Özellikle ödeme, sepet, kupon ve yetkilendirme
+**279 test** var ve hepsi geçmeli. Özellikle ödeme, sepet, kupon ve yetkilendirme
 testleri geçmişte gerçek hatalar yakaladı — kırmızı görürsen düzeltmeden push etme.

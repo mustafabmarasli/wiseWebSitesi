@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Enums\OrderStatus;
 use App\Models\Order;
+use App\Models\Setting;
+use App\Models\User;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -43,6 +45,26 @@ class TelegramNotifier
         return $this->send($this->buildOrderMessage($order));
     }
 
+    /**
+     * Yeni müşteri kaydı bildirimi.
+     *
+     * Panelden kapatılabilir (Site Ayarları → Bildirimler). Kapalıysa hiçbir
+     * şey yapılmaz. Bildirim, üyelik işlemini ASLA düşürmemeli — bu yüzden
+     * çağıran taraf sonucu yok sayar, hatalar yalnızca loglanır.
+     */
+    public function notifyNewCustomer(User $user): bool
+    {
+        if (! Setting::current()->notifiesNewCustomer()) {
+            return false;
+        }
+
+        if (! $this->isConfigured()) {
+            return false;
+        }
+
+        return $this->send($this->buildCustomerMessage($user));
+    }
+
     public function send(string $message): bool
     {
         if (! $this->isConfigured()) {
@@ -74,6 +96,28 @@ class TelegramNotifier
 
             return false;
         }
+    }
+
+    /**
+     * Yeni müşteri mesajı.
+     *
+     * Telefon, adres gibi ek kişisel veri BİLEREK yok: Telegram mesajı
+     * sunucu dışına çıkan bir kayıttır, bildirim için ad ve e-posta yeterli.
+     */
+    private function buildCustomerMessage(User $user): string
+    {
+        $satirlar = [
+            '👤 <b>YENİ MÜŞTERİ KAYDI</b>',
+            '',
+            '<b>Ad:</b> ' . e($user->name),
+            '<b>E-posta:</b> ' . e($user->email),
+            '<b>Tarih:</b> ' . ($user->created_at ?? now())->format('d.m.Y H:i'),
+            '<b>Toplam müşteri:</b> ' . User::where('is_admin', false)->count(),
+            '',
+            route('filament.admin.resources.users.index'),
+        ];
+
+        return implode("\n", $satirlar);
     }
 
     private function buildOrderMessage(Order $order): string

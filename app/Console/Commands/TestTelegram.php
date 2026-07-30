@@ -52,6 +52,16 @@ class TestTelegram extends Command
 
         $this->info('Mesaj gönderildi. Telegram\'ı kontrol edin.');
 
+        // Yeni müşteri bildirimi panelden ayrıca açılıyor; token doğruyken bile
+        // kapalı olabilir. Hangi durumda olduğunu burada söylüyoruz.
+        $this->newLine();
+        if (\App\Models\Setting::current()->notifiesNewCustomer()) {
+            $this->line('Yeni müşteri kaydı bildirimi: AÇIK');
+        } else {
+            $this->line('Yeni müşteri kaydı bildirimi: KAPALI');
+            $this->line('  Açmak için: Panel → Site Ayarları → Bildirimler');
+        }
+
         return self::SUCCESS;
     }
 }

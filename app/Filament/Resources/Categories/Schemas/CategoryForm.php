@@ -7,7 +7,10 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Select;
 use Filament\Schemas\Schema;
-use Filament\Forms\Set;
+// DİKKAT: `Filament\Forms\Set` DEĞİL — Filament v5'te taşındı. Eski yol
+// closure imzasında TypeError'a düşer, panelde "yüklenirken hata oluştu"
+// olarak görünür.
+use Filament\Schemas\Components\Utilities\Set;
 use Illuminate\Support\Str;
 
 class CategoryForm

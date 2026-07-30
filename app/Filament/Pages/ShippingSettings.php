@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Models\Setting;
+use App\Services\TelegramNotifier;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Textarea;
@@ -41,6 +42,7 @@ class ShippingSettings extends Page
             'announcement_title',
             'announcement_text',
             'consulting_enabled',
+            'new_customer_telegram_enabled',
             'bank_transfer_enabled',
             'bank_transfer_discount_percent',
             'bank_account_holder',
@@ -153,6 +155,14 @@ class ShippingSettings extends Page
                             ->helperText('Kapalıyken portal sayfasındaki üçüncü bölme, üst menü, alt bilgi ve mobil menüdeki bağlantılar gizlenir; /danismanlik adresi de 404 döner.'),
                     ]),
 
+                Section::make('Bildirimler')
+                    ->description('Telegram bildirimleri. Sipariş bildirimi her zaman gider; aşağıdaki isteğe bağlıdır.')
+                    ->schema([
+                        Toggle::make('new_customer_telegram_enabled')
+                            ->label('Yeni müşteri kaydında Telegram bildirimi')
+                            ->helperText($this->telegramDurumu()),
+                    ]),
+
                 Section::make('Site Duyurusu')
                     ->description('Elektronik ve Sağlık sayfaları açıldığında ortada beliren bilgilendirme penceresi. Ziyaretçi kapattığında oturum boyunca tekrar gösterilmez.')
                     ->schema([
@@ -190,6 +200,7 @@ class ShippingSettings extends Page
                 'announcement_title'      => $data['announcement_title'] ?? null,
                 'announcement_text'       => $data['announcement_text'] ?? null,
                 'consulting_enabled'      => (bool) ($data['consulting_enabled'] ?? false),
+                'new_customer_telegram_enabled' => (bool) ($data['new_customer_telegram_enabled'] ?? false),
                 'bank_transfer_enabled'   => (bool) ($data['bank_transfer_enabled'] ?? false),
                 'card_payment_enabled'    => (bool) ($data['card_payment_enabled'] ?? false),
                 'bank_transfer_discount_percent' => $data['bank_transfer_discount_percent'] ?? 0,
@@ -225,6 +236,21 @@ class ShippingSettings extends Page
                 ->label('Kaydet')
                 ->action('save'),
         ];
+    }
+
+    /**
+     * Telegram hiç yapılandırılmamışken açık bir düğme boşa umut verir;
+     * durumu düğmenin altında açıkça yazıyoruz.
+     */
+    private function telegramDurumu(): string
+    {
+        if (! (new TelegramNotifier())->isConfigured()) {
+            return 'DİKKAT: Telegram bağlantısı kurulmamış (.env içinde bot anahtarı yok). '
+                . 'Bu düğmeyi açsanız da bildirim gitmez.';
+        }
+
+        return 'Açıkken her yeni üyelikte adınıza Telegram mesajı gelir. '
+            . 'Mesajda yalnızca ad ve e-posta yer alır.';
     }
 
     public function getSubheading(): string|Htmlable|null

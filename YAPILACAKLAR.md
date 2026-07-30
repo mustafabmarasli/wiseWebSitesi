@@ -94,6 +94,39 @@ rehberin sonunda satılan ürün sende.
 
 _(iş bitince buraya taşı, tarih yaz)_
 
+### Yeni müşteri kaydında Telegram bildirimi — 29.07.2026
+
+**Panel → Site Ayarları → Bildirimler** altında açılıp kapanan düğme.
+Varsayılan kapalı; açtığın anda her yeni üyelikte Telegram mesajı gelir.
+
+- Mesajda ad, e-posta, tarih ve toplam müşteri sayısı var — telefon/adres
+  bilinçli olarak yok (Telegram mesajı sunucu dışına çıkan bir kayıt)
+- Yönetici hesabı oluşması bildirim üretmez
+- Telegram hiç yapılandırılmamışsa düğmenin altında uyarı çıkıyor;
+  boşa umut vermesin
+- `php artisan telegram:test` artık bu ayarın durumunu da yazıyor
+- Bildirim hatası üyelik işlemini düşürmüyor
+
+10 test. **Detay:** `GELISTIRICI-NOTLARI.md` → madde 10.5
+
+---
+
+### Panelde "yüklenirken hata oluştu" — 29.07.2026
+
+Blog yazısı eklerken çıkan hata. Sebep: Filament v5'te `Set` sınıfı taşınmış,
+kod eski yolu (`Filament\Forms\Set`) kullanıyordu. Hata sayfa açılışında değil
+**başlığı yazıp alandan çıkınca** oluşuyor ve log'a hiçbir şey düşmüyor.
+
+**Aynı hata ürün ve kategori formlarında da vardı** — "ad yaz, slug otomatik
+dolsun" kodu üçünde de aynı yerden kopyalanmış. Üçü birden düzeltildi.
+
+Sayfa testleri bunu yakalamıyordu (sayfa 200 dönüyor); form etkileşimini
+sınayan 3 test eklendi.
+
+**Detay:** `GELISTIRICI-NOTLARI.md` → madde 0
+
+---
+
 ### 6. Blog / rehber altyapısı — 29.07.2026
 
 Panelden yazı eklenebilen SEO uyumlu bölüm hazır: **Panel → Blog Yazıları**.

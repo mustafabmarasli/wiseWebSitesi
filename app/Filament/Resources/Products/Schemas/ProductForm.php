@@ -10,7 +10,10 @@ use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
-use Filament\Forms\Set;
+// DİKKAT: `Filament\Forms\Set` DEĞİL — Filament v5'te taşındı. Eski yol
+// closure imzasında TypeError'a düşüyor; panelde ürün adı yazıp alandan
+// çıkınca "yüklenirken hata oluştu" görünüyordu.
+use Filament\Schemas\Components\Utilities\Set;
 use Illuminate\Support\Str;
 
 class ProductForm
