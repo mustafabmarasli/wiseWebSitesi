@@ -16,6 +16,7 @@ class Setting extends Model
         // çoklu ve görselli. Bkz. App\Models\Announcement.
         'consulting_enabled',
         'new_customer_telegram_enabled',
+        'marketing_sending_enabled',
         'bank_transfer_enabled',
         'bank_transfer_discount_percent',
         'bank_account_holder',
@@ -31,6 +32,7 @@ class Setting extends Model
         'free_shipping_threshold' => 'decimal:2',
         'consulting_enabled'      => 'boolean',
         'new_customer_telegram_enabled' => 'boolean',
+        'marketing_sending_enabled'     => 'boolean',
         'bank_transfer_enabled'   => 'boolean',
         'card_payment_enabled'    => 'boolean',
         'bank_transfer_discount_percent' => 'decimal:2',

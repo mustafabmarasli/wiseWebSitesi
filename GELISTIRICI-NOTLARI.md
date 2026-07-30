@@ -93,6 +93,46 @@ doğru olmalı** — zaten olmak zorunda, Google giriş yönlendirmesi de
 
 ---
 
+## 1.3. Ürün paneli: filtreler ve sütun seçimi
+
+Panel → Ürünler tablosunda filtreler genişletildi:
+
+- **Kategori** — ilişki üzerinden, aranabilir
+- **Marka** — seçenekler veritabanındaki gerçek markalardan üretilir
+  (`Product::distinct()->pluck('brand')`); yeni marka eklenince filtreye
+  elle eklemek gerekmez
+- **Stok Durumu** — Tükendi (0) / Az Stok (1-9) / Stokta (10+)
+- **Vitrin** — üçlü filtre (evet/hayır/farketmez)
+- **İndirimli** — yalnızca `eski_fiyat > price` olanlar
+- **Fiyat Aralığı** — iki alanlı özel filtre (`Filter::make()->schema([...])`),
+  aktifken üstte "Min: X ₺ / Max: Y ₺" göstergesi çıkar (`indicateUsing`)
+
+**Sütun seçimi** ("Kolonlar" düğmesi) daha zengin: marka, barkod, slug, puan,
+eklenme/güncelleme tarihi, satış ve görüntülenme sayısı artık
+`toggleable(isToggledHiddenByDefault: true)` — varsayılan görünümü sade
+tutar, gerektiğinde açılabilir. Marka ve barkod sütunları aranabilir.
+
+---
+
+## 1.4. Kategoriye özel arama kutusu
+
+Kategori sayfasının başlığının altında, o kategoriyle **sınırlı** bir arama
+kutusu var (`category-search-input`). Üstteki genel arama tüm kanalı
+tarıyor; ziyaretçi zaten bir kategorinin içindeyse başa dönüp genel aramayı
+kullanmak zorunda kalmasın diye ayrı bir kutu eklendi.
+
+- `ProductController::category()` artık `q` parametresini kabul ediyor,
+  yalnızca o kategorinin ürünlerinde arıyor
+- Diğer filtrelerle (fiyat aralığı, sıralama) birlikte çalışır — form
+  `request()->except(['q','page'])` ile diğer parametreleri gizli alan
+  olarak taşır
+- Sonuç sayısı ve "aramayı temizle" bağlantısı başlığın altında çıkar
+- Aynı görünüm (`category.blade.php`) genel arama sayfasında da
+  kullanıldığı için (`ProductController::search()`), oradaki `q` kutusuyla
+  çakışmaz — farklı `<form>` etiketleri, farklı `id`ler
+
+---
+
 ## 1.5. Sayfa genişliği: `max-w-site`
 
 Gövde genişliği **tek yerden** yönetilir: `layouts/app.blade.php` içindeki
@@ -452,6 +492,52 @@ pazarlama iletisi göndermeye izin VERMEZ.
 
 ---
 
+## 10.45. Toplu gönderim: üç ayrı kilit
+
+Kampanya gönderimi (`CampaignSender`) **üç kilidin üçünü birden** geçmeden
+çalışmaz. Hiçbirini gevşetme:
+
+1. **Ana şalter** — `settings.marketing_sending_enabled`, varsayılan
+   **kapalı**. Kodun yayına alınmasıyla gönderim kendiliğinden açılmamalı.
+2. **Kanal yapılandırması** — SMS için `services.netgsm.*` dolu olmalı.
+3. **Onay** — alıcı listesi **yalnızca** `marketing_consents` üzerinden
+   kurulur. Elle liste verilemez; "yanlış listeye gönderdim" mümkün değil.
+
+Ek güvenceler:
+
+- Her alıcıda **taze onay kontrolü** (`$onay->fresh()`). Uzun gönderim
+  sürerken çıkan olursa atlanır — listenin başındaki tek kontrol yetmez.
+- **Çıkış bağlantısı gövdeye kodda eklenir** (`CampaignSender::smsMetni()`,
+  `emails/marketing/campaign.blade.php`). Panelde yazana bırakılırsa er geç
+  unutulur ve o gönderim kanuna aykırı olur.
+- `campaign_deliveries` üzerinde `(campaign_id, contact)` **benzersiz**:
+  komut yarıda kalıp yeniden çalıştırılırsa kaldığı yerden devam eder,
+  kimseye iki kez gitmez.
+- Gönderilmiş kampanya **düzenlenemez** — "ne göndermiştik" sorusunun
+  cevabı bozulmasın.
+
+### Gönderim neden artisan komutuyla?
+
+Kuyruk `sync` (madde 11). Panelden yüzlerce gönderim denenirse istek zaman
+aşımına uğrar ve gönderim yarıda kalır. Bu yüzden panel kampanyayı yalnızca
+`queued` yapar, gönderimi komut yürütür:
+
+```bash
+php artisan campaigns:send
+php artisan netgsm:test 05321112233   # ayar sınama
+```
+
+Cron'a bağlanabilir. `QUEUE_CONNECTION=database` + worker'a geçilirse
+komut yerine job'a alınabilir.
+
+### SMS metninde Türkçe karakter
+
+`ç ğ ı ö ş ü` kullanılan SMS UCS-2'ye düşer: parça başına 160 yerine
+**70 karakter**. Uzun kampanya metinlerinde kontör maliyetini üçe katlar.
+Panelde bu uyarı yazılı.
+
+---
+
 ## 10.5. Sipariş bildirimi iki kanaldan gider
 
 `OrderFulfiller::notifyAdmin()` hem e-posta hem Telegram gönderir; biri
@@ -623,6 +709,8 @@ Binlerce satırlık dosyalarla çalışmaya başlarsan `database`'e geç ve
 php artisan admin:create        # yönetici hesabı oluştur / mevcut hesabı yönetici yap
 php artisan locations:import    # il/ilçe/mahalle verisi (--fresh ile sıfırdan)
 php artisan telegram:test       # sipariş bildirimi ayarlarını sına
+php artisan netgsm:test [tel]   # SMS ayarlarını sına, isteğe bağlı deneme SMS
+php artisan campaigns:send      # sıraya alınmış toplu gönderimleri yürüt
 ```
 
 ---
@@ -633,5 +721,5 @@ php artisan telegram:test       # sipariş bildirimi ayarlarını sına
 php artisan test
 ```
 
-**327 test** var ve hepsi geçmeli. Özellikle ödeme, sepet, kupon ve yetkilendirme
+**357 test** var ve hepsi geçmeli. Özellikle ödeme, sepet, kupon ve yetkilendirme
 testleri geçmişte gerçek hatalar yakaladı — kırmızı görürsen düzeltmeden push etme.

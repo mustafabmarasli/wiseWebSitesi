@@ -94,6 +94,55 @@ rehberin sonunda satılan ürün sende.
 
 _(iş bitince buraya taşı, tarih yaz)_
 
+### Ürün paneli filtreleri + kategoriye özel arama — 29.07.2026
+
+**Panel → Ürünler:** filtreler ve sütun seçimi genişletildi.
+
+- Yeni filtreler: **Kategori**, **Marka**, **Stok Durumu** (Tükendi/Az
+  Stok/Stokta), **Vitrin**, **İndirimli**, **Fiyat Aralığı** (min-max)
+- "Kolonlar" düğmesi zenginleşti: marka, barkod, slug, puan, tarihler,
+  satış ve görüntülenme sayısı artık açılıp kapatılabiliyor
+- Marka ve barkod sütunları aranabilir oldu
+
+**Kategori sayfasında yeni arama kutusu:** başlığın altında, **o
+kategoriyle sınırlı** arama. Üstteki genel arama tüm kanalı tarıyor;
+artık bir kategorinin içindeyken başa dönmeden orada arayabiliyorsun.
+Fiyat aralığı ve sıralamayla birlikte çalışır, sonuç sayısını ve
+"aramayı temizle" bağlantısını gösterir.
+
+19 test. **Detay:** `GELISTIRICI-NOTLARI.md` → madde 1.3 ve 1.4
+
+---
+
+### Toplu gönderim altyapısı (Netgsm + e-posta) — 29.07.2026
+
+**Panel → Toplu Gönderim.** Kampanya yaz, kendine deneme gönder, sonra
+gönderime al.
+
+Üç kilit birden geçilmeden hiçbir gönderim olmuyor:
+
+1. **Ana şalter** — Site Ayarları → Bildirimler. **Varsayılan KAPALI**;
+   İYS işin bitene kadar kapalı kalsın
+2. **Kanal ayarı** — SMS için `.env` içinde NETGSM_* değerleri
+3. **Onay** — liste yalnızca onay veren kişilerden kurulur, elle liste
+   verilemez
+
+- Çıkış bağlantısı her iletiye **kodda** ekleniyor; panelde yazmayı
+  unutma ihtimali yok
+- Gönderim sürerken onayını çeken atlanıyor
+- Aynı kişiye iki kez gitmiyor; komut yarıda kalırsa kaldığı yerden devam
+- Gönderilmiş kampanya düzenlenemiyor
+- Netgsm hata kodları Türkçeye çevriliyor ("30" yerine "kullanıcı adı/şifre
+  hatalı")
+- SMS'te Türkçe karakter uyarısı (parça başına 160 değil 70 karakter)
+
+Gönderim `php artisan campaigns:send` ile yürüyor — kuyruk `sync` olduğu
+için panelden yüzlerce gönderim zaman aşımına uğrardı.
+
+16 test. **Detay:** `GELISTIRICI-NOTLARI.md` → madde 10.45
+
+---
+
 ### Ticari elektronik ileti onayı altyapısı — 29.07.2026
 
 **Toplu SMS/e-posta/WhatsApp göndermeden önce gerekenler kuruldu.**

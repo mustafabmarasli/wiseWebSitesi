@@ -48,4 +48,15 @@ return [
         'chat_id'   => env('TELEGRAM_CHAT_ID'),
     ],
 
+    // Netgsm toplu SMS. Yapılandırma yoksa SMS gönderimi sessizce devre dışı
+    // kalır; uygulamanın geri kalanı etkilenmez.
+    //
+    // `header` = Netgsm panelinden ONAYLANMIŞ gönderici adı. Onaysız başlıkla
+    // gönderim Netgsm tarafından reddedilir (hata kodu 70/80).
+    'netgsm' => [
+        'usercode' => env('NETGSM_USERCODE'),
+        'password' => env('NETGSM_PASSWORD'),
+        'header'   => env('NETGSM_HEADER'),
+    ],
+
 ];

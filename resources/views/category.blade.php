@@ -40,6 +40,35 @@
             @if(isset($category->description))
                 <p class="text-slate-500 text-sm mt-1.5">{{ $category->description }}</p>
             @endif
+
+            {{-- Bu kategoriyle sınırlı arama. Üstteki genel arama tüm
+                 kanalı tarıyor; ziyaretçi zaten bu kategorinin içindeyse
+                 yalnızca burada aramak isteyebilir. --}}
+            <form action="{{ url()->current() }}" method="GET" class="mt-4 relative max-w-md" id="category-search-form">
+                @foreach (request()->except(['q', 'page']) as $anahtar => $deger)
+                    <input type="hidden" name="{{ $anahtar }}" value="{{ $deger }}">
+                @endforeach
+                <input
+                    type="text"
+                    name="q"
+                    value="{{ request('q') }}"
+                    placeholder="{{ $category->name }} içinde ara..."
+                    class="w-full bg-slate-50 text-slate-700 pl-4 pr-10 py-2.5 rounded-lg text-sm border border-slate-200 focus:outline-none focus:ring-2 focus:ring-trendyol focus:bg-white transition-all"
+                    id="category-search-input"
+                >
+                <button type="submit" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-trendyol" id="category-search-submit">
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </button>
+            </form>
+
+            @if (request('q'))
+                <p class="text-xs text-slate-500 font-semibold mt-2">
+                    <span class="text-slate-700 font-extrabold">"{{ request('q') }}"</span> için {{ $products->total() }} sonuç bulundu
+                    <a href="{{ url()->current() }}" class="text-trendyol hover:underline font-bold ml-1">(aramayı temizle)</a>
+                </p>
+            @endif
         </div>
     </div>
 

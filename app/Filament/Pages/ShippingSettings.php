@@ -40,6 +40,7 @@ class ShippingSettings extends Page
             'free_shipping_threshold',
             'consulting_enabled',
             'new_customer_telegram_enabled',
+            'marketing_sending_enabled',
             'bank_transfer_enabled',
             'bank_transfer_discount_percent',
             'bank_account_holder',
@@ -158,6 +159,13 @@ class ShippingSettings extends Page
                         Toggle::make('new_customer_telegram_enabled')
                             ->label('Yeni müşteri kaydında Telegram bildirimi')
                             ->helperText($this->telegramDurumu()),
+
+                        // ANA ŞALTER. Varsayılan kapalı: İYS işi bitmeden
+                        // gönderim yapılmamalı ve kodun yayına alınmasıyla
+                        // kendiliğinden açılmamalı.
+                        Toggle::make('marketing_sending_enabled')
+                            ->label('Toplu kampanya gönderimi (SMS / E-posta)')
+                            ->helperText('KAPALIYKEN hiçbir kampanya gönderilemez. Açmadan önce İYS marka kaydınızın yapılmış ve onayların İYS sistemine yüklenmiş olması gerekir. Onaysız kişiye gönderim her hâlükârda kodda engellidir.'),
                     ]),
 
                 // Duyurular buradan çıktı: artık kendi bölümü var
@@ -178,6 +186,7 @@ class ShippingSettings extends Page
                     : $data['free_shipping_threshold'],
                 'consulting_enabled'      => (bool) ($data['consulting_enabled'] ?? false),
                 'new_customer_telegram_enabled' => (bool) ($data['new_customer_telegram_enabled'] ?? false),
+                'marketing_sending_enabled'     => (bool) ($data['marketing_sending_enabled'] ?? false),
                 'bank_transfer_enabled'   => (bool) ($data['bank_transfer_enabled'] ?? false),
                 'card_payment_enabled'    => (bool) ($data['card_payment_enabled'] ?? false),
                 'bank_transfer_discount_percent' => $data['bank_transfer_discount_percent'] ?? 0,

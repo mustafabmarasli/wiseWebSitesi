@@ -9,7 +9,10 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ExportBulkAction;
 use Filament\Actions\ViewAction;
+use Filament\Forms\Components\TextInput;
 use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TernaryFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -24,11 +27,24 @@ class ProductsTable
         return $table
             ->columns([
                 TextColumn::make('category.name')
-                    ->searchable(),
+                    ->label('Kategori')
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('name')
-                    ->searchable(),
+                    ->label('Ürün Adı')
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('brand')
+                    ->label('Marka')
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('gtin')
+                    ->label('Barkod')
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('slug')
-                    ->searchable(),
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 // Fiyat, eski fiyat ve stok LİSTEDEN düzenlenebilir: her ürün
                 // için forma girip çıkmak, fiyat/stok güncellemesi gibi sık
                 // yapılan bir işte gereksiz yol.
@@ -64,8 +80,10 @@ class ProductsTable
                     ->sortable(),
                 ImageColumn::make('image_url')->label('Görsel'),
                 TextColumn::make('rating')
+                    ->label('Puan')
                     ->numeric()
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 ToggleColumn::make('is_featured')
                     ->label('Vitrin')
                     ->sortable(),
@@ -73,23 +91,27 @@ class ProductsTable
                     ->searchable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('created_at')
+                    ->label('Eklenme')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('updated_at')
+                    ->label('Güncelleme')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('satis_sayisi')
                     ->label('Satış')
                     ->numeric()
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('view_count')
                     ->label('Görüntülenme')
                     ->numeric()
                     ->sortable()
                     ->badge()
-                    ->color('info'),
+                    ->color('info')
+                    ->toggleable(isToggledHiddenByDefault: true),
                 // Hangi tükenmiş ürünü öncelikle tedarik etmek gerektiğini
                 // söyleyen sütun: bekleyen sayısı yüksek olan ürün, hazır
                 // müşterisi olan üründür.
@@ -101,10 +123,90 @@ class ProductsTable
                     ->sortable(),
             ])
             ->filters([
+                SelectFilter::make('category_id')
+                    ->label('Kategori')
+                    ->relationship('category', 'name')
+                    ->searchable()
+                    ->preload(),
+
+                SelectFilter::make('brand')
+                    ->label('Marka')
+                    // Sabit liste yerine veritabanındaki gerçek markalardan
+                    // üretilir; yeni marka eklenince filtreye elle eklemek
+                    // gerekmez.
+                    ->options(fn () => Product::query()
+                        ->whereNotNull('brand')
+                        ->where('brand', '!=', '')
+                        ->distinct()
+                        ->orderBy('brand')
+                        ->pluck('brand', 'brand')
+                        ->all())
+                    ->searchable(),
+
+                // Stok durumu: tükenmiş / az stok / stokta. Panel her gün
+                // "hangi ürünler tükenmiş" ve "hangileri azalıyor" sorusuna
+                // cevap vermek için açılıyor; tek tek stok sütununu taramak
+                // yerine tek tıkla filtrelenebilsin.
+                SelectFilter::make('stok_durumu')
+                    ->label('Stok Durumu')
+                    ->options([
+                        'tukendi'  => 'Tükendi (0)',
+                        'az_stok'  => 'Az Stok (1-9)',
+                        'stokta'   => 'Stokta (10+)',
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return match ($data['value'] ?? null) {
+                            'tukendi' => $query->where('stock', '<=', 0),
+                            'az_stok' => $query->whereBetween('stock', [1, 9]),
+                            'stokta'  => $query->where('stock', '>=', 10),
+                            default   => $query,
+                        };
+                    }),
+
+                TernaryFilter::make('is_featured')
+                    ->label('Vitrin')
+                    ->trueLabel('Yalnızca vitrindekiler')
+                    ->falseLabel('Yalnızca vitrinde olmayanlar'),
+
+                Filter::make('indirimli')
+                    ->label('İndirimli (eski fiyatı olan)')
+                    ->query(fn (Builder $query): Builder => $query
+                        ->whereNotNull('eski_fiyat')
+                        ->whereColumn('eski_fiyat', '>', 'price')),
+
+                // Fiyat aralığı: iki alanlı özel filtre. Panelde "500-1000 TL
+                // arası ürünleri göster" gibi sorular sık soruluyor, tek
+                // sütun sıralaması bu soruyu cevaplamıyor.
+                Filter::make('fiyat_araligi')
+                    ->label('Fiyat Aralığı')
+                    ->schema([
+                        TextInput::make('fiyat_min')->label('Min ₺')->numeric()->minValue(0),
+                        TextInput::make('fiyat_max')->label('Max ₺')->numeric()->minValue(0),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when($data['fiyat_min'] ?? null, fn ($q, $v) => $q->where('price', '>=', $v))
+                            ->when($data['fiyat_max'] ?? null, fn ($q, $v) => $q->where('price', '<=', $v));
+                    })
+                    ->indicateUsing(function (array $data): array {
+                        $göstergeler = [];
+
+                        if ($data['fiyat_min'] ?? null) {
+                            $göstergeler[] = 'Min: ' . number_format((float) $data['fiyat_min'], 2, ',', '.') . ' ₺';
+                        }
+
+                        if ($data['fiyat_max'] ?? null) {
+                            $göstergeler[] = 'Max: ' . number_format((float) $data['fiyat_max'], 2, ',', '.') . ' ₺';
+                        }
+
+                        return $göstergeler;
+                    }),
+
                 Filter::make('stok_bekleyen_var')
                     ->label('Stok bildirimi bekleyen var')
                     ->query(fn (Builder $query) => $query->whereHas('pendingStockNotifications')),
             ])
+            ->filtersFormColumns(2)
             ->recordActions([
                 ViewAction::make()->label('Detay'),
                 EditAction::make(),
