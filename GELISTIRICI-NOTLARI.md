@@ -54,6 +54,33 @@ sınıfları içerir; senin yazdığın rastgele yardımcı sınıflar orada yok
 
 ---
 
+## 1.1. Ürün listesinde satır içi düzenleme
+
+Panel → Ürünler tablosunda **fiyat, eski fiyat ve stok** doğrudan listeden
+düzenlenir (`TextInputColumn`). Her ürün için forma girip çıkmak, fiyat/stok
+gibi sık yapılan bir işte gereksiz yol.
+
+- Satır içi kayıt da **model olayı üretir**: stoğu listeden 0'dan yukarı
+  çekmek bekleyenlere e-posta gönderir (madde 10.6). Kasıtlı; testle sabit.
+- `eski_fiyat` boş bırakılabilmeli. Boş dize `null`'a çevrilmezse `0,00`
+  kaydediliyor ve vitrinde **"%100 indirim"** çıkıyor — bu yüzden o sütunda
+  `updateStateUsing` var.
+- Doğrulama kuralları sütunda tanımlı (`rules([...])`); negatif stok/fiyat
+  kaydedilmez.
+
+### Üründe hangi alanlar zorunlu, neden?
+
+| Alan | Zorunlu mu | Sebep |
+|---|---|---|
+| Kategori | Evet | Ürünün hangi mağazada görüneceğini kategori belirler; detay sayfası kategori adını yazıyor, kategorisiz ürün hiçbir listede çıkmaz |
+| Ürün adı | Evet | — |
+| Adres (slug) | Evet | Ürünün URL'i. **Yayına aldıktan sonra değiştirme** |
+| Fiyat | Evet | Sepet ve sipariş toplamı bu alandan hesaplanıyor |
+| Stok | Evet (varsayılan 0) | Stok karşılaştırmaları sayı bekliyor; `null` kalırsa sepet ve stok düşümü kırılır |
+| Satış sayısı | **Hayır** | Sayaç ama sistem hiçbir yerde artırmıyor, elle giriliyor. Zorunluluğu kaldırıldı, boş bırakılırsa 0 |
+
+---
+
 ## 1.2. Panel marka bağlantısı `APP_URL`'e gider
 
 Panelde sol üstteki **"Buy WISEly"** yazısı panel anasayfasına değil **sitenin
@@ -141,9 +168,17 @@ görsel, biçimli metin ve kanal ayrımı sığmadı.
 - `channel` = `both` her iki mağazada geçerli.
 - Gövde zengin metin editöründen **HTML** gelir, `{!! !!}` ile basılır.
   Yalnızca yönetici yazabildiği için güvenli.
-- Yerleşim `image_overlay` seçildiğinde görselin üzerine **karartma degradesi**
-  uygulanır. Bu şart: açık renkli görselde beyaz yazı okunmuyor. Kapatma
-  düğmesi de o durumda koyu zeminli olur, gri simge görselde kayboluyordu.
+- **Renkler panelden seçilir** (`bg_color`, `text_color`). İkisi de boş
+  bırakılabilir; o zaman otomatik: zemin koyuysa beyaz yazı, açıksa koyu yazı
+  (`isDarkBackground()` — ITU-R BT.601 parlaklık hesabı).
+- Yerleşim `image_overlay` seçildiğinde `bg_color` görselin üzerine serilen
+  **perdenin** rengidir. Perde şart: açık renkli görselde yazı okunmuyor.
+- Kart üzerindeki `color`, **sayaç, kapatma yazısı ve zengin metnin tamamı
+  tarafından miras alınır.** Kalın yazı ve bağlantılar da `inherit` kullanır —
+  sabit koyu renkler koyu zeminde kayboluyordu. Bağlantının ayırt edilmesi
+  kalınlık ve alt çizgiden geliyor.
+- Dört yerleşim var: sadece metin · görsel üstte · **metin üstte görsel altta**
+  · yazı görselin üzerinde.
 - Kart `max-height:90vh` + kaydırmalıdır — uzun bir misyon metninde buton
   ekranın dışına çıkıyordu.
 - Ton (`info`/`warning`/`campaign`/`none`) simge ve rengi belirler. Renkler
@@ -377,6 +412,46 @@ de 0 dönmek zorunda.
 
 ---
 
+## 10.4. Pazarlama izni KVKK izninden AYRIDIR
+
+**En kritik ayrım:** "Aydınlatma metnini okudum" kutusu (`kvkk_consent`)
+pazarlama iletisi göndermeye izin VERMEZ.
+
+| | Kapsamı | Nerede |
+|---|---|---|
+| KVKK onayı | Verinin **işlenmesi** | Kayıt ve ödeme formunda, **zorunlu** |
+| 6563 onayı | Ticari iletinin **gönderilmesi** | Ayrı, **isteğe bağlı** kutular |
+
+`marketing_consents` tablosu ikincisini tutar. Kanal başına ayrı satır
+(`email` / `sms` / `call`) çünkü İYS onayları kanal bazında kaydediyor.
+
+**Kurallar — bunlara dokunma:**
+
+- Onay kutuları **ASLA önceden işaretli gelmemeli**; işaretli gelen kutu
+  geçerli onay sayılmaz ve tüm liste kullanılamaz hâle gelir.
+- Onay `consented_at` + `ip_address` + `source` ile saklanır. **İspat yükü
+  göndericidedir**; bu üç alanı çıkarma.
+- **Kayıtlar SİLİNMEZ.** Çıkış yapan `status='revoked'` olur — çıkış
+  talebinin de ispatlanabilmesi gerekiyor.
+- Çıkış sayfası **giriş gerektirmez** (`/abonelik/{token}`). Kanun çıkışın
+  "kolay ve ücretsiz" olmasını şart koşuyor; e-postadaki bağlantıya tıklayan
+  kişi oturum açmış olmayabilir.
+- Onay tazelendiğinde/geri çekildiğinde `synced_to_iys_at` **null'a çekilir**:
+  değişen onay İYS'ye yeniden yüklenmeli.
+- Telefonlar `normalizePhone()` ile tek biçime indirilir (`905321112233`).
+  Aynı numaranın iki farklı yazımla kaydedilmesi, "çıktım ama mesaj geliyor"
+  şikâyetinin en yaygın sebebi.
+
+**Gönderim yapılmadan önce gerekenler (kod değil, süreç):**
+
+1. Onaylar **İYS'ye yüklenmiş** olmalı — panelden Excel alınıp yüklenir,
+   sonra "İYS'ye Yüklendi" ile işaretlenir.
+2. Her iletide **çıkış bağlantısı** bulunmalı (`$consent->unsubscribeUrl()`).
+3. Sipariş/kargo/stok bildirimleri ticari ileti DEĞİLDİR, bu onaydan
+   bağımsızdır — o gönderimleri bu tabloya bağlama.
+
+---
+
 ## 10.5. Sipariş bildirimi iki kanaldan gider
 
 `OrderFulfiller::notifyAdmin()` hem e-posta hem Telegram gönderir; biri
@@ -558,5 +633,5 @@ php artisan telegram:test       # sipariş bildirimi ayarlarını sına
 php artisan test
 ```
 
-**299 test** var ve hepsi geçmeli. Özellikle ödeme, sepet, kupon ve yetkilendirme
+**327 test** var ve hepsi geçmeli. Özellikle ödeme, sepet, kupon ve yetkilendirme
 testleri geçmişte gerçek hatalar yakaladı — kırmızı görürsen düzeltmeden push etme.

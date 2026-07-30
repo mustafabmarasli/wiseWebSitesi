@@ -23,6 +23,8 @@ class Announcement extends Model
         'image_path',
         'image_alt',
         'layout',
+        'bg_color',
+        'text_color',
         'tone',
         'button_text',
         'button_url',
@@ -44,8 +46,12 @@ class Announcement extends Model
     public const YERLESIMLER = [
         'text'          => 'Sadece metin',
         'image_top'     => 'Görsel üstte, metin altta',
+        'image_bottom'  => 'Metin üstte, görsel altta',
         'image_overlay' => 'Yazı görselin üzerinde',
     ];
+
+    /** Görsel gösteren yerleşimler. */
+    public const GORSELLI_YERLESIMLER = ['image_top', 'image_bottom', 'image_overlay'];
 
     public const TONLAR = [
         'info'     => 'Bilgi (mavi)',
@@ -84,8 +90,77 @@ class Announcement extends Model
     /** Görsel gerçekten kullanılıyor mu? Yerleşim görsel istiyor ve görsel var mı. */
     public function usesImage(): bool
     {
-        return in_array($this->layout, ['image_top', 'image_overlay'], true)
+        return in_array($this->layout, self::GORSELLI_YERLESIMLER, true)
             && filled($this->image_url);
+    }
+
+    /** Görsel metnin altında mı dursun? */
+    public function imageBelowText(): bool
+    {
+        return $this->layout === 'image_bottom' && filled($this->image_url);
+    }
+
+    /**
+     * Kartın arka plan rengi. Panelden seçilmemişse yerleşime göre varsayılan.
+     *
+     * "Yazı görselin üzerinde" yerleşiminde bu renk, görselin üstüne serilen
+     * PERDE rengidir — açık zeminli görsellerde yazının okunmasını sağlar.
+     */
+    public function getBgColorValueAttribute(): string
+    {
+        if (filled($this->bg_color)) {
+            return $this->bg_color;
+        }
+
+        return $this->isOverlay() ? '#020617' : '#FFFFFF';
+    }
+
+    /**
+     * Yazı rengi. Seçilmemişse arka planın koyuluğuna göre otomatik:
+     * koyu zeminde beyaz, açık zeminde koyu gri.
+     */
+    public function getTextColorValueAttribute(): string
+    {
+        if (filled($this->text_color)) {
+            return $this->text_color;
+        }
+
+        return $this->isDarkBackground() ? '#FFFFFF' : '#0F172A';
+    }
+
+    /** Gövde metni rengi — başlıktan bir ton soluk. */
+    public function getBodyColorValueAttribute(): string
+    {
+        if (filled($this->text_color)) {
+            return $this->text_color;
+        }
+
+        return $this->isDarkBackground() ? '#E2E8F0' : '#475569';
+    }
+
+    /**
+     * Arka plan koyu mu? Otomatik yazı rengi bunu kullanır.
+     *
+     * Basit parlaklık hesabı (ITU-R BT.601): göz yeşili kırmızıdan, kırmızıyı
+     * maviden daha parlak algılıyor, bu yüzden kanallar eşit ağırlıklı değil.
+     */
+    public function isDarkBackground(): bool
+    {
+        $renk = ltrim($this->bg_color_value, '#');
+
+        if (strlen($renk) === 3) {
+            $renk = $renk[0] . $renk[0] . $renk[1] . $renk[1] . $renk[2] . $renk[2];
+        }
+
+        if (strlen($renk) !== 6 || ! ctype_xdigit($renk)) {
+            return $this->isOverlay();
+        }
+
+        $r = hexdec(substr($renk, 0, 2));
+        $g = hexdec(substr($renk, 2, 2));
+        $b = hexdec(substr($renk, 4, 2));
+
+        return (($r * 299) + ($g * 587) + ($b * 114)) / 1000 < 140;
     }
 
     /** Yazı görselin üzerine mi biniyor? */

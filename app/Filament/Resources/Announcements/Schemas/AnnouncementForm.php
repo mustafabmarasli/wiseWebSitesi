@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Announcements\Schemas;
 
 use App\Models\Announcement;
+use Filament\Forms\Components\ColorPicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
@@ -55,6 +56,7 @@ class AnnouncementForm
                         ->required()
                         ->default('text')
                         ->live()
+                        ->helperText('"Yazı görselin üzerinde" seçerseniz yazının okunması için Renkler bölümünden koyu bir perde rengi seçin.')
                         ->columnSpanFull(),
 
                     FileUpload::make('image_path')
@@ -67,13 +69,29 @@ class AnnouncementForm
                         // Yerleşim "sadece metin" iken görsel alanı gizli:
                         // yüklenmiş ama hiç gösterilmeyen görsel kafa karıştırır.
                         ->visible(fn (Get $get) => $get('layout') !== 'text')
-                        ->helperText('Önerilen: 1000 × 500 piksel yatay görsel. "Yazı görselin üzerinde" seçilirse yazının okunabilmesi için görselin üstüne otomatik karartma uygulanır.'),
+                        ->helperText('Önerilen: 1000 × 500 piksel yatay görsel.'),
 
                     TextInput::make('image_alt')
                         ->label('Görsel Açıklaması')
                         ->maxLength(255)
                         ->visible(fn (Get $get) => $get('layout') !== 'text')
                         ->helperText('Görme engelliler için. Görselde ne olduğunu kısaca yazın.'),
+                ]),
+
+            Section::make('Renkler')
+                ->description('Boş bırakırsanız otomatik seçilir: koyu zeminde beyaz yazı, açık zeminde koyu yazı. Yazı okunmuyorsa buradan elle ayarlayın.')
+                ->columns(2)
+                ->schema([
+                    ColorPicker::make('bg_color')
+                        ->label(fn (Get $get) => $get('layout') === 'image_overlay' ? 'Görsel Üstü Perde Rengi' : 'Arka Plan Rengi')
+                        ->helperText(fn (Get $get) => $get('layout') === 'image_overlay'
+                            // Perde olmadan açık renkli görselde yazı kayboluyor.
+                            ? 'Görselin üstüne serilen renk. Yazının okunması buna bağlı — koyu bir renk seçin.'
+                            : 'Pencerenin arka plan rengi. Varsayılan beyaz.'),
+
+                    ColorPicker::make('text_color')
+                        ->label('Yazı Rengi')
+                        ->helperText('Başlık ve metin rengi. Boş bırakılırsa arka planın koyuluğuna göre otomatik seçilir.'),
                 ]),
 
             Section::make('Buton (isteğe bağlı)')

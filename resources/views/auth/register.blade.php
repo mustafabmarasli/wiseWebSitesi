@@ -86,6 +86,26 @@
                     </label>
                 </div>
 
+                {{-- Ticari elektronik ileti onayı — KVKK onayından AYRI ve
+                     İSTEĞE BAĞLI. 6563 sayılı kanun bunu ayrı, önceden ve
+                     açık onay olarak istiyor; kutular ASLA önceden işaretli
+                     gelmemeli, aksi hâlde onay geçersiz sayılır. --}}
+                <div class="pt-1 space-y-2 border-t border-slate-100 mt-1">
+                    <p class="text-[11px] font-extrabold text-slate-600 pt-3">Kampanyalardan haberdar olmak ister misiniz? (isteğe bağlı)</p>
+
+                    <div class="flex items-start gap-2.5">
+                        <input type="checkbox" name="eposta_izni" value="1" id="register-eposta-izni" class="mt-0.5 h-4 w-4 text-trendyol border-slate-300 rounded focus:ring-trendyol">
+                        <label for="register-eposta-izni" class="text-xs text-slate-500 font-semibold leading-normal">
+                            E-posta ile kampanya ve indirim bildirimi almak istiyorum.
+                        </label>
+                    </div>
+
+                    <p class="text-[10px] text-slate-400 font-medium leading-normal">
+                        Onayınızı dilediğiniz an, gönderdiğimiz her iletinin sonundaki bağlantıdan ücretsiz geri çekebilirsiniz.
+                        Sipariş ve kargo bildirimleri bu onaydan bağımsızdır.
+                    </p>
+                </div>
+
                 <button 
                     type="submit" 
                     class="w-full bg-trendyol hover:bg-trendyolDark text-white py-3 rounded-lg font-extrabold text-sm transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-1.5"

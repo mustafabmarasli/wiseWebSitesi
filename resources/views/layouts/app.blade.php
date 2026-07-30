@@ -11,6 +11,11 @@
     <title>@yield('title', 'Buy WISEly - Geliştirme Kartları ve Sağlık Ürünleri')</title>
     <meta name="description" content="@yield('meta_description', 'Arduino, Raspberry Pi, ESP32 geliştirme kartları, sensörler ve robotik malzemeler en uygun fiyatlarla sitemizde!')">
     <link rel="canonical" href="{{ url()->current() }}">
+    {{-- Kişiye özel sayfalar (abonelik tercihleri gibi) burayı `noindex`
+         yaparak arama sonuçlarına düşmekten kurtulur. --}}
+    @hasSection('robots')
+        <meta name="robots" content="@yield('robots')">
+    @endif
 
     {{-- Sosyal paylaşım kartları (WhatsApp, Facebook, X, LinkedIn).
          Bunlar olmadan paylaşılan link çıplak metin olarak görünür. --}}

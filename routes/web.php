@@ -63,6 +63,13 @@ Route::get('/siparis/basarisiz/{order}', [App\Http\Controllers\PaymentController
 // Havale/EFT siparişi sonrası banka bilgilerinin gösterildiği sayfa
 Route::get('/siparis/havale/{order}', [App\Http\Controllers\PaymentController::class, 'bankTransfer'])->name('payment.bank-transfer');
 
+// Ticari elektronik ileti — abonelikten çıkış.
+// GİRİŞ GEREKTİRMEZ: 6563 sayılı kanun çıkışın kolay ve ücretsiz olmasını
+// şart koşuyor, e-postadaki bağlantıya tıklayan kişi oturum açmış olmayabilir.
+Route::get('/abonelik/{token}', [\App\Http\Controllers\MarketingConsentController::class, 'show'])->name('marketing.unsubscribe');
+Route::post('/abonelik/{token}/cik', [\App\Http\Controllers\MarketingConsentController::class, 'update'])->name('marketing.unsubscribe.submit');
+Route::post('/abonelik/{token}/abone-ol', [\App\Http\Controllers\MarketingConsentController::class, 'resubscribe'])->name('marketing.resubscribe');
+
 // Contact Pages
 Route::get('/iletisim', [PageController::class, 'contact'])->name('contact');
 Route::post('/iletisim/gonder', [PageController::class, 'submitContact'])->name('contact.submit');

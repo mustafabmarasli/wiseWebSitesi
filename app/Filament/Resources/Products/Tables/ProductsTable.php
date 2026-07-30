@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Products\Tables;
 
 use App\Filament\Exports\ProductExporter;
+use App\Models\Product;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -12,6 +13,7 @@ use Filament\Tables\Filters\Filter;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\TextInputColumn;
 use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Table;
 
@@ -27,11 +29,38 @@ class ProductsTable
                     ->searchable(),
                 TextColumn::make('slug')
                     ->searchable(),
-                TextColumn::make('price')
-                    ->money('TRY')
+                // Fiyat, eski fiyat ve stok LİSTEDEN düzenlenebilir: her ürün
+                // için forma girip çıkmak, fiyat/stok güncellemesi gibi sık
+                // yapılan bir işte gereksiz yol.
+                //
+                // DİKKAT: Buradan yapılan kayıt da model olayı üretir; yani
+                // stoğu 0'dan yukarı çekmek bekleyenlere e-posta gönderir
+                // (bkz. GELISTIRICI-NOTLARI madde 10.6). Bu kasıtlı.
+                TextInputColumn::make('price')
+                    ->label('Fiyat ₺')
+                    ->type('number')
+                    ->rules(['required', 'numeric', 'min:0'])
+                    ->extraInputAttributes(['step' => '0.01', 'min' => '0', 'style' => 'width:6.5rem'])
                     ->sortable(),
-                TextColumn::make('stock')
-                    ->numeric()
+
+                TextInputColumn::make('eski_fiyat')
+                    ->label('Eski Fiyat ₺')
+                    // Boş bırakılabilir: indirim yoksa üstü çizili fiyat
+                    // gösterilmez. Boş dize null'a çevrilmezse 0,00 TL olarak
+                    // kaydediliyor ve vitrinde "%100 indirim" çıkıyordu.
+                    ->rules(['nullable', 'numeric', 'min:0'])
+                    ->updateStateUsing(function (Product $record, $state) {
+                        $record->update(['eski_fiyat' => filled($state) ? $state : null]);
+                    })
+                    ->type('number')
+                    ->extraInputAttributes(['step' => '0.01', 'min' => '0', 'style' => 'width:6.5rem'])
+                    ->sortable(),
+
+                TextInputColumn::make('stock')
+                    ->label('Stok')
+                    ->type('number')
+                    ->rules(['required', 'integer', 'min:0'])
+                    ->extraInputAttributes(['step' => '1', 'min' => '0', 'style' => 'width:5rem'])
                     ->sortable(),
                 ImageColumn::make('image_url')->label('Görsel'),
                 TextColumn::make('rating')
@@ -49,10 +78,6 @@ class ProductsTable
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('updated_at')
                     ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('eski_fiyat')
-                    ->money('TRY')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('satis_sayisi')

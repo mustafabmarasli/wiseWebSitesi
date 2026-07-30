@@ -619,6 +619,12 @@ class CartController extends Controller
             'billing_neighborhood_id' => !$request->boolean('billing_same') ? $request->billing_neighborhood_id : $request->neighborhood_id,
         ]);
 
+        // Ticari elektronik ileti onayları — sipariş vermenin ŞARTI DEĞİL,
+        // ayrı ve isteğe bağlı kutulardan gelir. İşaretlenmediyse hiçbir
+        // kayıt açılmaz; onaysız kişiye pazarlama iletisi göndermek
+        // 6563 sayılı kanuna aykırıdır.
+        $this->pazarlamaOnaylariniKaydet($request, $order);
+
         // Sipariş kalemlerini kaydet
         foreach ($cart as $productId => $details) {
             OrderItem::create([
@@ -774,5 +780,44 @@ class CartController extends Controller
     {
         session()->forget('coupon');
         return redirect()->back()->withInput($request->all())->with('success', 'Kupon kaldırıldı.');
+    }
+
+    /**
+     * Ödeme adımındaki isteğe bağlı pazarlama onaylarını kaydeder.
+     *
+     * Onay kayıtları siparişin kendisinden BAĞIMSIZDIR: sipariş iptal olsa
+     * bile kişi onayını geri çekene kadar onay geçerlidir. Bu yüzden burada
+     * hata olsa dahi sipariş akışı kesilmemeli.
+     */
+    private function pazarlamaOnaylariniKaydet(Request $request, Order $order): void
+    {
+        try {
+            if ($request->boolean('eposta_izni')) {
+                \App\Models\MarketingConsent::grant(
+                    channel: 'email',
+                    email:   $order->email,
+                    phone:   $order->phone,
+                    source:  'checkout',
+                    userId:  $order->user_id,
+                    ip:      $request->ip(),
+                );
+            }
+
+            if ($request->boolean('sms_izni')) {
+                \App\Models\MarketingConsent::grant(
+                    channel: 'sms',
+                    email:   $order->email,
+                    phone:   $order->phone,
+                    source:  'checkout',
+                    userId:  $order->user_id,
+                    ip:      $request->ip(),
+                );
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Pazarlama onayı kaydedilemedi', [
+                'order_id' => $order->id,
+                'hata'     => $e->getMessage(),
+            ]);
+        }
     }
 }

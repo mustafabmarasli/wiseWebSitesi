@@ -45,6 +45,19 @@ class RegisterController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
+        // Ticari elektronik ileti onayı KVKK onayından ayrıdır ve isteğe
+        // bağlıdır; işaretlenmediyse hiçbir kayıt açılmaz. Onay verilmemiş
+        // kişiye pazarlama iletisi göndermek 6563 sayılı kanuna aykırıdır.
+        if ($request->boolean('eposta_izni')) {
+            \App\Models\MarketingConsent::grant(
+                channel: 'email',
+                email:   $user->email,
+                source:  'register',
+                userId:  $user->id,
+                ip:      $request->ip(),
+            );
+        }
+
         Auth::login($user);
 
         return redirect()->route('landing')->with('success', 'Hesabınız başarıyla oluşturuldu ve giriş yapıldı.');

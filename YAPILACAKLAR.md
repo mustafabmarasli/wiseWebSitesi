@@ -94,6 +94,62 @@ rehberin sonunda satılan ürün sende.
 
 _(iş bitince buraya taşı, tarih yaz)_
 
+### Ticari elektronik ileti onayı altyapısı — 29.07.2026
+
+**Toplu SMS/e-posta/WhatsApp göndermeden önce gerekenler kuruldu.**
+
+Durum tespiti: sitede pazarlama izni **alınmıyordu.** Kayıt ve ödemedeki
+kutular KVKK aydınlatma onayıydı; 6563 sayılı kanunun istediği ayrı ticari
+ileti onayı yoktu ve kayıt tutulmuyordu.
+
+Eklenenler:
+
+- `marketing_consents` tablosu — kanal başına ayrı satır (E-posta / SMS-WhatsApp /
+  Arama), onay tarihi, kaynak ve IP ile. İspat yükü göndericide
+- Üyelik ve ödeme adımına **isteğe bağlı** onay kutuları. Önceden işaretli
+  DEĞİL; sipariş vermenin şartı değil
+- **Abonelikten çıkış sayfası** (`/abonelik/{token}`) — giriş gerektirmiyor,
+  kanal kanal veya tümünden çıkış, isteyene yeniden abone olma
+- Panel → **Ticari İleti Onayları**: liste, süzgeç, İYS formatında Excel
+  dışa aktarma, "İYS'ye yüklendi" işaretleme, elle onay geri çekme
+- KVKK metnine ticari ileti bölümü eklendi
+
+15 test. **Detay:** `GELISTIRICI-NOTLARI.md` → madde 10.4
+
+> **Gönderime başlamadan önce (kod değil, süreç):** İYS kaydı, onayların
+> İYS'ye yüklenmesi, SMS için İYS entegre sağlayıcı, WhatsApp için Business
+> API. Bunlar bu turda YAPILMADI.
+
+---
+
+### Ürün listesinde satır içi düzenleme + duyuru renkleri — 29.07.2026
+
+**Panel → Ürünler:** fiyat, eski fiyat ve stok artık doğrudan listeden
+düzenleniyor. Forma girip çıkmaya gerek yok.
+
+- Stoğu listeden 0'dan yukarı çekmek de bekleyenlere e-posta gönderiyor
+- Eski fiyatı boşaltmak `null` yapıyor; boş dize 0 olarak kaydedilseydi
+  vitrinde "%100 indirim" çıkardı
+- Negatif fiyat/stok kaydedilmiyor
+
+**Zorunlu alanlar:** her birinin yanına neden zorunlu olduğunu yazan açıklama
+eklendi. **Satış sayısının zorunluluğu kaldırıldı** — sistem o sayacı hiçbir
+yerde artırmıyor, elle giriliyor; her kayıtta yazmaya zorlamanın karşılığı
+yoktu.
+
+**Duyuru renkleri:** arka plan ve yazı rengi panelden seçiliyor (Renkler
+bölümü). Boş bırakılırsa otomatik: koyu zeminde beyaz, açık zeminde koyu yazı.
+"Yazı görselin üzerinde" yerleşiminde seçilen renk görselin üstüne serilen
+perdenin rengi — yazının okunması buna bağlı. Kalın yazı, bağlantı, sayaç ve
+kapatma yazısı da seçilen rengi miras alıyor; sabit renkler koyu zeminde
+kayboluyordu.
+
+**Yeni yerleşim:** "Metin üstte, görsel altta".
+
+13 test. **Detay:** `GELISTIRICI-NOTLARI.md` → madde 1.1 ve 2.6
+
+---
+
 ### Duyurular sırayla açılıyor, raf sırası elle seçiliyor — 29.07.2026
 
 **Çoklu duyuru kuyruğu:** yayında birden fazla duyuru varsa sırayla açılıyor —

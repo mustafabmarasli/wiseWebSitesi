@@ -53,6 +53,7 @@
                         <li>Siparişlerinizin faturalandırılması ve mali yükümlülüklerin yerine getirilmesi,</li>
                         <li>Müşteri destek, soru, öneri ve taleplerinizin cevaplanması amacıyla iletişim formu verilerinin işlenmesi,</li>
                         <li>Talep etmeniz hâlinde, stoğu tükenen bir ürünün yeniden temin edildiğinin tarafınıza bildirilmesi,</li>
+                        <li><strong>Yalnızca ayrıca ve açıkça onay vermeniz hâlinde</strong>, kampanya, indirim ve yeni ürün duyurularının e-posta, SMS/WhatsApp veya telefon yoluyla iletilmesi,</li>
                         <li>Web sitesi kullanım deneyiminizin iyileştirilmesi, yasal gerekliliklerin ve iyzico/sanal pos ödeme güvenliğinin sağlanması.</li>
                     </ul>
                 </section>
@@ -65,6 +66,8 @@
                         <li><strong>İletişim Bilgisi:</strong> E-posta adresiniz, telefon numaranız, teslimat ve fatura adresiniz.</li>
                         <li><strong>İşlem Güvenliği Bilgisi:</strong> IP adresiniz, sipariş geçmişiniz, sepet hareketleriniz, çerez onay tercihiniz.</li>
                     </ul>
+                    <p class="mt-3"><strong>Ticari elektronik ileti (kampanya bildirimleri):</strong> Kampanya, indirim ve duyuru iletileri yalnızca <strong>ayrıca onay vermeniz hâlinde</strong> gönderilir. Bu onay, yukarıdaki aydınlatma metni onayından <strong>ayrıdır</strong>; üyelik ve ödeme adımındaki isteğe bağlı kutulardan verilir, işaretlemeseniz de alışverişinizi tamamlayabilirsiniz. Onay verdiğinizde 6563 sayılı Elektronik Ticaretin Düzenlenmesi Hakkında Kanun uyarınca onayınızın tarihi, alındığı kanal ve IP adresi ispat amacıyla kaydedilir ve onayınız <strong>İleti Yönetim Sistemi'ne (İYS)</strong> işlenir. Onayınızı, gönderdiğimiz her iletinin sonundaki bağlantıdan <strong>ücretsiz ve kolayca</strong> geri çekebilirsiniz. <strong>Sipariş onayı, kargo ve stok bildirimleri ticari ileti değildir</strong>; hizmetin yürütülmesi için gönderilir ve bu onaydan bağımsızdır.</p>
+
                     <p class="mt-3"><strong>Stok bildirimi:</strong> Tükenen bir ürün için “Stok Gelince Haber Ver” bildirimi oluşturduğunuzda yalnızca e-posta adresiniz ve ilgili ürün bilgisi kaydedilir. Bu adres <strong>tek seferlik</strong> stok bilgilendirmesi dışında kullanılmaz, pazarlama/bülten gönderimine eklenmez ve üçüncü kişilerle paylaşılmaz. Kaydınızın silinmesini dilediğiniz an aşağıdaki iletişim adresinden talep edebilirsiniz.</p>
                 </section>
 

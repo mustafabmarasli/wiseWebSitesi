@@ -94,12 +94,22 @@
 
         @foreach ($duyurular as $sira => $duyuru)
             @php
-                $ton   = $duyuru->tone_style;
-                $ortuk = $duyuru->isOverlay();
+                $ton    = $duyuru->tone_style;
+                $ortuk  = $duyuru->isOverlay();
+                $altta  = $duyuru->imageBelowText();
+                // Renkler panelden gelir; seçilmemişse yerleşime göre
+                // otomatik (koyu zeminde beyaz yazı, açık zeminde koyu).
+                $zemin  = $duyuru->bg_color_value;
+                $yazi   = $duyuru->text_color_value;
+                $govde  = $duyuru->body_color_value;
             @endphp
 
             {{-- Kart. Tümü basılır, yalnızca sırası gelen gösterilir. --}}
-            <div class="duyuru-kart" x-show="aktif === {{ $sira }}" style="display:none">
+            {{-- `color` kartın kendisinde: sayaç, kapatma yazısı ve zengin
+                 metin bunu miras alır, böylece koyu zeminde hiçbir yazı
+                 sabit gri kalıp kaybolmaz. --}}
+            <div class="duyuru-kart" x-show="aktif === {{ $sira }}"
+                 style="display:none; background:{{ $ortuk ? '#fff' : $zemin }}; color:{{ $govde }};">
 
                 @unless ($ortuk)
                     <div style="height:6px; background:linear-gradient(90deg,#1B4A7A,#2DD4BF,#F59E0B);"></div>
@@ -114,15 +124,17 @@
                 </button>
 
                 @if ($ortuk)
-                    {{-- Yazı görselin üzerinde: okunabilirlik için koyu bir degrade
-                         şart, aksi hâlde açık renkli görselde beyaz yazı kayboluyor. --}}
+                    {{-- Yazı görselin üzerinde: yazının okunabilmesi için görselin
+                         üstüne seçilen renkten bir perde serilir. Perde olmadan
+                         açık zeminli görselde yazı kayboluyor. --}}
                     <div class="duyuru-ortuk">
                         <img src="{{ $duyuru->image_url }}" alt="{{ $duyuru->image_alt ?? '' }}" class="duyuru-ortuk-gorsel">
-                        <div class="duyuru-ortuk-perde"></div>
+                        <div class="duyuru-ortuk-perde"
+                             style="background:linear-gradient(to top, {{ $zemin }} 0%, {{ $zemin }}D9 55%, {{ $zemin }}59 100%);"></div>
                         <div class="duyuru-ortuk-metin">
-                            <h2 @if ($sira === 0) id="duyuru-baslik" @endif class="duyuru-baslik-acik">{{ $duyuru->title }}</h2>
+                            <h2 @if ($sira === 0) id="duyuru-baslik" @endif class="duyuru-baslik-acik" style="color:{{ $yazi }};">{{ $duyuru->title }}</h2>
                             @if (filled($duyuru->body))
-                                <div class="duyuru-govde duyuru-govde-acik">{!! $duyuru->body !!}</div>
+                                <div class="duyuru-govde duyuru-govde-acik" style="color:{{ $govde }};">{!! $duyuru->body !!}</div>
                             @endif
                         </div>
                     </div>
@@ -134,11 +146,12 @@
                         ])
                     </div>
                 @else
-                    @if ($duyuru->usesImage())
+                    {{-- Görsel metnin üstünde mi altında mı: panelden seçilir. --}}
+                    @if ($duyuru->usesImage() && ! $altta)
                         <img src="{{ $duyuru->image_url }}" alt="{{ $duyuru->image_alt ?? '' }}" class="duyuru-gorsel">
                     @endif
 
-                    <div style="padding:{{ $duyuru->usesImage() ? '1.75rem' : '2.5rem' }} 2rem 2rem; text-align:center;">
+                    <div style="padding:{{ $duyuru->usesImage() && ! $altta ? '1.75rem' : '2.5rem' }} 2rem {{ $altta ? '1.75rem' : '2rem' }}; text-align:center;">
                         @if ($ton)
                             <div class="duyuru-simge" style="background:{{ $ton['zemin'] }}; color:{{ $ton['renk'] }};">
                                 <span class="duyuru-dalga" style="background:{{ $ton['renk'] }};" aria-hidden="true"></span>
@@ -149,10 +162,10 @@
                             </div>
                         @endif
 
-                        <h2 @if ($sira === 0) id="duyuru-baslik" @endif class="duyuru-baslik">{{ $duyuru->title }}</h2>
+                        <h2 @if ($sira === 0) id="duyuru-baslik" @endif class="duyuru-baslik" style="color:{{ $yazi }};">{{ $duyuru->title }}</h2>
 
                         @if (filled($duyuru->body))
-                            <div class="duyuru-govde">{!! $duyuru->body !!}</div>
+                            <div class="duyuru-govde" style="color:{{ $govde }};">{!! $duyuru->body !!}</div>
                         @endif
 
                         @include('partials.announcement_actions', [
@@ -160,6 +173,10 @@
                             'sonKuyrukta' => $sira === $duyurular->count() - 1,
                         ])
                     </div>
+
+                    @if ($altta)
+                        <img src="{{ $duyuru->image_url }}" alt="{{ $duyuru->image_alt ?? '' }}" class="duyuru-gorsel">
+                    @endif
                 @endif
 
                 {{-- Kuyrukta kaçıncı olduğunu göster: kapatınca yeni bir pencere
@@ -197,22 +214,18 @@
         /* Yazı görselin üzerinde yerleşimi */
         .duyuru-ortuk { position: relative; }
         .duyuru-ortuk-gorsel { display: block; width: 100%; height: 16rem; object-fit: cover; }
-        .duyuru-ortuk-perde {
-            position: absolute; inset: 0;
-            background: linear-gradient(to top, rgba(2,6,23,.92) 0%, rgba(2,6,23,.55) 55%, rgba(2,6,23,.25) 100%);
-        }
+        /* Perdenin rengi panelden seçilir, inline stille basılır. */
+        .duyuru-ortuk-perde { position: absolute; inset: 0; }
         .duyuru-ortuk-metin {
             position: absolute; inset: auto 0 0 0; padding: 1.75rem 2rem;
             text-align: center;
         }
         .duyuru-baslik-acik {
-            font-size: 1.5rem; font-weight: 900; color: #fff;
+            font-size: 1.5rem; font-weight: 900;
             letter-spacing: -.02em; margin: 0;
             text-shadow: 0 2px 12px rgba(0,0,0,.5);
         }
-        .duyuru-govde-acik { color: #E2E8F0; text-align: center; }
-        .duyuru-govde-acik strong { color: #fff; }
-        .duyuru-govde-acik a { color: #fff; }
+        .duyuru-govde-acik { text-align: center; }
 
         .duyuru-simge {
             position: relative; width: 4rem; height: 4rem; margin: 0 auto 1.25rem;
@@ -233,14 +246,14 @@
         }
 
         .duyuru-baslik {
-            font-size: 1.5rem; font-weight: 900; color: #0F172A;
+            font-size: 1.5rem; font-weight: 900;
             letter-spacing: -.02em; margin: 0;
         }
 
         /* Zengin metin: panelden liste, kalın yazı ve bağlantı gelebilir. */
         .duyuru-govde {
             margin: .75rem auto 0; max-width: 26rem;
-            font-size: .9375rem; line-height: 1.6; color: #475569; font-weight: 500;
+            font-size: .9375rem; line-height: 1.6; font-weight: 500;
             text-align: left;
         }
         .duyuru-govde p { margin: 0 0 .625rem; }
@@ -249,18 +262,18 @@
         .duyuru-govde ul { list-style: disc; }
         .duyuru-govde ol { list-style: decimal; }
         .duyuru-govde li { margin-bottom: .25rem; }
-        .duyuru-govde strong { font-weight: 800; color: #0F172A; }
-        .duyuru-govde a { color: #1B4A7A; font-weight: 700; text-decoration: underline; }
+        .duyuru-govde strong { font-weight: 800; color: inherit; }
+        .duyuru-govde a { color: inherit; font-weight: 700; text-decoration: underline; }
         .duyuru-govde img { max-width: 100%; height: auto; border-radius: .5rem; margin: .5rem 0; }
 
         .duyuru-kapat {
             position: absolute; top: 1rem; right: 1rem; z-index: 2;
             width: 2.25rem; height: 2.25rem; border: 0; border-radius: 9999px;
             display: flex; align-items: center; justify-content: center;
-            background: transparent; color: #94A3B8; cursor: pointer;
-            transition: background-color .15s, color .15s, transform .1s;
+            background: transparent; color: inherit; opacity: .55; cursor: pointer;
+            transition: opacity .15s, transform .1s;
         }
-        .duyuru-kapat:hover { background: #F1F5F9; color: #334155; }
+        .duyuru-kapat:hover { opacity: 1; }
         .duyuru-kapat:active { transform: scale(.94); }
         /* Görsel üzerinde gri simge kayboluyor. */
         .duyuru-kapat-acik { background: rgba(2,6,23,.45); color: #fff; }
@@ -287,14 +300,14 @@
            artık ziyaretçiyi bir yere götüren butondur. */
         .duyuru-kapat-yazi {
             background: transparent; border: 0; cursor: pointer;
-            font-size: .8125rem; font-weight: 700; color: #64748B;
+            font-size: .8125rem; font-weight: 700; color: inherit; opacity: .75;
             padding: .375rem .75rem; border-radius: .5rem;
         }
-        .duyuru-kapat-yazi:hover { color: #334155; background: #F1F5F9; }
+        .duyuru-kapat-yazi:hover { opacity: 1; }
 
         .duyuru-sayac {
             padding: 0 2rem 1.25rem; margin: 0; text-align: center;
-            font-size: .6875rem; color: #94A3B8; font-weight: 700;
+            font-size: .6875rem; color: inherit; opacity: .6; font-weight: 700;
         }
 
         @media (max-width: 640px) {

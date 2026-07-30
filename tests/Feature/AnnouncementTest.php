@@ -180,6 +180,59 @@ it('ton simgesi turune gore degisir', function () {
         ->and(duyuruOlustur(['tone' => 'none'])->tone_style)->toBeNull();
 });
 
+it('secilen arka plan ve yazi renkleri uygulanir', function () {
+    duyuruOlustur([
+        'bg_color'   => '#1B4A7A',
+        'text_color' => '#FFE066',
+    ]);
+    duyuruUrunu();
+
+    $this->get(route('electronics.home'))
+        ->assertOk()
+        ->assertSee('background:#1B4A7A', false)
+        ->assertSee('color:#FFE066', false);
+});
+
+it('renk secilmezse koyu zeminde beyaz yazi kullanilir', function () {
+    $koyu  = duyuruOlustur(['bg_color' => '#0F172A']);
+    $acik  = duyuruOlustur(['bg_color' => '#FFFFFF']);
+
+    expect($koyu->isDarkBackground())->toBeTrue()
+        ->and($koyu->text_color_value)->toBe('#FFFFFF')
+        ->and($acik->isDarkBackground())->toBeFalse()
+        ->and($acik->text_color_value)->toBe('#0F172A');
+});
+
+it('elle secilen yazi rengi otomatigi ezer', function () {
+    $duyuru = duyuruOlustur(['bg_color' => '#0F172A', 'text_color' => '#FF0000']);
+
+    expect($duyuru->text_color_value)->toBe('#FF0000')
+        ->and($duyuru->body_color_value)->toBe('#FF0000');
+});
+
+it('gorsel altta yerlesimi tanimlanir', function () {
+    $altta = duyuruOlustur(['layout' => 'image_bottom', 'image_path' => 'images/banner.png']);
+    $ustte = duyuruOlustur(['layout' => 'image_top', 'image_path' => 'images/banner.png']);
+
+    expect($altta->imageBelowText())->toBeTrue()
+        ->and($ustte->imageBelowText())->toBeFalse()
+        ->and($altta->usesImage())->toBeTrue();
+});
+
+it('ortuk yerlesiminde perde secilen renkten uretilir', function () {
+    duyuruOlustur([
+        'layout'     => 'image_overlay',
+        'image_path' => 'images/banner.png',
+        'bg_color'   => '#123456',
+    ]);
+    duyuruUrunu();
+
+    // Perde olmadan açık renkli görselde yazı kayboluyor.
+    $this->get(route('electronics.home'))
+        ->assertOk()
+        ->assertSee('linear-gradient(to top, #123456 0%', false);
+});
+
 it('duyuru yonetimi admin panelinde acilir', function () {
     $this->actingAs(\App\Models\User::factory()->create(['is_admin' => true]))
         ->get('/admin/announcements')

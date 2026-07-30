@@ -504,6 +504,36 @@
                         </label>
 
                         <p class="text-[10px] text-slate-400">* işaretli onaylar zorunludur.</p>
+
+                        {{-- Ticari elektronik ileti onayı — İSTEĞE BAĞLI ve
+                             yukarıdaki zorunlu onaylardan ayrı. 6563 sayılı
+                             kanun ayrı ve açık onay istiyor; önceden işaretli
+                             kutu geçerli onay sayılmaz. Sipariş vermenin
+                             şartı değildir, o yüzden ayrı bir kutuda. --}}
+                        <div class="border-t border-slate-100 pt-3 mt-1 space-y-2.5">
+                            <p class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Kampanya Bildirimleri (isteğe bağlı)</p>
+
+                            <label class="flex items-start gap-2.5 cursor-pointer">
+                                <input type="checkbox" name="eposta_izni" value="1"
+                                    class="mt-0.5 w-4 h-4 rounded border-slate-300 text-trendyol focus:ring-trendyol accent-trendyol shrink-0">
+                                <span class="text-xs text-slate-600 font-semibold leading-relaxed">
+                                    E-posta ile kampanya bildirimi almak istiyorum.
+                                </span>
+                            </label>
+
+                            <label class="flex items-start gap-2.5 cursor-pointer">
+                                <input type="checkbox" name="sms_izni" value="1"
+                                    class="mt-0.5 w-4 h-4 rounded border-slate-300 text-trendyol focus:ring-trendyol accent-trendyol shrink-0">
+                                <span class="text-xs text-slate-600 font-semibold leading-relaxed">
+                                    SMS / WhatsApp ile kampanya bildirimi almak istiyorum.
+                                </span>
+                            </label>
+
+                            <p class="text-[10px] text-slate-400 leading-relaxed">
+                                Onayınızı dilediğiniz an ücretsiz geri çekebilirsiniz. Sipariş ve kargo
+                                bildirimleri bu onaydan bağımsız olarak gönderilir.
+                            </p>
+                        </div>
                     </div>
 
                     <button type="submit" id="pay-btn"
