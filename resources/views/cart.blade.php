@@ -7,14 +7,14 @@
 
     <!-- Breadcrumb -->
     <div class="bg-slate-100 py-3">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-xs font-semibold text-slate-500 flex gap-2 items-center">
+        <div class="max-w-site mx-auto px-4 sm:px-6 lg:px-8 text-xs font-semibold text-slate-500 flex gap-2 items-center">
             <a href="{{ route('landing') }}" class="hover:text-trendyol">Anasayfa</a>
             <span>/</span>
             <span class="text-slate-700">Sepetim</span>
         </div>
     </div>
 
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+    <div class="max-w-site mx-auto px-4 sm:px-6 lg:px-8 mt-8">
         
         <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight mb-8" id="cart-title">Alışveriş Sepetim</h1>
 

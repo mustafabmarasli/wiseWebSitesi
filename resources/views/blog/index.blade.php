@@ -6,7 +6,7 @@
 @section('og_title', 'Rehberler ve Yazılar')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<div class="max-w-site mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
     <div class="mb-8">
         <nav class="text-xs font-bold text-slate-400 mb-3">

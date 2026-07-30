@@ -19,14 +19,14 @@
 
     <!-- Breadcrumb -->
     <div class="bg-slate-100 py-3">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-xs font-semibold text-slate-500 flex gap-2 items-center">
+        <div class="max-w-site mx-auto px-4 sm:px-6 lg:px-8 text-xs font-semibold text-slate-500 flex gap-2 items-center">
             <a href="{{ route('landing') }}" class="hover:text-trendyol">Giriş Portalı</a>
             <span>/</span>
             <span class="text-slate-700">İletişim</span>
         </div>
     </div>
 
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+    <div class="max-w-site mx-auto px-4 sm:px-6 lg:px-8 mt-8">
         
         <div class="text-center max-w-xl mx-auto mb-10">
             <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight mb-2" id="contact-page-title">Bize Ulaşın</h1>

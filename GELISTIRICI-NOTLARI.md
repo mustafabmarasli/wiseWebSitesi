@@ -54,6 +54,37 @@ sınıfları içerir; senin yazdığın rastgele yardımcı sınıflar orada yok
 
 ---
 
+## 1.5. Sayfa genişliği: `max-w-site`
+
+Gövde genişliği **tek yerden** yönetilir: `layouts/app.blade.php` içindeki
+Tailwind yapılandırmasında `maxWidth.site` (şu an **1680px**).
+
+**Görünümlerde `max-w-7xl` YAZMA**, `max-w-site` kullan. Aksi hâlde genişliği
+değiştirmek 29 yeri tek tek düzenlemek demek.
+
+Metin ağırlıklı sayfalar kendi dar kabını kullanmaya devam eder ve buna
+dokunulmamalı — uzun satır okumayı zorlaştırır:
+
+| Sayfa | Kap |
+|---|---|
+| Mağaza, kategori, sepet, detay, blog listesi | `max-w-site` |
+| Yasal metinler | `max-w-4xl` (içerik) |
+| Blog yazısı | `max-w-3xl` |
+
+Genişliği değiştirirsen **ızgara kolon sayılarını da gözden geçir**:
+
+- Anasayfa ürün ızgarası `lg:grid-cols-3 2xl:grid-cols-4`. 4. kolon `xl`de
+  değil `2xl`de açılıyor: sağ blog rafıyla birlikte `xl` (1280px) genişlikte
+  kartlar 146px'e düşüyordu.
+- Kategori sayfasında sağ raf yok, orada 4. kolon `xl`de açılır.
+- Ürün detayında satın alma satırı `xl:max-w-2xl` ile sınırlı. Bu sınır
+  olmadan "Sepete Ekle" düğmesi 884px'e uzayıp çirkin duruyordu.
+
+> **Geçmiş hata:** Kap 1280px'ken 2560px ekranda iki yanda 640px boşluk
+> kalıyordu ve ürünler 3 kolona sıkışmış görünüyordu.
+
+---
+
 ## 2. Modal'lar `@section('modals')` içine konur
 
 **Belirti:** `position: fixed` bir pencere ekranın ortasında değil, sayfanın çok
@@ -445,9 +476,8 @@ Aynı parça iki kipte çalışır: `rail` (dikey, sağ kolon) ve `grid` (yatay,
 altı). Raf **yalnızca `xl` ve üstünde** kolon olur; daha küçük ekranda aynı
 liste sayfanın altında yatay ızgara olarak basılır.
 
-Raf eklenince ürün ızgarası `xl:grid-cols-4` → **3 kolona** indirildi. 4 kolon
-kalsaydı kartlar 1440 px ekranda 145 px'e düşüyordu. Rafı kaldırırsan o sınıfı
-geri koy, yoksa masaüstünde gereksiz boşluk kalır.
+Ürün ızgarası raf yüzünden `lg:grid-cols-3 2xl:grid-cols-4` oldu: 4. kolon
+yalnızca 1536px ve üstünde açılır (bkz. madde 1.5).
 
 Raf, kanalın yazılarının yanında **`general`** kanalındakileri de gösterir —
 genel rehberler iki mağazayı da ilgilendirir.

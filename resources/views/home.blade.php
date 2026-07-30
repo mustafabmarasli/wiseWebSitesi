@@ -21,7 +21,7 @@
 @endsection
 
 @section('content')
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 font-sans">
+<div class="max-w-site mx-auto px-4 sm:px-6 lg:px-8 mt-6 font-sans">
     <div class="flex flex-col lg:flex-row gap-8">
         
         <!-- Sol Menü: Kategoriler (Left Sidebar) -->
@@ -55,7 +55,7 @@
             <h1 class="sr-only">{{ $channelTitle }} Ürünleri — Buy WISEly</h1>
 
             <!-- Hero Slider (Dynamic Banner) -->
-            <div class="relative rounded-2xl overflow-hidden shadow-lg border border-slate-200 group h-48 sm:h-80 md:h-[400px]">
+            <div class="relative rounded-2xl overflow-hidden shadow-lg border border-slate-200 group h-48 sm:h-80 md:h-[400px] 2xl:h-[440px]">
                 <!-- Slides Container -->
                 <div id="hero-slider" class="flex transition-transform duration-700 ease-in-out h-full w-full" style="transform: translateX(0%);">
                     {{-- Slaytlar veritabanindan gelir; panelden yonetilir.
@@ -294,7 +294,7 @@
                     <span class="text-xs sm:text-sm text-trendyol font-extrabold uppercase tracking-wider bg-orange-100 px-3 py-1 rounded-full">Kaçırılmayacak Fiyatlar</span>
                 </div>
 
-                <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6">
                     @foreach ($discountedProducts as $product)
                         @include('partials.product_card', ['product' => $product, 'isDiscount' => true])
                     @endforeach
@@ -312,7 +312,7 @@
                     <span class="text-xs sm:text-sm text-trendyol font-extrabold uppercase tracking-wider bg-slate-100 px-3 py-1 rounded-full">En Çok Satanlar</span>
                 </div>
 
-                <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6">
                     @foreach ($popularProducts as $product)
                         @include('partials.product_card', ['product' => $product, 'isPopular' => true])
                     @endforeach
@@ -332,7 +332,7 @@
                     <span class="text-xs sm:text-sm text-slate-500 font-medium">Stoğa yeni giren ürünler</span>
                 </div>
 
-                <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6">
                     @foreach ($newProducts as $product)
                         @include('partials.product_card', ['product' => $product])
                     @endforeach

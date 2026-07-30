@@ -7,7 +7,7 @@
 
     <!-- Breadcrumb -->
     <div class="bg-slate-100 py-3">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-xs font-semibold text-slate-500 flex gap-2 items-center">
+        <div class="max-w-site mx-auto px-4 sm:px-6 lg:px-8 text-xs font-semibold text-slate-500 flex gap-2 items-center">
             <a href="{{ route('landing') }}" class="hover:text-trendyol">Anasayfa</a>
             <span>/</span>
             <span class="text-slate-700">KVKK Aydınlatma Metni</span>

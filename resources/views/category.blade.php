@@ -26,7 +26,7 @@
 
     <!-- Breadcrumb -->
     <div class="bg-slate-100 py-3 font-sans">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-xs font-semibold text-slate-500 flex gap-2 items-center">
+        <div class="max-w-site mx-auto px-4 sm:px-6 lg:px-8 text-xs font-semibold text-slate-500 flex gap-2 items-center">
             <a href="{{ route('landing') }}" class="hover:text-trendyol">Anasayfa</a>
             <span>/</span>
             <span class="text-slate-700">{{ $category->name }}</span>
@@ -34,7 +34,7 @@
     </div>
 
     <!-- Category Header -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+    <div class="max-w-site mx-auto px-4 sm:px-6 lg:px-8 mt-6">
         <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
             <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight" id="category-title">{{ $category->name }}</h1>
             @if(isset($category->description))
@@ -44,7 +44,7 @@
     </div>
 
     <!-- Content Layout -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 flex flex-col lg:flex-row gap-8">
+    <div class="max-w-site mx-auto px-4 sm:px-6 lg:px-8 mt-6 flex flex-col lg:flex-row gap-8">
         
         <!-- Sidebar Filters -->
         <aside class="w-full lg:w-64 shrink-0">
@@ -150,7 +150,7 @@
 
             <!-- Products Grid -->
             @if ($products->count() > 0)
-                <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
                     @foreach ($products as $prod)
                         @include('partials.product_card', ['product' => $prod])
                     @endforeach

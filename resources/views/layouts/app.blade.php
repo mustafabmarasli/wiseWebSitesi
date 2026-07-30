@@ -82,6 +82,18 @@
                     },
                     fontFamily: {
                         sans: ['Outfit', 'sans-serif'],
+                    },
+                    // Sitenin gövde genişliği TEK YERDEN yönetilir.
+                    // Görünümlerde Tailwind'in hazır `max-w-7xl` sınıfını
+                    // yazmayın, `max-w-site` kullanın; aksi hâlde genişliği
+                    // değiştirmek 30 yeri tek tek düzenlemek demek oluyor.
+                    //
+                    // 7xl (1280px) geniş ekranlarda iki yanda çok fazla boşluk
+                    // bırakıyordu. Metin ağırlıklı sayfalar (yasal metinler,
+                    // blog yazısı) kendi dar kabını kullanmaya devam eder —
+                    // uzun satır okumayı zorlaştırır.
+                    maxWidth: {
+                        site: '1680px',
                     }
                 }
             }
@@ -146,7 +158,7 @@
 
     <!-- Top Channel Selector Bar (Trendyol Style) -->
     <div class="bg-slate-100 border-b border-slate-200 py-2 text-xs font-semibold text-slate-500">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+        <div class="max-w-site mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
             <div class="flex gap-4">
                 <a href="{{ route('electronics.home') }}" class="hover:text-trendyol pb-0.5 {{ $activeChannel === 'electronics' && !Str::contains($currentPath, 'danismanlik') ? 'text-trendyol font-extrabold border-b-2 border-trendyol' : '' }}">Elektronik</a>
                 <span class="text-slate-300">|</span>
@@ -167,7 +179,7 @@
 
     <!-- Top Navigation Header -->
     <header class="bg-white shadow-sm sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-site mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16 sm:h-20 gap-4">
                 
                 <!-- Logo -->
@@ -325,7 +337,7 @@
 
     <!-- Footer Area -->
     <footer class="bg-slate-900 text-slate-300 pt-16 pb-8 mt-16 border-t border-slate-800 font-sans">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div class="max-w-site mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-4 gap-8">
             
             <!-- Company Info & Phone/WhatsApp -->
             <div>
@@ -399,7 +411,7 @@
         </div>
         
         <!-- Bottom Bar -->
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-t border-slate-800 mt-12 pt-8 text-center text-xs text-slate-500 flex flex-col sm:flex-row justify-between items-center gap-4">
+        <div class="max-w-site mx-auto px-4 sm:px-6 lg:px-8 border-t border-slate-800 mt-12 pt-8 text-center text-xs text-slate-500 flex flex-col sm:flex-row justify-between items-center gap-4">
             <div class="flex flex-col items-center sm:items-start gap-1">
                 <p>&copy; 2026 Wise Solutions. Tüm Hakları Saklıdır.</p>
                 <p class="text-[10px] text-slate-500 font-semibold">Wise Solutions Bilgi Teknolojileri Paz. ve Tic. Ltd. Şti. | info@wisesolutions.com.tr</p>

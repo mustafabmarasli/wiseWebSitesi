@@ -94,6 +94,32 @@ rehberin sonunda satılan ürün sende.
 
 _(iş bitince buraya taşı, tarih yaz)_
 
+### Site genişletildi: 1280 → 1680px — 29.07.2026
+
+Geniş ekranda iki yanda çok fazla boşluk kalıyordu (2560px ekranda her yanda
+640px) ve ürünler 3 kolona sıkışmış görünüyordu.
+
+- Gövde genişliği **1680px**. Artık tek yerden yönetiliyor:
+  `layouts/app.blade.php` → Tailwind yapılandırması → `maxWidth.site`.
+  Görünümlerde `max-w-7xl` yerine **`max-w-site`** kullanılıyor (29 yer)
+- Ürünler geniş ekranda **4 kolona geri döndü** ve kartlar eskisinden de
+  büyük: 214px → **234px**
+- Kategori sayfasında 4. kolon 1280px'de açılıyor (orada sağ raf yok)
+- Metin sayfaları dar kaldı — yasal metinler ve blog yazısı uzun satırda
+  okunmuyor
+- Detay sayfasında "Sepete Ekle" düğmesi sınırlandı; geniş kapta 884px'e
+  uzayıp çirkin duruyordu
+- Slider 1536px üstünde 400 → 440px yükseldi, görsel daha az kırpılıyor
+
+Ölçüldü: 1366px → gövde neredeyse tam dolu, 3 kolon · 1920px → 4 kolon,
+113px yan boşluk · 2560px → 4 kolon. Hiçbirinde yatay kaydırma yok.
+
+**Genişliği değiştirmek istersen:** `maxWidth: { site: '1680px' }` satırı.
+
+**Detay:** `GELISTIRICI-NOTLARI.md` → madde 1.5
+
+---
+
 ### Duyurular çoklu, görselli ve biçimli oldu — 29.07.2026
 
 Tek satırlık ayardan kendi bölümüne taşındı: **Panel → Duyurular.**

@@ -62,7 +62,7 @@
 
     <!-- Breadcrumb -->
     <div class="bg-slate-100 py-3 font-sans">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-xs font-semibold text-slate-500 flex gap-2 items-center">
+        <div class="max-w-site mx-auto px-4 sm:px-6 lg:px-8 text-xs font-semibold text-slate-500 flex gap-2 items-center">
             <a href="{{ route('landing') }}" class="hover:text-trendyol">Anasayfa</a>
             <span>/</span>
             <a href="{{ route('category', $product->category->slug) }}" class="hover:text-trendyol">{{ $product->category->name }}</a>
@@ -72,7 +72,7 @@
     </div>
 
     <!-- Product Detail Block -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+    <div class="max-w-site mx-auto px-4 sm:px-6 lg:px-8 mt-6">
         <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 sm:p-8">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
                 
@@ -365,7 +365,11 @@
                         @csrf
                         <input type="hidden" name="product_id" value="{{ $product->id }}">
                         
-                        <div class="flex flex-col sm:flex-row gap-4 items-center">
+                        {{-- Geniş kapta (1680px) bu kolon 880px'e çıkıyor ve
+                             "Sepete Ekle" düğmesi o genişliğe uzayıp çirkin
+                             duruyordu. Ayırıcı çizgi ve fiyat kutusu geniş
+                             kalır, yalnızca kontroller sınırlanır. --}}
+                        <div class="flex flex-col sm:flex-row gap-4 items-center xl:max-w-2xl">
                             
                             <!-- Quantity selector -->
                             @if ($product->stock > 0)
@@ -433,7 +437,7 @@
     </div>
 
     <!-- Product Tabs (Description & Technical Specs) -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-10">
+    <div class="max-w-site mx-auto px-4 sm:px-6 lg:px-8 mt-10">
         <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 sm:p-8">
             
             <div class="border-b border-slate-200">
@@ -473,7 +477,7 @@
 
     <!-- Related Products -->
     @if ($relatedProducts->count() > 0)
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 mb-16">
+        <div class="max-w-site mx-auto px-4 sm:px-6 lg:px-8 mt-12 mb-16">
             <div class="flex items-center gap-2 mb-6">
                 <span class="w-2.5 h-6 bg-trendyol rounded-sm"></span>
                 <h2 class="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight">Benzer Ürünler</h2>

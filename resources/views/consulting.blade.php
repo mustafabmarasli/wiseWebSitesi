@@ -7,7 +7,7 @@
 
     <!-- Breadcrumb -->
     <div class="bg-slate-100 py-3">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-xs font-semibold text-slate-500 flex gap-2 items-center">
+        <div class="max-w-site mx-auto px-4 sm:px-6 lg:px-8 text-xs font-semibold text-slate-500 flex gap-2 items-center">
             <a href="{{ route('landing') }}" class="hover:text-trendyol">Giriş Portalı</a>
             <span>/</span>
             <span class="text-slate-700">Dış Ticaret & Danışmanlık</span>
@@ -17,7 +17,7 @@
     <!-- Hero Header -->
     <div class="bg-slate-900 text-white py-16 sm:py-24 relative overflow-hidden">
         <div class="absolute inset-0 bg-cover bg-center opacity-25" style="background-image: url('https://images.unsplash.com/photo-1578575437130-527eed3abbec?auto=format&fit=crop&w=1200&q=80');"></div>
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+        <div class="max-w-site mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
             <span class="bg-trendyol text-white text-xs font-extrabold uppercase tracking-widest px-3 py-1 rounded-full">Küresel Çözümler</span>
             <h1 class="text-3xl sm:text-5xl font-black mt-4 mb-4 tracking-tight">Dış Ticaret ve Danışmanlık</h1>
             <p class="text-slate-300 text-sm sm:text-lg max-w-2xl mx-auto leading-relaxed">Şirketinizin küresel pazarda büyümesi, ürün tedariği, gümrük süreçleri ve lojistik optimizasyonunda profesyonel yol arkadaşınızız.</p>
@@ -25,7 +25,7 @@
     </div>
 
     <!-- Services Grid -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-16">
+    <div class="max-w-site mx-auto px-4 sm:px-6 lg:px-8 mt-16">
         <div class="text-center mb-12">
             <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Hizmet Alanlarımız</h2>
             <p class="text-slate-500 text-sm mt-2">Dış ticarette risklerinizi azaltan, büyümenizi hızlandıran uzman destek.</p>
