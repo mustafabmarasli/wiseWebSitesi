@@ -122,6 +122,8 @@
     @php
         $currentPath = request()->path();
         $danismanlikAcik = \App\Models\Setting::current()->consulting_enabled;
+        // Menüde "Rehberler" bağlantısı gösterilsin mi?
+        $blogYaziVar = \App\Models\Post::hasPublished();
         $activeChannel = 'electronics';
         
         // Define active channel logic
@@ -200,6 +202,21 @@
                 
                 <!-- Icons/Actions -->
                 <div class="flex items-center gap-4 sm:gap-6">
+                    {{-- Rehberler: yayında yazı yoksa gizlenir. Boş sayfaya
+                         götüren menü öğesi "site yarım kalmış" izlenimi verir.
+                         Yazı eklenince önbellek temizlenip kendiliğinden çıkar. --}}
+                    @if ($blogYaziVar)
+                        {{-- `md:flex`: hamburger menünün kaybolduğu genişlikte
+                             çıkar. Daha küçük ekranda simgeler sıkışıyordu,
+                             mobilde bağlantı hamburger menüde duruyor. --}}
+                        <a href="{{ route('blog.index') }}" class="text-slate-600 hover:text-trendyol hidden md:flex flex-col items-center text-xs font-medium" id="header-blog-link">
+                            <svg class="h-6 w-6 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                            </svg>
+                            <span>Rehberler</span>
+                        </a>
+                    @endif
+
                     <a href="{{ route('contact') }}" class="text-slate-600 hover:text-trendyol flex flex-col items-center text-xs font-medium" id="header-contact-link">
                         <svg class="h-6 w-6 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
@@ -335,7 +352,9 @@
                     @if ($danismanlikAcik)
                     <li><a href="{{ route('consulting') }}" class="hover:text-accentTeal hover:translate-x-1 duration-200 transition-all inline-block py-1">Danışmanlık Hizmetleri</a></li>
                     @endif
+                    @if ($blogYaziVar)
                     <li><a href="{{ route('blog.index') }}" class="hover:text-accentTeal hover:translate-x-1 duration-200 transition-all inline-block py-1">Rehberler ve Yazılar</a></li>
+                    @endif
                     <li><a href="{{ route('contact') }}" class="hover:text-accentTeal hover:translate-x-1 duration-200 transition-all inline-block py-1">Müşteri İletişimi</a></li>
                 </ul>
             </div>
@@ -455,6 +474,10 @@
                         <a href="{{ route('health.home') }}" class="block px-3 py-2 rounded-lg text-sm font-bold text-slate-700 hover:bg-slate-50 hover:text-trendyol transition-colors">Sağlık & Lens</a>
                         @if ($danismanlikAcik)
                         <a href="{{ route('consulting') }}" class="block px-3 py-2 rounded-lg text-sm font-bold text-slate-700 hover:bg-slate-50 hover:text-trendyol transition-colors">Danışmanlık & Dış Ticaret</a>
+                        @endif
+                        {{-- Mobilde üst menüdeki simge yok (yer dar), bağlantı buraya. --}}
+                        @if ($blogYaziVar)
+                        <a href="{{ route('blog.index') }}" class="block px-3 py-2 rounded-lg text-sm font-bold text-slate-700 hover:bg-slate-50 hover:text-trendyol transition-colors" id="mobile-blog-link">Rehberler ve Yazılar</a>
                         @endif
                     </div>
 

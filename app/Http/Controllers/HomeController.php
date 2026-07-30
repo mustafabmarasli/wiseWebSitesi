@@ -100,6 +100,14 @@ class HomeController extends Controller
 
         $slides = \App\Models\Slide::forChannel($channel);
 
-        return view('home', compact('categories', 'popularProducts', 'discountedProducts', 'newProducts', 'showcaseProducts', 'channel', 'channelTitle', 'slides'));
+        // Sağ raftaki rehber yazıları. Kanala özel yazıların yanında "Genel"
+        // olanlar da gösterilir — genel rehberler iki kanalı da ilgilendirir.
+        $blogPosts = \App\Models\Post::published()
+            ->whereIn('channel', [$channel, 'general'])
+            ->orderByDesc('published_at')
+            ->take(5)
+            ->get();
+
+        return view('home', compact('categories', 'popularProducts', 'discountedProducts', 'newProducts', 'showcaseProducts', 'channel', 'channelTitle', 'slides', 'blogPosts'));
     }
 }

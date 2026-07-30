@@ -294,7 +294,7 @@
                     <span class="text-xs sm:text-sm text-trendyol font-extrabold uppercase tracking-wider bg-orange-100 px-3 py-1 rounded-full">Kaçırılmayacak Fiyatlar</span>
                 </div>
 
-                <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+                <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                     @foreach ($discountedProducts as $product)
                         @include('partials.product_card', ['product' => $product, 'isDiscount' => true])
                     @endforeach
@@ -312,7 +312,7 @@
                     <span class="text-xs sm:text-sm text-trendyol font-extrabold uppercase tracking-wider bg-slate-100 px-3 py-1 rounded-full">En Çok Satanlar</span>
                 </div>
 
-                <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+                <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                     @foreach ($popularProducts as $product)
                         @include('partials.product_card', ['product' => $product, 'isPopular' => true])
                     @endforeach
@@ -332,7 +332,7 @@
                     <span class="text-xs sm:text-sm text-slate-500 font-medium">Stoğa yeni giren ürünler</span>
                 </div>
 
-                <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+                <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                     @foreach ($newProducts as $product)
                         @include('partials.product_card', ['product' => $product])
                     @endforeach
@@ -353,6 +353,20 @@
             </div>
 
         </div>
+
+        {{-- Sağ Raf: Rehber yazıları.
+             Yalnızca xl ve üstünde kolon olur; daha küçük ekranda üç kolonluk
+             ürün ızgarasıyla birlikte sığmıyor, o yüzden aşağıda yatay ızgara
+             olarak basılıyor. --}}
+        <aside class="hidden xl:block w-60 shrink-0">
+            @include('partials.blog_rail', ['posts' => $blogPosts, 'mode' => 'rail'])
+        </aside>
+
+    </div>
+
+    {{-- Raf sığmayan ekranlarda aynı liste, sayfanın altında yatay olarak. --}}
+    <div class="xl:hidden mt-8">
+        @include('partials.blog_rail', ['posts' => $blogPosts, 'mode' => 'grid'])
     </div>
 </div>
 

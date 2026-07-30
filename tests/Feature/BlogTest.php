@@ -135,6 +135,93 @@ it('ilgili yazilar ayni bolumden gelir', function () {
         ->assertDontSee($baska->title);
 });
 
+it('yazi yokken menude rehberler baglantisi gorunmez', function () {
+    // Boş sayfaya götüren menü öğesi "site yarım kalmış" izlenimi verir.
+    $this->get(route('electronics.home'))
+        ->assertOk()
+        ->assertDontSee('id="header-blog-link"', false)
+        ->assertDontSee('id="mobile-blog-link"', false);
+});
+
+it('yayinda yazi varken menude rehberler baglantisi cikar', function () {
+    blogPost();
+
+    $this->get(route('electronics.home'))
+        ->assertOk()
+        ->assertSee('id="header-blog-link"', false)
+        ->assertSee('id="mobile-blog-link"', false)
+        ->assertSee(route('blog.index'), false);
+});
+
+it('taslak yazi menu baglantisini acmaz', function () {
+    blogPost(['is_published' => false]);
+
+    $this->get(route('electronics.home'))
+        ->assertOk()
+        ->assertDontSee('id="header-blog-link"', false);
+});
+
+it('yazi yayinlanir yayinlanmaz menude cikar', function () {
+    $this->get(route('electronics.home'))->assertDontSee('id="header-blog-link"', false);
+
+    // Yönetici yazıyı yayınladığı anda menüde görmeli; gecikme olsa
+    // "çalışmıyor" diye düşünürdü.
+    $post = blogPost(['is_published' => false]);
+    $post->update(['is_published' => true]);
+
+    $this->get(route('electronics.home'))->assertSee('id="header-blog-link"', false);
+});
+
+it('son yazi silinince menu baglantisi kaybolur', function () {
+    $post = blogPost();
+    $this->get(route('electronics.home'))->assertSee('id="header-blog-link"', false);
+
+    // Toplu silme (sorgu kurucu) model olayı üretmez; bağlantı yine de
+    // kaybolmalı — bu yüzden sonuç önbelleğe alınmıyor.
+    Post::where('id', $post->id)->delete();
+
+    $this->get(route('electronics.home'))->assertDontSee('id="header-blog-link"', false);
+});
+
+it('kanal sayfasinda blog rafi gosterilir', function () {
+    $post = blogPost(['channel' => 'electronics', 'title' => 'ESP32 Raf Yazisi']);
+
+    $this->get(route('electronics.home'))
+        ->assertOk()
+        ->assertSee('Rehberler')
+        ->assertSee($post->title);
+});
+
+it('blog rafi kanalin ve genel yazilari gosterir', function () {
+    $elektronik = blogPost(['channel' => 'electronics', 'title' => 'Elektronik Yazisi']);
+    $genel      = blogPost(['channel' => 'general',     'title' => 'Genel Yazi']);
+    $saglik     = blogPost(['channel' => 'health',      'title' => 'Saglik Yazisi']);
+
+    // Genel rehberler iki kanalı da ilgilendirir; sağlık yazısı elektronik
+    // sayfasında işe yaramaz.
+    $this->get(route('electronics.home'))
+        ->assertOk()
+        ->assertSee($elektronik->title)
+        ->assertSee($genel->title)
+        ->assertDontSee($saglik->title);
+});
+
+it('yazi yokken blog rafi hic basilmaz', function () {
+    // Boş bir "Rehberler" kutusu sayfada yer kaplamaktan başka iş yapmaz.
+    $this->get(route('electronics.home'))
+        ->assertOk()
+        ->assertDontSee('Rehberler');
+});
+
+it('blog rafinda yeni yazi ustte gorunur', function () {
+    $eski = blogPost(['title' => 'Eski Yazi', 'channel' => 'electronics', 'published_at' => now()->subMonth()]);
+    $yeni = blogPost(['title' => 'Yeni Yazi', 'channel' => 'electronics', 'published_at' => now()->subHour()]);
+
+    $html = $this->get(route('electronics.home'))->assertOk()->getContent();
+
+    expect(strpos($html, $yeni->title))->toBeLessThan(strpos($html, $eski->title));
+});
+
 it('blog yonetimi admin panelinde acilir', function () {
     $this->actingAs(User::factory()->create(['is_admin' => true]))
         ->get('/admin/posts')

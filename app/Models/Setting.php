@@ -12,9 +12,8 @@ class Setting extends Model
     protected $fillable = [
         'standard_shipping_cost',
         'free_shipping_threshold',
-        'announcement_enabled',
-        'announcement_title',
-        'announcement_text',
+        // Duyuru alanları buradan çıktı: artık `announcements` tablosunda,
+        // çoklu ve görselli. Bkz. App\Models\Announcement.
         'consulting_enabled',
         'new_customer_telegram_enabled',
         'bank_transfer_enabled',
@@ -30,7 +29,6 @@ class Setting extends Model
     protected $casts = [
         'standard_shipping_cost'  => 'decimal:2',
         'free_shipping_threshold' => 'decimal:2',
-        'announcement_enabled'    => 'boolean',
         'consulting_enabled'      => 'boolean',
         'new_customer_telegram_enabled' => 'boolean',
         'bank_transfer_enabled'   => 'boolean',
@@ -48,14 +46,6 @@ class Setting extends Model
             'standard_shipping_cost'  => 0,
             'free_shipping_threshold' => null,
         ]);
-    }
-
-    /**
-     * Duyuru gösterilecek mi? Metin boşsa aktif olsa bile gösterilmez.
-     */
-    public function showsAnnouncement(): bool
-    {
-        return $this->announcement_enabled && filled($this->announcement_text);
     }
 
     /**

@@ -38,9 +38,6 @@ class ShippingSettings extends Page
         $this->form->fill(Setting::current()->only([
             'standard_shipping_cost',
             'free_shipping_threshold',
-            'announcement_enabled',
-            'announcement_title',
-            'announcement_text',
             'consulting_enabled',
             'new_customer_telegram_enabled',
             'bank_transfer_enabled',
@@ -163,26 +160,9 @@ class ShippingSettings extends Page
                             ->helperText($this->telegramDurumu()),
                     ]),
 
-                Section::make('Site Duyurusu')
-                    ->description('Elektronik ve Sağlık sayfaları açıldığında ortada beliren bilgilendirme penceresi. Ziyaretçi kapattığında oturum boyunca tekrar gösterilmez.')
-                    ->schema([
-                        Toggle::make('announcement_enabled')
-                            ->label('Duyuruyu göster')
-                            ->helperText('Satışa başlayınca bu düğmeyi kapatmanız yeterli; kod değişikliği gerekmez.')
-                            ->live(),
-
-                        TextInput::make('announcement_title')
-                            ->label('Başlık')
-                            ->maxLength(100)
-                            ->placeholder('Yakında Satıştayız'),
-
-                        Textarea::make('announcement_text')
-                            ->label('Duyuru Metni')
-                            ->rows(3)
-                            ->maxLength(500)
-                            ->placeholder('Sitemiz güncellemeler ve ödeme yöntemi güncellemesi nedeniyle çok yakında ürün satışına başlayacaktır.')
-                            ->required(fn ($get) => (bool) $get('announcement_enabled')),
-                    ]),
+                // Duyurular buradan çıktı: artık kendi bölümü var
+                // (Panel → Duyurular). Çoklu, görselli ve biçimli metin
+                // destekliyor; tek satırlık ayara sığmıyordu.
             ]);
     }
 
@@ -196,9 +176,6 @@ class ShippingSettings extends Page
                 'free_shipping_threshold' => ($data['free_shipping_threshold'] ?? null) === ''
                     ? null
                     : $data['free_shipping_threshold'],
-                'announcement_enabled'    => (bool) ($data['announcement_enabled'] ?? false),
-                'announcement_title'      => $data['announcement_title'] ?? null,
-                'announcement_text'       => $data['announcement_text'] ?? null,
                 'consulting_enabled'      => (bool) ($data['consulting_enabled'] ?? false),
                 'new_customer_telegram_enabled' => (bool) ($data['new_customer_telegram_enabled'] ?? false),
                 'bank_transfer_enabled'   => (bool) ($data['bank_transfer_enabled'] ?? false),

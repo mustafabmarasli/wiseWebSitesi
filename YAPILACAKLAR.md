@@ -94,6 +94,47 @@ rehberin sonunda satılan ürün sende.
 
 _(iş bitince buraya taşı, tarih yaz)_
 
+### Duyurular çoklu, görselli ve biçimli oldu — 29.07.2026
+
+Tek satırlık ayardan kendi bölümüne taşındı: **Panel → Duyurular.**
+
+- **Çoklu duyuru:** birden fazla kaydedip yayına alabilirsin. Kanal seçimi
+  var (her iki mağaza / yalnızca Elektronik / yalnızca Sağlık)
+- **Biçimli metin:** kalın yazı, madde işareti, bağlantı. Uzunluk sınırı yok;
+  uzun metin pencere içinde kaydırılır
+- **Üç yerleşim:** sadece metin · görsel üstte, metin altta · **yazı görselin
+  üzerinde** (okunabilirlik için otomatik karartma)
+- **Buton:** kendi yazın ve adresin. Buton varken "Anladım" ikincil
+  ("Şimdi değil") hâle gelir — asıl eylem artık ziyaretçiyi bir yere götüren
+  butondur
+- **Tür/simge seçimi:** Bilgi (mavi) · Uyarı (amber) · Kampanya (yeşil) ·
+  Simge yok. Eskiden her duyuruda amber ünlem vardı; bir misyon metni için
+  "uyarı" havası yanlıştı
+
+> **Bir sayfada yalnızca BİR duyuru gösterilir** (sırası en küçük olan).
+> Panelde "Durum" sütunu hangisinin gerçekten göründüğünü söyler.
+
+Yayındaki duyuru migration'da yeni tabloya kopyalandı, kaybolmadı.
+
+14 test. **Detay:** `GELISTIRICI-NOTLARI.md` → madde 2.6
+
+---
+
+### Kanal sayfasında sağ blog rafı — 29.07.2026
+
+Kategoriler solda, **rehber yazıları sağda** — dikdörtgen kartlar, yeni yazı
+üstte. O kanalın yazılarının yanında "Genel" olanlar da çıkar.
+
+- Raf `xl` ve üstünde sağ kolon olur; daha küçük ekranda aynı liste sayfanın
+  altında yatay ızgaraya döner
+- Ürün ızgarası masaüstünde 4 → **3 kolona** indi. 4 kalsaydı kartlar
+  145 px'e düşüyordu; şimdi ürünler daha büyük görünüyor
+- Yazı yoksa raf hiç basılmaz
+
+4 test. **Detay:** `GELISTIRICI-NOTLARI.md` → madde 10.8
+
+---
+
 ### Yeni müşteri kaydında Telegram bildirimi — 29.07.2026
 
 **Panel → Site Ayarları → Bildirimler** altında açılıp kapanan düğme.
@@ -142,7 +183,10 @@ Panelden yazı eklenebilen SEO uyumlu bölüm hazır: **Panel → Blog Yazılar�
   görünmez. Yayında sayılmak `is_published` + `published_at` ikisine birden
   bağlı
 - Sağlık bölümü seçilen yazının altına **tıbbi uyarı otomatik** ekleniyor
-- Alt bilgiye "Rehberler ve Yazılar" bağlantısı eklendi
+- **Menü bağlantıları:** üst menüde "Rehberler" simgesi (İletişim'in yanında),
+  mobil hamburger menüde "Rehberler ve Yazılar", alt bilgide aynısı.
+  Üçü de **yayında yazı yoksa gizlenir** — boş sayfaya götüren menü öğesi
+  "site yarım kalmış" izlenimi veriyor
 
 16 test. **Detay:** `GELISTIRICI-NOTLARI.md` → madde 10.8
 

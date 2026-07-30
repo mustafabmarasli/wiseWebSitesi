@@ -43,6 +43,22 @@ class Post extends Model
         'health'      => 'Sağlık & Lens',
     ];
 
+    /**
+     * Yayında en az bir yazı var mı? Menüdeki "Rehberler" bağlantısı buna
+     * göre gösterilir.
+     *
+     * ÖNBELLEĞE ALINMADI — bilerek. `(is_published, published_at)` indeksli
+     * bir EXISTS sorgusu, layout'un halihazırda yaptığı ayar ve kategori
+     * sorgularının yanında ölçülemeyecek kadar hafif. Önbellek denendi ve
+     * `Post::where(...)->delete()` gibi sorgu kurucu silmeleri model olayı
+     * üretmediği için bayat kalıyordu; taze kalma garantisi olmayan bir
+     * önbellek, kazandırdığından fazlasını götürüyor.
+     */
+    public static function hasPublished(): bool
+    {
+        return static::published()->exists();
+    }
+
     /** `ResolvesImagePaths` `image_path` bekliyor; yazıda alan adı farklı. */
     public function getImageUrlAttribute(): ?string
     {

@@ -78,6 +78,36 @@ Aynı tuzak `filter`, `perspective`, `will-change`, `backdrop-filter` için de g
 
 ---
 
+## 2.6. Duyurular `settings` içinde DEĞİL
+
+Duyurular `announcements` tablosundadır → Panel → **Duyurular**.
+Eskiden `settings` satırında tek başlık + tek düz metin olarak duruyordu;
+görsel, biçimli metin ve kanal ayrımı sığmadı.
+
+- **Bir sayfada yalnızca BİR duyuru gösterilir:** o kanalda yayında olan,
+  `sort_order` en küçük olan (`Announcement::forChannel()`). İki pencere
+  açmak ziyaretçiyi iki kez kapatmaya zorlar. Panelde "Durum" sütunu hangi
+  kaydın gerçekten göründüğünü söyler — "açtım ama çıkmıyor" sorusunu
+  önlemek için.
+- `channel` = `both` her iki mağazada geçerli.
+- Gövde zengin metin editöründen **HTML** gelir, `{!! !!}` ile basılır.
+  Yalnızca yönetici yazabildiği için güvenli.
+- Yerleşim `image_overlay` seçildiğinde görselin üzerine **karartma degradesi**
+  uygulanır. Bu şart: açık renkli görselde beyaz yazı okunmuyor. Kapatma
+  düğmesi de o durumda koyu zeminli olur, gri simge görselde kayboluyordu.
+- Kart `max-height:90vh` + kaydırmalıdır — uzun bir misyon metninde buton
+  ekranın dışına çıkıyordu.
+- Ton (`info`/`warning`/`campaign`/`none`) simge ve rengi belirler. Renkler
+  Blade'de tam değer olarak yazılır; duyuru penceresi Tailwind değil gömülü
+  CSS kullanıyor.
+
+> **Göç notu:** `2026_07_29_170000` migration'ı `settings` içindeki mevcut
+> duyuruyu yeni tabloya **kopyalar**, sonra o kolonları düşürür. Yayındaki
+> duyuru kaybolmasın diye. Geri alma (`down`) kolonları boş olarak geri ekler;
+> veri yeni tabloda kalır.
+
+---
+
 ## 3. Konum verisi migration'da değil
 
 `provinces` (81), `districts` (973), `neighborhoods` (74.402) tablolarının
@@ -258,9 +288,11 @@ geçer.** Bu doğrulamayı kaldırma.
 
 ## 9. Ayarlar veritabanında, kodda değil
 
-Kargo ücreti, ücretsiz kargo limiti, **site duyurusu**, **banka/havale bilgileri**,
-**ödeme yöntemi açık/kapalı**, **TC eşiği** ve **yeni müşteri Telegram
-bildirimi** `settings` tablosunda tek satırda tutulur → Panel → **Site Ayarları**.
+Kargo ücreti, ücretsiz kargo limiti, **banka/havale bilgileri**, **ödeme
+yöntemi açık/kapalı**, **TC eşiği** ve **yeni müşteri Telegram bildirimi**
+`settings` tablosunda tek satırda tutulur → Panel → **Site Ayarları**.
+
+> Duyurular buradan çıktı, kendi tablosuna taşındı → madde 2.6.
 
 Yani bunları değiştirmek için deploy gerekmez. Ama tersi de doğru:
 **kodu canlıya atmak ayarı açmaz** — canlı panelden ayrıca açman gerekir.
@@ -406,6 +438,32 @@ zamanlanmış yayın yapılamazdı.
 - Yazı gövdesinin başlık/liste/bağlantı stilleri `blog/show.blade.php`
   içindeki `.blog-body` bloğundan gelir — Tailwind typography eklentisi yok.
 
+### Kanal sayfasındaki sağ raf
+
+Kategoriler solda, rehber yazıları sağda (`partials/blog_rail.blade.php`).
+Aynı parça iki kipte çalışır: `rail` (dikey, sağ kolon) ve `grid` (yatay, sayfa
+altı). Raf **yalnızca `xl` ve üstünde** kolon olur; daha küçük ekranda aynı
+liste sayfanın altında yatay ızgara olarak basılır.
+
+Raf eklenince ürün ızgarası `xl:grid-cols-4` → **3 kolona** indirildi. 4 kolon
+kalsaydı kartlar 1440 px ekranda 145 px'e düşüyordu. Rafı kaldırırsan o sınıfı
+geri koy, yoksa masaüstünde gereksiz boşluk kalır.
+
+Raf, kanalın yazılarının yanında **`general`** kanalındakileri de gösterir —
+genel rehberler iki mağazayı da ilgilendirir.
+
+### Menüdeki "Rehberler" bağlantısı
+
+`Post::hasPublished()` yayında yazı yoksa `false` döner ve bağlantı üst menüde,
+mobil menüde ve alt bilgide **gizlenir**. Boş sayfaya götüren menü öğesi
+"site yarım kalmış" izlenimi veriyor.
+
+Bu sonuç **bilerek önbelleğe alınmadı.** Önbellek denendi; `Post::where(...)
+->delete()` gibi sorgu kurucu silmeleri model olayı üretmediği için önbellek
+bayat kalıyor ve yazı silinse de menüde bağlantı duruyordu. İndeksli bir
+`exists()` sorgusu, layout'un halihazırda yaptığı ayar ve kategori
+sorgularının yanında ölçülemeyecek kadar hafif.
+
 ---
 
 ## 11. Kuyruk `sync`
@@ -435,5 +493,5 @@ php artisan telegram:test       # sipariş bildirimi ayarlarını sına
 php artisan test
 ```
 
-**279 test** var ve hepsi geçmeli. Özellikle ödeme, sepet, kupon ve yetkilendirme
+**293 test** var ve hepsi geçmeli. Özellikle ödeme, sepet, kupon ve yetkilendirme
 testleri geçmişte gerçek hatalar yakaladı — kırmızı görürsen düzeltmeden push etme.
