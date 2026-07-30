@@ -54,6 +54,18 @@ sınıfları içerir; senin yazdığın rastgele yardımcı sınıflar orada yok
 
 ---
 
+## 1.2. Panel marka bağlantısı `APP_URL`'e gider
+
+Panelde sol üstteki **"Buy WISEly"** yazısı panel anasayfasına değil **sitenin
+kendisine** gider (`AdminPanelProvider` → `->homeUrl(config('app.url'))`).
+
+Adres `.env` içindeki `APP_URL`'den okunur, koda gömülmedi: sabit yazılsaydı
+yerelde çalışırken de canlı siteye atlardı. Bu yüzden **canlıda `APP_URL`
+doğru olmalı** — zaten olmak zorunda, Google giriş yönlendirmesi de
+(`GOOGLE_REDIRECT_URI="${APP_URL}/..."`) aynı değişkene bağlı.
+
+---
+
 ## 1.5. Sayfa genişliği: `max-w-site`
 
 Gövde genişliği **tek yerden** yönetilir: `layouts/app.blade.php` içindeki
@@ -115,11 +127,17 @@ Duyurular `announcements` tablosundadır → Panel → **Duyurular**.
 Eskiden `settings` satırında tek başlık + tek düz metin olarak duruyordu;
 görsel, biçimli metin ve kanal ayrımı sığmadı.
 
-- **Bir sayfada yalnızca BİR duyuru gösterilir:** o kanalda yayında olan,
-  `sort_order` en küçük olan (`Announcement::forChannel()`). İki pencere
-  açmak ziyaretçiyi iki kez kapatmaya zorlar. Panelde "Durum" sütunu hangi
-  kaydın gerçekten göründüğünü söyler — "açtım ama çıkmıyor" sorusunu
-  önlemek için.
+- **Çoklu duyuru SIRAYLA gösterilir:** kanaldaki tüm yayında duyurular
+  sayfaya basılır (`Announcement::queueForChannel()`), Alpine yalnızca sırası
+  geleni gösterir. Ziyaretçi birincisini kapatınca 220 ms sonra ikincisi
+  açılır. Hepsini aynı anda basmak üst üste binen pencereler demek olurdu.
+- Kapatılanlar `sessionStorage`'da **liste** olarak tutulur
+  (`duyuru_kapatilanlar`). Tek anahtar kullanılırsa ikinci duyuru
+  kapatıldığında birincisi "kapatılmamış" sayılıp geri geliyordu.
+- Birden fazla duyuru varken kartta **"1 / 2 duyuru"** sayacı ve kapatma
+  düğmesinde **"Sıradaki duyuru →"** yazar; kapatınca yeni pencere açılması
+  sürpriz olmasın.
+- Panelde "Durum" sütunu kaydın kaçıncı sırada açıldığını söyler.
 - `channel` = `both` her iki mağazada geçerli.
 - Gövde zengin metin editöründen **HTML** gelir, `{!! !!}` ile basılır.
   Yalnızca yönetici yazabildiği için güvenli.
@@ -482,6 +500,23 @@ yalnızca 1536px ve üstünde açılır (bkz. madde 1.5).
 Raf, kanalın yazılarının yanında **`general`** kanalındakileri de gösterir —
 genel rehberler iki mağazayı da ilgilendirir.
 
+**Sıralama:** `posts.sort_order` (küçük üstte), sonra yayın tarihi.
+Panelde satırlar sürüklenerek sıralanır. Hepsi 0 olduğunda davranış eskisi
+gibi "yeni üstte" kalır — mevcut yazılar için geriye dönük uyumlu.
+
+**Aynı sıralama `/blog` listesinde de geçerlidir** (`PostController::index`).
+İkisi ayrı sıralanırsa "panelde sürükledim ama sayfada değişmedi" sorusu
+çıkıyor; `BlogTest` her iki listeyi ayrı ayrı kolluyor.
+
+### Yazı içine görsel
+
+`RichEditor` üzerinde `fileAttachmentsDisk('public')` +
+`fileAttachmentsDirectory('posts/icerik')` tanımlı. **Bu üçü olmadan araç
+çubuğundaki görsel düğmesi çalışmaz**, yükleme sessizce takılı kalır.
+
+Kapak görseli ayrı alandır (`cover_image`, `posts/` dizini) ve paylaşım
+kartlarında (Open Graph) kullanılan görsel odur.
+
 ### Menüdeki "Rehberler" bağlantısı
 
 `Post::hasPublished()` yayında yazı yoksa `false` döner ve bağlantı üst menüde,
@@ -523,5 +558,5 @@ php artisan telegram:test       # sipariş bildirimi ayarlarını sına
 php artisan test
 ```
 
-**293 test** var ve hepsi geçmeli. Özellikle ödeme, sepet, kupon ve yetkilendirme
+**299 test** var ve hepsi geçmeli. Özellikle ödeme, sepet, kupon ve yetkilendirme
 testleri geçmişte gerçek hatalar yakaladı — kırmızı görürsen düzeltmeden push etme.

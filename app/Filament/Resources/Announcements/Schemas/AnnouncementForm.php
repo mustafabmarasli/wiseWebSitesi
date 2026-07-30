@@ -105,9 +105,9 @@ class AnnouncementForm
                         ->numeric()
                         ->default(0)
                         ->minValue(0)
-                        // Aynı anda iki pencere açmak ziyaretçiyi iki kez
-                        // kapatmaya zorlar; bu yüzden yalnızca biri gösterilir.
-                        ->helperText('Aynı sayfada YALNIZCA BİR duyuru gösterilir: sırası en küçük olan. Birden fazla duyuruyu yayında bırakabilirsiniz, gösterilecek olanı bu sıra belirler.'),
+                        // Aynı anda iki pencere açmak üst üste binen pencereler
+                        // demek; bu yüzden kuyruk mantığı kullanılıyor.
+                        ->helperText('Yayında birden fazla duyuru varsa SIRAYLA açılır: ziyaretçi birincisini kapatınca ikincisi çıkar. Küçük sayı önce gösterilir. Listede satırları sürükleyerek de sıralayabilirsiniz.'),
                 ]),
         ]);
     }

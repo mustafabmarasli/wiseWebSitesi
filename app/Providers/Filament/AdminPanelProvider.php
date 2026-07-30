@@ -26,6 +26,11 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
+            ->brandName('Buy WISEly')
+            // Sol üstteki marka yazısına tıklayınca panel anasayfası yerine
+            // SİTENİN kendisi açılır. Adres `.env` içindeki APP_URL'den gelir;
+            // sabit yazılırsa yerelde de canlı siteye gidip kafa karıştırır.
+            ->homeUrl(config('app.url'))
             ->colors([
                 'primary' => Color::Blue,
             ])

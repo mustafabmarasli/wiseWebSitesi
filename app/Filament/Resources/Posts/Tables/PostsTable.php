@@ -17,7 +17,11 @@ class PostsTable
     public static function configure(Table $table): Table
     {
         return $table
-            ->defaultSort('published_at', 'desc')
+            // Satırlar sürüklenerek sıralanabilir; bu sıra hem anasayfa sağ
+            // rafında hem /blog listesinde geçerlidir. Bu yüzden varsayılan
+            // sıralama da `sort_order`.
+            ->defaultSort('sort_order')
+            ->reorderable('sort_order')
             ->columns([
                 ImageColumn::make('image_url')
                     ->label('Kapak')
@@ -38,6 +42,10 @@ class PostsTable
                         'electronics' => 'info',
                         default       => 'gray',
                     }),
+
+                TextColumn::make('sort_order')
+                    ->label('Sıra')
+                    ->sortable(),
 
                 TextColumn::make('published_at')
                     ->label('Yayın Tarihi')

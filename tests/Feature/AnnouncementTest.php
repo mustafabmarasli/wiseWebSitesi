@@ -84,16 +84,49 @@ it('kanala ozel duyuru yalnizca o magazada cikar', function () {
     $this->get(route('electronics.home'))->assertOk()->assertDontSee('Sadece Saglik');
 });
 
-it('ayni sayfada yalnizca bir duyuru gosterilir', function () {
-    // İki pencere açmak ziyaretçiyi iki kez kapatmaya zorlar.
+it('coklu duyuru sirayla gosterilmek uzere basilir', function () {
     duyuruOlustur(['title' => 'Birinci', 'body' => '<p>Ilk duyuru.</p>', 'sort_order' => 1]);
     duyuruOlustur(['title' => 'Ikinci', 'body' => '<p>Sonraki duyuru.</p>', 'sort_order' => 2]);
     duyuruUrunu();
 
+    // İkisi de sayfaya basılır; hangisinin görüneceğine Alpine karar verir
+    // (biri kapanınca diğeri açılır).
     $this->get(route('electronics.home'))
         ->assertOk()
         ->assertSee('Birinci')
-        ->assertDontSee('Ikinci');
+        ->assertSee('Ikinci')
+        ->assertSee('1 / 2 duyuru')
+        ->assertSee('2 / 2 duyuru');
+});
+
+it('duyuru sirasi sort_order ile belirlenir', function () {
+    duyuruOlustur(['title' => 'Sonra Cikan', 'sort_order' => 5]);
+    duyuruOlustur(['title' => 'Once Cikan', 'sort_order' => 1]);
+
+    $kuyruk = \App\Models\Announcement::queueForChannel('electronics');
+
+    expect($kuyruk->pluck('title')->all())->toBe(['Once Cikan', 'Sonra Cikan']);
+});
+
+it('kuyrukta son olmayan duyuruda siradaki yazisi cikar', function () {
+    duyuruOlustur(['title' => 'Birinci', 'sort_order' => 1]);
+    duyuruOlustur(['title' => 'Ikinci', 'sort_order' => 2]);
+    duyuruUrunu();
+
+    // Kapatınca yeni pencere açılması sürpriz olmasın.
+    $this->get(route('electronics.home'))
+        ->assertOk()
+        ->assertSee('Sıradaki duyuru')
+        ->assertSee('Anladım');
+});
+
+it('tek duyuruda kuyruk sayaci basilmaz', function () {
+    duyuruOlustur();
+    duyuruUrunu();
+
+    $this->get(route('electronics.home'))
+        ->assertOk()
+        ->assertDontSee('1 / 1 duyuru');
 });
 
 it('bicimli metin html olarak basilir', function () {

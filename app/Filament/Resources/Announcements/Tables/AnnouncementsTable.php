@@ -51,9 +51,8 @@ class AnnouncementsTable
                 ToggleColumn::make('is_active')
                     ->label('Yayında'),
 
-                // Yayında birden fazla duyuru varken hangisinin gerçekten
-                // göründüğünü söylemek gerekiyor; yoksa "açtım ama çıkmıyor"
-                // sorusu kaçınılmaz.
+                // Duyurular sırayla gösterildiği için hangisinin kaçıncı
+                // çıktığını söylemek gerekiyor.
                 TextColumn::make('gosterim')
                     ->label('Durum')
                     ->state(function (Announcement $kayit): string {
@@ -61,21 +60,17 @@ class AnnouncementsTable
                             return 'Taslak';
                         }
 
-                        $kanallar = $kayit->channel === 'both'
-                            ? ['electronics', 'health']
-                            : [$kayit->channel];
+                        $kanal = $kayit->channel === 'both' ? 'electronics' : $kayit->channel;
+                        $sira  = Announcement::queueForChannel($kanal)
+                            ->search(fn ($d) => $d->is($kayit));
 
-                        $gorunen = collect($kanallar)
-                            ->filter(fn ($k) => Announcement::forChannel($k)?->is($kayit))
-                            ->isNotEmpty();
-
-                        return $gorunen ? 'Gösteriliyor' : 'Sırada bekliyor';
+                        return $sira === 0 ? 'İlk açılan' : ($sira + 1) . '. sırada';
                     })
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
-                        'Gösteriliyor' => 'success',
-                        'Taslak'       => 'gray',
-                        default        => 'warning',
+                        'İlk açılan' => 'success',
+                        'Taslak'     => 'gray',
+                        default      => 'warning',
                     }),
             ])
             ->filters([

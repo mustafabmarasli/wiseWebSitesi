@@ -102,8 +102,13 @@ class HomeController extends Controller
 
         // Sağ raftaki rehber yazıları. Kanala özel yazıların yanında "Genel"
         // olanlar da gösterilir — genel rehberler iki kanalı da ilgilendirir.
+        //
+        // SIRALAMA: önce panelden verilen `sort_order`, sonra yayın tarihi.
+        // Böylece öne çıkarmak istediğin yazıyı elle yukarı alabilirsin;
+        // dokunmadığın yazılar (hepsi 0) yine yeniden eskiye dizilir.
         $blogPosts = \App\Models\Post::published()
             ->whereIn('channel', [$channel, 'general'])
+            ->orderBy('sort_order')
             ->orderByDesc('published_at')
             ->take(5)
             ->get();

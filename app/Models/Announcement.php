@@ -55,19 +55,30 @@ class Announcement extends Model
     ];
 
     /**
-     * Bu kanalda gösterilecek duyuru. Yoksa null.
+     * Bu kanalda gösterilecek duyurular, gösterim sırasına göre.
      *
-     * `both` kanalı her iki mağazada geçerlidir; kanala özel duyuru varsa
-     * sıralamada öne alınabilsin diye `sort_order` belirleyicidir.
+     * Birden fazla duyuru varsa **sırayla** gösterilir: ziyaretçi birincisini
+     * kapatınca ikincisi açılır. `both` kanalı her iki mağazada geçerlidir.
+     *
+     * @return \Illuminate\Database\Eloquent\Collection<int, self>
      */
-    public static function forChannel(string $channel): ?self
+    public static function queueForChannel(string $channel)
     {
         return static::query()
             ->where('is_active', true)
             ->whereIn('channel', ['both', $channel])
             ->orderBy('sort_order')
             ->orderBy('id')
-            ->first();
+            ->get();
+    }
+
+    /**
+     * Kuyruğun ilk duyurusu. Panelde "hangisi ilk çıkıyor" göstergesi ve
+     * tek duyuru bekleyen kodlar için.
+     */
+    public static function forChannel(string $channel): ?self
+    {
+        return static::queueForChannel($channel)->first();
     }
 
     /** Görsel gerçekten kullanılıyor mu? Yerleşim görsel istiyor ve görsel var mı. */

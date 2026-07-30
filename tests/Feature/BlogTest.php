@@ -213,13 +213,40 @@ it('yazi yokken blog rafi hic basilmaz', function () {
         ->assertDontSee('Rehberler');
 });
 
-it('blog rafinda yeni yazi ustte gorunur', function () {
+it('raf sirasi panelden verilen sort_order ile belirlenir', function () {
+    // Yayın tarihine göre "Yeni" üstte olurdu; elle verilen sıra onu ezer.
+    $yeni = blogPost(['title' => 'Yeni Ama Altta', 'channel' => 'electronics', 'published_at' => now()->subHour(), 'sort_order' => 5]);
+    $eski = blogPost(['title' => 'Eski Ama Ustte', 'channel' => 'electronics', 'published_at' => now()->subMonth(), 'sort_order' => 1]);
+
+    $html = $this->get(route('electronics.home'))->assertOk()->getContent();
+
+    expect(strpos($html, $eski->title))->toBeLessThan(strpos($html, $yeni->title));
+});
+
+it('raf sirasi esitse yeni yazi ustte kalir', function () {
     $eski = blogPost(['title' => 'Eski Yazi', 'channel' => 'electronics', 'published_at' => now()->subMonth()]);
     $yeni = blogPost(['title' => 'Yeni Yazi', 'channel' => 'electronics', 'published_at' => now()->subHour()]);
 
     $html = $this->get(route('electronics.home'))->assertOk()->getContent();
 
     expect(strpos($html, $yeni->title))->toBeLessThan(strpos($html, $eski->title));
+});
+
+it('blog listesi de elle verilen siraya uyar', function () {
+    // Raf ve arşiv aynı sırayı kullanmalı; ayrışsalar "sürükledim ama
+    // değişmedi" sorusu çıkıyor.
+    $yeni = blogPost(['title' => 'Yeni Ama Altta', 'published_at' => now()->subHour(), 'sort_order' => 5]);
+    $eski = blogPost(['title' => 'Eski Ama Ustte', 'published_at' => now()->subMonth(), 'sort_order' => 1]);
+
+    $html = $this->get(route('blog.index'))->assertOk()->getContent();
+
+    expect(strpos($html, $eski->title))->toBeLessThan(strpos($html, $yeni->title));
+});
+
+it('panel marka baglantisi siteye gider', function () {
+    // Panelde sol üstteki "Buy WISEly" yazısı panel anasayfasına değil
+    // sitenin kendisine gitmeli.
+    expect(filament()->getPanel('admin')->getHomeUrl())->toBe(config('app.url'));
 });
 
 it('blog yonetimi admin panelinde acilir', function () {

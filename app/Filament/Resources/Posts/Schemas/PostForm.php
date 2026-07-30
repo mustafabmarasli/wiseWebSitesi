@@ -65,7 +65,15 @@ class PostForm
                     RichEditor::make('body')
                         ->label('İçerik')
                         ->required()
-                        ->helperText('Ürüne bağlantı vermeyi unutmayın — rehberin okurunu ürüne götüren şey o bağlantıdır.')
+                        // Yazının İÇİNE görsel eklemeyi açar: araç çubuğundaki
+                        // görsel düğmesiyle yüklenen dosyalar buraya gider.
+                        // Bu ayarlar olmadan düğme çalışmıyor ve "yükleniyor"da
+                        // takılı kalıyor.
+                        ->fileAttachmentsDisk('public')
+                        ->fileAttachmentsDirectory('posts/icerik')
+                        ->fileAttachmentsVisibility('public')
+                        ->fileAttachmentsMaxSize(4096)
+                        ->helperText('Görsel eklemek için araç çubuğundaki görsel düğmesini kullanın (en fazla 4 MB). Ürüne bağlantı vermeyi unutmayın — rehberin okurunu ürüne götüren şey o bağlantıdır.')
                         ->columnSpanFull(),
                 ]),
 
@@ -100,6 +108,14 @@ class PostForm
                         ->seconds(false)
                         ->default(now())
                         ->helperText('İleri bir tarih verirseniz yazı o tarihe kadar görünmez.'),
+
+                    TextInput::make('sort_order')
+                        ->label('Görüntüleme Sırası')
+                        ->numeric()
+                        ->default(0)
+                        ->minValue(0)
+                        ->helperText('Anasayfanın sağ rafında ve /blog listesinde yukarıdan aşağıya sıra. Küçük sayı üstte çıkar. Hepsi 0 ise yeni yazı üstte olur. Listede satırları sürükleyerek de sıralayabilirsiniz.')
+                        ->columnSpanFull(),
                 ]),
 
             Section::make('Arama Motoru (SEO)')

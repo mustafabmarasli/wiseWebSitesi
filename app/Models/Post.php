@@ -26,6 +26,7 @@ class Post extends Model
         'cover_image',
         'cover_alt',
         'channel',
+        'sort_order',
         'is_published',
         'published_at',
         'meta_title',
@@ -35,6 +36,7 @@ class Post extends Model
     protected $casts = [
         'is_published' => 'boolean',
         'published_at' => 'datetime',
+        'sort_order'   => 'integer',
     ];
 
     public const KANALLAR = [

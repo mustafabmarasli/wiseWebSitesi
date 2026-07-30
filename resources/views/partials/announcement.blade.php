@@ -1,38 +1,85 @@
 {{--
     Duyuru penceresi. İçerik `announcements` tablosundan gelir (Panel →
-    Duyurular). Bir sayfada yalnızca BİR duyuru gösterilir.
+    Duyurular).
+
+    ÇOKLU DUYURU: yayında birden fazla duyuru varsa SIRAYLA gösterilir —
+    ziyaretçi birincisini kapatınca ikincisi açılır. Hepsini aynı anda basmak
+    üst üste binen pencereler demek olurdu.
 
     ÖNEMLİ: Bu parça `@section('modals')` içine konur, `content`'e DEĞİL.
     <main> öğesindeki `animate-fade-in` bir `transform` üretiyor ve içindeki
     position:fixed öğeleri viewport yerine <main>'e göre konumlandırıyor.
 --}}
 @php
-    $duyuru = \App\Models\Announcement::forChannel($channel ?? 'electronics');
+    $duyurular = \App\Models\Announcement::queueForChannel($channel ?? 'electronics');
+
+    // Anahtar: kimlik + son değişiklik zamanı. Metni güncelleyince pencere
+    // yeniden açılır; aynı kalırsa kapatan ziyaretçiye tekrar gösterilmez.
+    $anahtarlar = $duyurular
+        ->map(fn ($d) => 'duyuru_' . $d->id . '_' . $d->updated_at?->timestamp)
+        ->values()
+        ->all();
 @endphp
 
-@if ($duyuru)
-    @php
-        // Anahtar duyurunun kimliği + son değişiklik zamanı. Metni
-        // güncelleyince pencere yeniden açılır; aynı kalırsa kapatan
-        // ziyaretçiye oturum boyunca tekrar gösterilmez.
-        $duyuruAnahtar = 'duyuru_' . $duyuru->id . '_' . $duyuru->updated_at?->timestamp;
-        $ton           = $duyuru->tone_style;
-        $ortuk         = $duyuru->isOverlay();
-    @endphp
-
+@if ($duyurular->isNotEmpty())
     <div
         x-data="{
-            acik: false,
+            anahtarlar: @js($anahtarlar),
+            aktif: null,
+            gorunur: false,
+
             init() {
-                if (sessionStorage.getItem('duyuru_kapatildi') === @js($duyuruAnahtar)) return;
-                setTimeout(() => { this.acik = true }, 350);
+                this.aktif = this.siradaki(-1);
+
+                if (this.aktif !== null) {
+                    setTimeout(() => { this.gorunur = true }, 350);
+                }
             },
+
+            /** Verilen sıradan SONRA gelen, kapatılmamış ilk duyurunun sırası. */
+            siradaki(sira) {
+                const kapatilanlar = this.kapatilanlar();
+
+                for (let i = sira + 1; i < this.anahtarlar.length; i++) {
+                    if (! kapatilanlar.includes(this.anahtarlar[i])) {
+                        return i;
+                    }
+                }
+
+                return null;
+            },
+
+            kapatilanlar() {
+                try {
+                    return JSON.parse(sessionStorage.getItem('duyuru_kapatilanlar') || '[]');
+                } catch (e) {
+                    return [];
+                }
+            },
+
             kapat() {
-                this.acik = false;
-                sessionStorage.setItem('duyuru_kapatildi', @js($duyuruAnahtar));
+                const kapatilanlar = this.kapatilanlar();
+                kapatilanlar.push(this.anahtarlar[this.aktif]);
+                sessionStorage.setItem('duyuru_kapatilanlar', JSON.stringify(kapatilanlar));
+
+                const sonraki = this.siradaki(this.aktif);
+
+                if (sonraki === null) {
+                    this.gorunur = false;
+                    this.aktif = null;
+                    return;
+                }
+
+                // Kısa bir ara: pencere anında değişince ziyaretçi kapatma
+                // tıklamasının işlenmediğini sanıp tekrar tıklıyor.
+                this.gorunur = false;
+                setTimeout(() => {
+                    this.aktif = sonraki;
+                    this.gorunur = true;
+                }, 220);
             },
         }"
-        x-show="acik"
+        x-show="gorunur"
         x-transition.opacity.duration.250ms
         class="duyuru-katman"
         style="display:none"
@@ -45,64 +92,83 @@
         <div @click="kapat()"
              style="position:absolute; inset:0; background:rgba(2,6,23,.62); backdrop-filter:blur(4px);"></div>
 
-        {{-- Kart --}}
-        <div class="duyuru-kart">
+        @foreach ($duyurular as $sira => $duyuru)
+            @php
+                $ton   = $duyuru->tone_style;
+                $ortuk = $duyuru->isOverlay();
+            @endphp
 
-            @unless ($ortuk)
-                <div style="height:6px; background:linear-gradient(90deg,#1B4A7A,#2DD4BF,#F59E0B);"></div>
-            @endunless
+            {{-- Kart. Tümü basılır, yalnızca sırası gelen gösterilir. --}}
+            <div class="duyuru-kart" x-show="aktif === {{ $sira }}" style="display:none">
 
-            {{-- Kapat. Görselin üzerindeyken beyaz, aksi hâlde gri. --}}
-            <button type="button" @click="kapat()" aria-label="Duyuruyu kapat"
-                    class="duyuru-kapat {{ $ortuk ? 'duyuru-kapat-acik' : '' }}" title="Kapat">
-                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-            </button>
+                @unless ($ortuk)
+                    <div style="height:6px; background:linear-gradient(90deg,#1B4A7A,#2DD4BF,#F59E0B);"></div>
+                @endunless
 
-            @if ($ortuk)
-                {{-- Yazı görselin üzerinde: okunabilirlik için koyu bir degrade
-                     şart, aksi hâlde açık renkli görselde beyaz yazı kayboluyor. --}}
-                <div class="duyuru-ortuk">
-                    <img src="{{ $duyuru->image_url }}" alt="{{ $duyuru->image_alt ?? '' }}" class="duyuru-ortuk-gorsel">
-                    <div class="duyuru-ortuk-perde"></div>
-                    <div class="duyuru-ortuk-metin">
-                        <h2 id="duyuru-baslik" class="duyuru-baslik-acik">{{ $duyuru->title }}</h2>
-                        @if (filled($duyuru->body))
-                            <div class="duyuru-govde duyuru-govde-acik">{!! $duyuru->body !!}</div>
-                        @endif
+                {{-- Kapat. Görselin üzerindeyken beyaz, aksi hâlde gri. --}}
+                <button type="button" @click="kapat()" aria-label="Duyuruyu kapat"
+                        class="duyuru-kapat {{ $ortuk ? 'duyuru-kapat-acik' : '' }}" title="Kapat">
+                    <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+
+                @if ($ortuk)
+                    {{-- Yazı görselin üzerinde: okunabilirlik için koyu bir degrade
+                         şart, aksi hâlde açık renkli görselde beyaz yazı kayboluyor. --}}
+                    <div class="duyuru-ortuk">
+                        <img src="{{ $duyuru->image_url }}" alt="{{ $duyuru->image_alt ?? '' }}" class="duyuru-ortuk-gorsel">
+                        <div class="duyuru-ortuk-perde"></div>
+                        <div class="duyuru-ortuk-metin">
+                            <h2 @if ($sira === 0) id="duyuru-baslik" @endif class="duyuru-baslik-acik">{{ $duyuru->title }}</h2>
+                            @if (filled($duyuru->body))
+                                <div class="duyuru-govde duyuru-govde-acik">{!! $duyuru->body !!}</div>
+                            @endif
+                        </div>
                     </div>
-                </div>
 
-                <div style="padding:1.25rem 2rem 2rem; text-align:center;">
-                    @include('partials.announcement_actions', ['duyuru' => $duyuru])
-                </div>
-            @else
-                @if ($duyuru->usesImage())
-                    <img src="{{ $duyuru->image_url }}" alt="{{ $duyuru->image_alt ?? '' }}" class="duyuru-gorsel">
+                    <div style="padding:1.25rem 2rem 2rem; text-align:center;">
+                        @include('partials.announcement_actions', [
+                            'duyuru'      => $duyuru,
+                            'sonKuyrukta' => $sira === $duyurular->count() - 1,
+                        ])
+                    </div>
+                @else
+                    @if ($duyuru->usesImage())
+                        <img src="{{ $duyuru->image_url }}" alt="{{ $duyuru->image_alt ?? '' }}" class="duyuru-gorsel">
+                    @endif
+
+                    <div style="padding:{{ $duyuru->usesImage() ? '1.75rem' : '2.5rem' }} 2rem 2rem; text-align:center;">
+                        @if ($ton)
+                            <div class="duyuru-simge" style="background:{{ $ton['zemin'] }}; color:{{ $ton['renk'] }};">
+                                <span class="duyuru-dalga" style="background:{{ $ton['renk'] }};" aria-hidden="true"></span>
+                                <svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                     stroke-width="1.8" style="position:relative; z-index:1;">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="{{ $ton['ikon'] }}" />
+                                </svg>
+                            </div>
+                        @endif
+
+                        <h2 @if ($sira === 0) id="duyuru-baslik" @endif class="duyuru-baslik">{{ $duyuru->title }}</h2>
+
+                        @if (filled($duyuru->body))
+                            <div class="duyuru-govde">{!! $duyuru->body !!}</div>
+                        @endif
+
+                        @include('partials.announcement_actions', [
+                            'duyuru'      => $duyuru,
+                            'sonKuyrukta' => $sira === $duyurular->count() - 1,
+                        ])
+                    </div>
                 @endif
 
-                <div style="padding:{{ $duyuru->usesImage() ? '1.75rem' : '2.5rem' }} 2rem 2rem; text-align:center;">
-                    @if ($ton)
-                        <div class="duyuru-simge" style="background:{{ $ton['zemin'] }}; color:{{ $ton['renk'] }};">
-                            <span class="duyuru-dalga" style="background:{{ $ton['renk'] }};" aria-hidden="true"></span>
-                            <svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                 stroke-width="1.8" style="position:relative; z-index:1;">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="{{ $ton['ikon'] }}" />
-                            </svg>
-                        </div>
-                    @endif
-
-                    <h2 id="duyuru-baslik" class="duyuru-baslik">{{ $duyuru->title }}</h2>
-
-                    @if (filled($duyuru->body))
-                        <div class="duyuru-govde">{!! $duyuru->body !!}</div>
-                    @endif
-
-                    @include('partials.announcement_actions', ['duyuru' => $duyuru])
-                </div>
-            @endif
-        </div>
+                {{-- Kuyrukta kaçıncı olduğunu göster: kapatınca yeni bir pencere
+                     açılması sürpriz olmasın. --}}
+                @if ($duyurular->count() > 1)
+                    <p class="duyuru-sayac">{{ $sira + 1 }} / {{ $duyurular->count() }} duyuru</p>
+                @endif
+            </div>
+        @endforeach
     </div>
 
     <style>
@@ -185,6 +251,7 @@
         .duyuru-govde li { margin-bottom: .25rem; }
         .duyuru-govde strong { font-weight: 800; color: #0F172A; }
         .duyuru-govde a { color: #1B4A7A; font-weight: 700; text-decoration: underline; }
+        .duyuru-govde img { max-width: 100%; height: auto; border-radius: .5rem; margin: .5rem 0; }
 
         .duyuru-kapat {
             position: absolute; top: 1rem; right: 1rem; z-index: 2;
@@ -224,6 +291,11 @@
             padding: .375rem .75rem; border-radius: .5rem;
         }
         .duyuru-kapat-yazi:hover { color: #334155; background: #F1F5F9; }
+
+        .duyuru-sayac {
+            padding: 0 2rem 1.25rem; margin: 0; text-align: center;
+            font-size: .6875rem; color: #94A3B8; font-weight: 700;
+        }
 
         @media (max-width: 640px) {
             .duyuru-tamam { width: 100%; min-width: 0; }

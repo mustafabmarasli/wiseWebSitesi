@@ -94,6 +94,29 @@ rehberin sonunda satılan ürün sende.
 
 _(iş bitince buraya taşı, tarih yaz)_
 
+### Duyurular sırayla açılıyor, raf sırası elle seçiliyor — 29.07.2026
+
+**Çoklu duyuru kuyruğu:** yayında birden fazla duyuru varsa sırayla açılıyor —
+birincisi kapanınca ikincisi çıkıyor. Kartta "1 / 2 duyuru" sayacı var,
+kapatma düğmesi "Sıradaki duyuru →" diyor. Kapatılanlar oturum boyunca
+tekrar açılmıyor.
+
+**Blog sırası:** `posts.sort_order` eklendi. Panel → Blog Yazıları'nda
+satırları sürükleyerek ya da "Görüntüleme Sırası" alanına sayı yazarak sırayı
+belirliyorsun. Hem anasayfa sağ rafında hem `/blog` listesinde geçerli.
+Hepsi 0 iken davranış eskisi gibi "yeni üstte".
+
+**Panel marka bağlantısı:** panelde sol üstteki "Buy WISEly" yazısı artık
+panel anasayfasına değil sitenin kendisine gidiyor (`APP_URL`).
+
+**Yazı içine görsel:** zengin metin editöründe görsel yükleme açıldı
+(`fileAttachments*`). Araç çubuğundaki görsel düğmesi artık çalışıyor,
+dosyalar `posts/icerik` altına gidiyor. Kapak görseli ayrı alan olarak duruyor.
+
+6 test. **Detay:** `GELISTIRICI-NOTLARI.md` → madde 1.2, 2.6 ve 10.8
+
+---
+
 ### Site genişletildi: 1280 → 1680px — 29.07.2026
 
 Geniş ekranda iki yanda çok fazla boşluk kalıyordu (2560px ekranda her yanda
@@ -137,8 +160,9 @@ Tek satırlık ayardan kendi bölümüne taşındı: **Panel → Duyurular.**
   Simge yok. Eskiden her duyuruda amber ünlem vardı; bir misyon metni için
   "uyarı" havası yanlıştı
 
-> **Bir sayfada yalnızca BİR duyuru gösterilir** (sırası en küçük olan).
-> Panelde "Durum" sütunu hangisinin gerçekten göründüğünü söyler.
+> ~~Bir sayfada yalnızca BİR duyuru gösterilir.~~ **Sonradan değişti:**
+> duyurular artık sırayla açılıyor — yukarıdaki "Duyurular sırayla açılıyor"
+> maddesine bak.
 
 Yayındaki duyuru migration'da yeni tabloya kopyalandı, kaybolmadı.
 
@@ -153,9 +177,10 @@ Kategoriler solda, **rehber yazıları sağda** — dikdörtgen kartlar, yeni ya
 
 - Raf `xl` ve üstünde sağ kolon olur; daha küçük ekranda aynı liste sayfanın
   altında yatay ızgaraya döner
-- Ürün ızgarası masaüstünde 4 → **3 kolona** indi. 4 kalsaydı kartlar
-  145 px'e düşüyordu; şimdi ürünler daha büyük görünüyor
+- ~~Ürün ızgarası masaüstünde 4 → 3 kolona indi.~~ **Sonradan düzeltildi:**
+  site genişletilince 4 kolon geri geldi — "Site genişletildi" maddesine bak
 - Yazı yoksa raf hiç basılmaz
+- Sıralamayı panelden sen belirliyorsun (en üstteki maddeye bak)
 
 4 test. **Detay:** `GELISTIRICI-NOTLARI.md` → madde 10.8
 

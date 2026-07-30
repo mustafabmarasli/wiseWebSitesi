@@ -16,8 +16,13 @@ class PostController extends Controller
             $kanal = null;
         }
 
+        // Sıralama anasayfa rafıyla AYNI: panelden verilen sıra önce, sonra
+        // yayın tarihi. Öne çıkarmak istediğin rehber her iki yerde de üstte
+        // olsun diye; iki liste ayrı sıralanırsa "sürükledim ama değişmedi"
+        // sorusu çıkıyor.
         $posts = Post::published()
             ->channel($kanal)
+            ->orderBy('sort_order')
             ->orderByDesc('published_at')
             ->paginate(9)
             ->withQueryString();
