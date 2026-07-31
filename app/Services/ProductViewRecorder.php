@@ -17,6 +17,16 @@ class ProductViewRecorder
     private const SESSION_KEY = 'viewed_products';
 
     /**
+     * "Son Görüntülenen Ürünler" rafı için tutulan liste — analitik sayımdan
+     * (yukarıdaki DEDUPE_MINUTES) BAĞIMSIZDIR. Sayım tekrar tıklamaları
+     * saymamak içindir; bu raf ise ziyaretçi aynı ürüne 5 dakika sonra tekrar
+     * baksa bile en üstte kalmalı, oturum boyunca geçerli olmalı.
+     */
+    private const RECENT_SESSION_KEY = 'recently_viewed_products';
+
+    private const RECENT_LIMIT = 12;
+
+    /**
      * Ürün görüntülenmesini kaydeder.
      *
      * Sayfa yenilemeleri ve ileri/geri gezinmeleri saymamak için oturum bazlı
@@ -24,11 +34,16 @@ class ProductViewRecorder
      */
     public function record(Product $product, Request $request): void
     {
-        if ($this->recentlyViewed($product)) {
+        // "Son görüntülenenler" rafı, analitik sayımdan bağımsız olarak HER
+        // ziyarette güncellenir — sayfa yenilemesi bile ürünü rafta en üste
+        // taşımalı, dedupe penceresi burada geçerli değil.
+        $this->rememberRecentlyViewed($product);
+
+        if ($this->wasCountedRecently($product)) {
             return;
         }
 
-        $this->remember($product);
+        $this->markCounted($product);
 
         try {
             ProductView::create([
@@ -46,7 +61,7 @@ class ProductViewRecorder
         }
     }
 
-    private function recentlyViewed(Product $product): bool
+    private function wasCountedRecently(Product $product): bool
     {
         $viewed = session()->get(self::SESSION_KEY, []);
         $seenAt = $viewed[$product->id] ?? null;
@@ -54,7 +69,7 @@ class ProductViewRecorder
         return $seenAt !== null && $seenAt > now()->subMinutes(self::DEDUPE_MINUTES)->timestamp;
     }
 
-    private function remember(Product $product): void
+    private function markCounted(Product $product): void
     {
         $viewed = session()->get(self::SESSION_KEY, []);
         $cutoff = now()->subMinutes(self::DEDUPE_MINUTES)->timestamp;
@@ -65,6 +80,47 @@ class ProductViewRecorder
         $viewed[$product->id] = now()->timestamp;
 
         session()->put(self::SESSION_KEY, $viewed);
+    }
+
+    private function rememberRecentlyViewed(Product $product): void
+    {
+        $ids = session()->get(self::RECENT_SESSION_KEY, []);
+
+        // Ürün listede zaten varsa çıkarılır; tekrar başa eklenerek en
+        // güncel görüntülenme öne alınır.
+        $ids = array_values(array_diff($ids, [$product->id]));
+        array_unshift($ids, $product->id);
+
+        session()->put(self::RECENT_SESSION_KEY, array_slice($ids, 0, self::RECENT_LIMIT));
+    }
+
+    /**
+     * Bu ziyaretçinin son görüntülediği ürünler, en yeniden eskiye.
+     *
+     * @return \Illuminate\Support\Collection<int, Product>
+     */
+    public static function recentlyViewed(?int $excludeProductId = null, int $limit = 8): \Illuminate\Support\Collection
+    {
+        $ids = session()->get(self::RECENT_SESSION_KEY, []);
+
+        if ($excludeProductId !== null) {
+            $ids = array_values(array_diff($ids, [$excludeProductId]));
+        }
+
+        $ids = array_slice($ids, 0, $limit);
+
+        if (empty($ids)) {
+            return collect();
+        }
+
+        // whereIn sırayı korumaz; ürünleri session'daki sıraya göre diziyoruz
+        // — en son bakılan en başta çıksın diye.
+        $products = Product::with('category')->whereIn('id', $ids)->get()->keyBy('id');
+
+        return collect($ids)
+            ->map(fn ($id) => $products->get($id))
+            ->filter()
+            ->values();
     }
 
     /**

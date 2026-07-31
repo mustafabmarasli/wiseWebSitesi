@@ -24,7 +24,11 @@ class ProductController extends Controller
             ->take(4)
             ->get();
 
-        return view('detail', compact('product', 'relatedProducts'));
+        // Ziyaretçinin oturum boyunca gezdiği ürünler — şu an bakılan ürün
+        // kendi rafında tekrar çıkmasın diye hariç tutulur.
+        $recentlyViewed = ProductViewRecorder::recentlyViewed(excludeProductId: $product->id, limit: 8);
+
+        return view('detail', compact('product', 'relatedProducts', 'recentlyViewed'));
     }
 
     /**

@@ -12,8 +12,9 @@
 @endif
 
 {{-- Yapısal veri: Google arama sonucunda fiyat ve stok durumu gösterir.
-     aggregateRating BİLİNÇLİ OLARAK YOK — puanlar gerçek müşteri yorumu değil
-     (seed verisi), uydurma değerlendirme Google politikası ihlalidir. --}}
+     aggregateRating YALNIZCA gerçek onaylı yorum varsa eklenir — seed veri
+     (Product.rating) hiçbir zaman şemaya girmez, uydurma değerlendirme
+     basmak Google politikası ihlalidir. --}}
 @section('schema')
 @php
     $urunSemasi = [
@@ -38,6 +39,14 @@
             'seller'        => ['@type' => 'Organization', 'name' => 'Wise Solutions'],
         ],
     ];
+
+    if ($product->hasRealReviews()) {
+        $urunSemasi['aggregateRating'] = [
+            '@type'       => 'AggregateRating',
+            'ratingValue' => number_format($product->real_average_rating, 1),
+            'reviewCount' => $product->real_reviews_count,
+        ];
+    }
 
     $kirintiSemasi = [
         '@context'        => 'https://schema.org',
@@ -297,19 +306,30 @@
                         </div>
                         
                         <!-- Ratings -->
-                        @if ($product->rating > 0)
+                        {{-- Gerçek onaylı yorum varsa GERÇEK ortalama ve sayı
+                             gösterilir; yoksa seed puan (Product.rating)
+                             gösterilir ama yanına UYDURMA bir sayı YAZILMAZ.
+                             Eskiden burada her üründe sabit "(24 Değerlendirme)"
+                             yazıyordu — gerçek yorum sistemi eklenince bu
+                             sayıyı korumak yalan söylemek olurdu. --}}
+                        @php
+                            $gosterilenPuan = $product->hasRealReviews() ? $product->real_average_rating : $product->rating;
+                        @endphp
+                        @if ($gosterilenPuan > 0)
                         <div class="flex items-center gap-2 mb-4" id="product-detail-ratings">
                             <div class="flex items-center text-amber-500 gap-0.5">
                                 @for ($i = 0; $i < 5; $i++)
-                                    @if ($i < floor($product->rating))
+                                    @if ($i < floor($gosterilenPuan))
                                         <svg class="h-4 w-4 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
                                     @else
                                         <svg class="h-4 w-4 text-slate-300 stroke-current" viewBox="0 0 20 20" fill="none"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" stroke-width="2" /></svg>
                                     @endif
                                 @endfor
                             </div>
-                            <span class="text-sm font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded">{{ number_format($product->rating, 1) }}</span>
-                            <span class="text-xs text-slate-400 font-semibold">(24 Değerlendirme)</span>
+                            <span class="text-sm font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded">{{ number_format($gosterilenPuan, 1) }}</span>
+                            @if ($product->hasRealReviews())
+                                <a href="#yorumlar" class="text-xs text-trendyol font-bold hover:underline">({{ $product->real_reviews_count }} Değerlendirme)</a>
+                            @endif
                         </div>
                         @endif
 
@@ -475,6 +495,95 @@
         </div>
     </div>
 
+    <!-- Müşteri Yorumları -->
+    <div class="max-w-site mx-auto px-4 sm:px-6 lg:px-8 mt-10" id="yorumlar">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 sm:p-8">
+
+            <div class="flex items-center justify-between flex-wrap gap-3 mb-6">
+                <h2 class="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight">Müşteri Yorumları</h2>
+                @if ($product->hasRealReviews())
+                    <div class="flex items-center gap-2">
+                        <div class="flex items-center text-amber-500 gap-0.5">
+                            @for ($i = 0; $i < 5; $i++)
+                                <svg class="h-4 w-4 {{ $i < floor($product->real_average_rating) ? 'fill-current' : 'text-slate-300 stroke-current' }}" viewBox="0 0 20 20" fill="{{ $i < floor($product->real_average_rating) ? 'currentColor' : 'none' }}"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" stroke-width="2" /></svg>
+                            @endfor
+                        </div>
+                        <span class="text-sm font-bold text-slate-700">{{ number_format($product->real_average_rating, 1) }}</span>
+                        <span class="text-xs text-slate-400 font-semibold">({{ $product->real_reviews_count }} değerlendirme)</span>
+                    </div>
+                @endif
+            </div>
+
+            {{-- Yorum yazma alanı: yalnızca bu ürünü içeren TESLİM EDİLMİŞ bir
+                 siparişi olan ve daha önce yorum yazmamış üyeye gösterilir.
+                 Misafire ve satın almamış üyeye hiçbir CTA gösterilmez —
+                 alışveriş yapmamış birine "yorum yaz" demek anlamsız. --}}
+            @auth
+                @php $mevcutYorum = $product->reviews()->where('user_id', auth()->id())->first(); @endphp
+                @if ($mevcutYorum)
+                    <div class="mb-8 pb-8 border-b border-slate-100">
+                        <p class="text-sm font-extrabold text-emerald-600">✓ Bu ürüne daha önce yorum yaptınız, teşekkür ederiz!</p>
+                        @if ($mevcutYorum->status === 'pending')
+                            <p class="text-xs text-slate-500 font-semibold mt-1">Yorumunuz onay bekliyor; onaylandığında bu sayfada yayınlanacak.</p>
+                        @endif
+                    </div>
+                @elseif ($product->canBeReviewedBy(auth()->user()))
+                    <form method="POST" action="{{ route('product.review.store', $product) }}" class="mb-8 pb-8 border-b border-slate-100" id="review-form">
+                        @csrf
+                        <p class="text-sm font-extrabold text-slate-800 mb-1">Bu ürünü satın aldınız</p>
+                        <p class="text-xs text-slate-500 font-semibold mb-4">Deneyiminizi diğer müşterilerimizle paylaşın.</p>
+
+                        <input type="hidden" name="rating" id="review-rating-input" value="5">
+                        <div class="flex items-center gap-1 mb-4" id="review-star-picker">
+                            @for ($i = 1; $i <= 5; $i++)
+                                <button type="button" onclick="setReviewRating({{ $i }})" class="review-star p-0.5" data-star="{{ $i }}" aria-label="{{ $i }} yıldız ver">
+                                    <svg class="h-7 w-7 text-amber-500 pointer-events-none" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                    </svg>
+                                </button>
+                            @endfor
+                        </div>
+
+                        <textarea name="comment" rows="4" required minlength="10" maxlength="1000"
+                            placeholder="Bu ürün hakkındaki deneyiminizi yazın (en az 10 karakter)..."
+                            class="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm focus:outline-none focus:ring-2 focus:ring-trendyol focus:bg-white mb-4"></textarea>
+
+                        @error('comment')
+                            <p class="text-xs text-rose-600 font-bold mb-3">{{ $message }}</p>
+                        @enderror
+
+                        <button type="submit" class="bg-trendyol hover:bg-trendyolDark text-white font-extrabold px-6 py-2.5 rounded-xl text-sm transition-all active:scale-95">
+                            Yorumu Gönder
+                        </button>
+                    </form>
+                @endif
+            @endauth
+
+            {{-- Onaylı yorum listesi, en yeniden eskiye. --}}
+            @php $onayliYorumlar = $product->approvedReviews()->with('user')->latest()->get(); @endphp
+            @forelse ($onayliYorumlar as $yorum)
+                <div class="py-5 border-b border-slate-100 last:border-0">
+                    <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
+                        <div class="flex items-center gap-2">
+                            <span class="font-extrabold text-sm text-slate-800">{{ $yorum->reviewer_name }}</span>
+                            <span class="text-[10px] font-extrabold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">Doğrulanmış Alışveriş</span>
+                        </div>
+                        <time class="text-xs text-slate-400 font-semibold">{{ $yorum->created_at->translatedFormat('d F Y') }}</time>
+                    </div>
+                    <div class="flex items-center text-amber-500 gap-0.5 mb-2">
+                        @for ($i = 0; $i < 5; $i++)
+                            <svg class="h-3.5 w-3.5 {{ $i < $yorum->rating ? 'fill-current' : 'text-slate-300' }}" viewBox="0 0 20 20" fill="{{ $i < $yorum->rating ? 'currentColor' : 'none' }}"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+                        @endfor
+                    </div>
+                    <p class="text-sm text-slate-600 leading-relaxed">{{ $yorum->comment }}</p>
+                </div>
+            @empty
+                <p class="text-sm text-slate-500 font-semibold py-6 text-center">Bu ürün için henüz onaylanmış bir yorum yok. Satın alıp deneyimleyen ilk müşteri siz olun!</p>
+            @endforelse
+
+        </div>
+    </div>
+
     <!-- Related Products -->
     @if ($relatedProducts->count() > 0)
         <div class="max-w-site mx-auto px-4 sm:px-6 lg:px-8 mt-12 mb-16">
@@ -482,10 +591,28 @@
                 <span class="w-2.5 h-6 bg-trendyol rounded-sm"></span>
                 <h2 class="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight">Benzer Ürünler</h2>
             </div>
-            
+
             <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
                 @foreach ($relatedProducts as $relProduct)
                     @include('partials.product_card', ['product' => $relProduct])
+                @endforeach
+            </div>
+        </div>
+    @endif
+
+    {{-- Son Görüntülenen Ürünler: bu sayfayı açan ziyaretçinin oturum
+         boyunca gezdiği ürünler, en yeniden eskiye. Şu an bakılan ürün
+         kendi listesinde tekrar çıkmasın diye hariç tutulur. --}}
+    @if ($recentlyViewed->isNotEmpty())
+        <div class="max-w-site mx-auto px-4 sm:px-6 lg:px-8 mb-16" id="recently-viewed-section">
+            <div class="flex items-center gap-2 mb-6">
+                <span class="w-2.5 h-6 bg-slate-400 rounded-sm"></span>
+                <h2 class="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight">Son Görüntülenen Ürünler</h2>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+                @foreach ($recentlyViewed as $viewedProduct)
+                    @include('partials.product_card', ['product' => $viewedProduct])
                 @endforeach
             </div>
         </div>
@@ -622,6 +749,30 @@
 
         icon.setAttribute('fill', isFav ? 'currentColor' : 'none');
         label.textContent = isFav ? 'Favorilerimde' : 'Favorilerime Ekle';
+    }
+
+    /**
+     * Yorum formundaki yıldız seçici. Gerçek bir <select> yerine tıklanabilir
+     * yıldızlar kullanmak daha tanıdık bir arayüz — gizli input'a yalnızca
+     * seçilen sayı yazılır, form o değeri gönderir.
+     */
+    function setReviewRating(n) {
+        const gizliAlan = document.getElementById('review-rating-input');
+        if (!gizliAlan) return;
+
+        gizliAlan.value = n;
+
+        document.querySelectorAll('#review-star-picker .review-star').forEach(function (btn) {
+            const yildizNo = parseInt(btn.dataset.star, 10);
+            const svg = btn.querySelector('svg');
+            if (yildizNo <= n) {
+                svg.classList.remove('text-slate-300');
+                svg.classList.add('text-amber-500');
+            } else {
+                svg.classList.remove('text-amber-500');
+                svg.classList.add('text-slate-300');
+            }
+        });
     }
 </script>
 @endsection

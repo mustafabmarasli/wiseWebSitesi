@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Orders\Schemas;
 
+use App\Enums\OrderStatus;
 use App\Models\Order;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
@@ -21,23 +22,8 @@ class OrderInfolist
                     TextEntry::make('status')
                         ->label('Durum')
                         ->badge()
-                        ->formatStateUsing(fn (string $state): string => match ($state) {
-                            'pending'   => 'Ödeme Bekliyor',
-                            'paid'      => 'Ödendi / Hazırlanıyor',
-                            'shipped'   => 'Kargoya Verildi',
-                            'delivered' => 'Teslim Edildi',
-                            'failed'    => 'Ödeme Başarısız',
-                            'review'    => 'İnceleme Gerekiyor',
-                            'refunded'  => 'İade Edildi',
-                            'cancelled' => 'İptal Edildi',
-                            default     => $state,
-                        })
-                        ->color(fn (string $state): string => match ($state) {
-                            'paid', 'delivered' => 'success',
-                            'shipped'           => 'info',
-                            'pending'           => 'warning',
-                            default             => 'danger',
-                        }),
+                        ->formatStateUsing(fn (string $state): string => OrderStatus::labelFor($state))
+                        ->color(fn (string $state): string => OrderStatus::colorFor($state)),
                     TextEntry::make('user_id')
                         ->label('Müşteri Tipi')
                         ->badge()
@@ -67,6 +53,12 @@ class OrderInfolist
                     TextEntry::make('address')->label('Tam Adres')->columnSpan(3),
                     TextEntry::make('zip_code')->label('Posta Kodu')->placeholder('—'),
                     TextEntry::make('shipping_method')->label('Kargo Yöntemi')->placeholder('—'),
+                    TextEntry::make('tracking_number')->label('Kargo Takip No')->copyable()->placeholder('Henüz girilmedi'),
+                    TextEntry::make('tracking_url')
+                        ->label('Kargo Takip Linki')
+                        ->url(fn (Order $r): ?string => $r->tracking_url)
+                        ->color('primary')
+                        ->placeholder('—'),
                 ]),
 
             Section::make('Fatura Bilgileri')

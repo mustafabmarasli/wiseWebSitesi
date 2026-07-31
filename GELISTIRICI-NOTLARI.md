@@ -409,6 +409,77 @@ geçer.** Bu doğrulamayı kaldırma.
 
 ---
 
+## 8.7. Kargo takip numarası: gönderim `OrderObserver`'dan
+
+Sipariş durumu **"Kargoya Verildi"ye ilk geçtiği anda** müşteriye takip
+bilgisiyle e-posta gider (`OrderObserver::updated()`). Bu, `ProductObserver`
+ve `UserObserver` ile aynı kalıbı izler — model olayına bağlı, sorgu kurucu
+güncellemesi (`Order::where(...)->update()`) bu olayı üretmez.
+
+- **Kargo firmasına göre otomatik takip linki ÜRETİLMEZ.** Her firmanın
+  takip adresi farklı formatta ve zamanla değişebiliyor; yanlış tahmin
+  edilen bir URL müşteriye kırık bağlantı olarak gider. Yönetici numarayı
+  VE tam takip linkini kargo firmasının sitesinden alıp panelde
+  `tracking_url` alanına doğrudan yapıştırır.
+- **Takip numarası olmadan da e-posta gider.** Numarayı beklemek bildirimi
+  geciktirmemeli — kargoya verildiği bilgisi tek başına değerlidir.
+- `shipped_notified_at` alanı **idempotentlik** sağlar: aynı siparişi
+  sonradan düzenlemek (ör. takip linkini eklemek) ikinci bir "kargoya
+  verildi" e-postası GÖNDERMEZ. İşaretleme `saveQuietly()` ile yapılır —
+  observer'ı tekrar tetiklememek için.
+- E-posta hatası sipariş kaydını **düşürmez**; durum zaten kaydedilmiştir,
+  hata yalnızca loglanır (aynı ilke: `StockNotifier`, `TelegramNotifier`).
+- Sipariş durumu üç ayrı yerde elle tekrarlanıyordu (`OrderForm`,
+  `OrderInfolist`, front-end görünümler) — panel formu ve infolist artık
+  `OrderStatus::options()/labelFor()/colorFor()` kullanıyor. Yeni bir durum
+  eklerken yalnızca enum'a ekle, panel otomatik yansır.
+
+---
+
+## 8.8. Gerçek müşteri yorumları: `Product.rating`'ten TAMAMEN AYRI
+
+`product_reviews` tablosu **yeni bir yorum sistemidir** — `Product.rating`
+(seed veri) ile HİÇBİR ZAMAN karıştırılmaz. İkisi ürün detay sayfasında ayrı
+ayrı ele alınır:
+
+| | `Product.rating` | `product_reviews` |
+|---|---|---|
+| Kaynak | Seed veri, uydurma | Gerçek müşteri, satın alma kanıtlı |
+| Google şeması | **ASLA** (`aggregateRating` eklenmez) | Onaylı yorum varsa eklenir |
+| Ürün sayfasında | Yalnızca gerçek yorum YOKKEN gösterilir | Varsa öncelik ondadır |
+
+**Yazma hakkı iki şarta bağlı** (`Product::canBeReviewedBy()`):
+1. Bu ürünü içeren **TESLİM EDİLMİŞ** (`OrderStatus::Delivered`, "Ödendi"
+   veya "Kargoda" YETMEZ) bir siparişi olmalı
+2. Bu ürüne daha önce yorum yazmamış olmalı (`unique(product_id, user_id)`)
+
+Bu kontrol **iki yerde** tekrarlanır: formu gizlemek için Blade'de, gerçek
+yetki denetimi için `ProductReviewController::store()`'da. Formun
+gizlenmesi tek başına güvenlik değildir — biri isteği elle POST ederse
+controller'daki kontrol devreye girer.
+
+**Moderasyon zorunlu:** her yorum `pending` olarak açılır, Panel →
+**Ürün Yorumları**'ndan onaylanmadan sitede GÖRÜNMEZ. Küçük bir işletme
+için denetimsiz herkese açık yorum hem spam hem itibar riski.
+
+**İsim her zaman maskelenir:** `ProductReview::reviewer_name` "Mustafa M."
+biçiminde döner — tam ad hiçbir zaman herkese açık yorumda görünmez
+(`masked_email`/`masked_phone` ile aynı gizlilik ilkesi).
+
+**Teslim edildiğinde otomatik davet:** `OrderObserver`, durum "Teslim
+Edildi"ye ilk geçtiğinde `ReviewInviteMail` gönderir (aynı idempotent kalıp:
+`review_invite_sent_at`). Yalnızca **üye** siparişleri için — misafir
+sipariş yorum yazamaz, giriş gerektiriyor. Davet e-postası yalnızca o an
+`canBeReviewedBy()` `true` dönen ürünleri listeler; silinmiş veya zaten
+yorumlanmış ürüne kırık/anlamsız bağlantı gitmez.
+
+> **Geçmiş hata:** Ürün detay sayfasında her üründe sabit **"(24
+> Değerlendirme)"** yazıyordu — hiçbir ürünün gerçekte 24 değerlendirmesi
+> yoktu. Gerçek yorum sistemi eklenince bu sayı kaldırıldı: gerçek yorum
+> varsa gerçek sayı, yoksa hiçbir sayı (yalnızca seed puan, iddiasız).
+
+---
+
 ## 9. Ayarlar veritabanında, kodda değil
 
 Kargo ücreti, ücretsiz kargo limiti, **banka/havale bilgileri**, **ödeme
@@ -691,6 +762,36 @@ sorgularının yanında ölçülemeyecek kadar hafif.
 
 ---
 
+## 10.9. Son Görüntülenen Ürünler: oturum bazlı, ayrı liste
+
+Ürün detay sayfasının altında "Son Görüntülenen Ürünler" rafı var
+(`ProductViewRecorder::recentlyViewed()`). Yeni bir tablo AÇILMADI —
+mevcut oturum verisi genişletildi.
+
+**İki ayrı oturum anahtarı, iki ayrı amaç, birbirine karıştırılmamalı:**
+
+| Anahtar | Amaç | Ömür |
+|---|---|---|
+| `viewed_products` | Analitik sayımda tekrar saymamak (`view_count`) | 30 dakika |
+| `recently_viewed_products` | "Son görüntülenenler" rafı | Oturum boyunca, en fazla 12 kayıt |
+
+Bu ikisi **bilerek ayrı**: analitik dedupe penceresi 30 dakika sonra
+sıfırlanmalı (aynı ziyaretçi yarım saat sonra tekrar bakınca yeni sayım
+sayılır), ama rafta ürün 30 dakika sonra kaybolmamalı — ziyaretçi bir saat
+önce baktığı ürünü hâlâ rafta görebilmeli.
+
+- Raf, sayfa her açıldığında güncellenir (analitik dedupe'a **bakılmaksızın**);
+  aynı ürüne art arda bakmak onu listede en başa taşımaya devam eder.
+- `recentlyViewed(excludeProductId: ..., limit: ...)` şu an bakılan ürünü
+  hariç tutar — aksi hâlde bir ürün kendi "son görüntülenenler" rafında
+  tekrar çıkardı.
+- Liste **veritabanı sorgusu değil, oturum (session) verisidir** — sunucu
+  tarafında kalıcı kayıt tutmaz, tarayıcı oturumu bitince (veya farklı bir
+  cihazdan girilince) sıfırlanır. Kalıcı/cihazlar arası geçmiş istenirse
+  giriş yapmış kullanıcı için veritabanına taşınması gerekir (şu an yok).
+
+---
+
 ## 11. Kuyruk `sync`
 
 `QUEUE_CONNECTION=sync`. Filament'in Excel içe/dışa aktarması kuyruk işi olarak
@@ -720,5 +821,5 @@ php artisan campaigns:send      # sıraya alınmış toplu gönderimleri yürüt
 php artisan test
 ```
 
-**355 test** var ve hepsi geçmeli. Özellikle ödeme, sepet, kupon ve yetkilendirme
+**400 test** var ve hepsi geçmeli. Özellikle ödeme, sepet, kupon ve yetkilendirme
 testleri geçmişte gerçek hatalar yakaladı — kırmızı görürsen düzeltmeden push etme.

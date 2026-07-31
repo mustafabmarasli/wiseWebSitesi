@@ -125,6 +125,25 @@
                     </div>
                 @endif
 
+                <!-- Kargo Takip Bilgisi -->
+                @if ($order->hasTracking())
+                    <div class="mb-8 bg-blue-50/60 border border-blue-100 p-5 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div>
+                            <span class="block text-[10px] text-blue-600 font-black uppercase tracking-wider mb-1">Kargo Takip Numarası</span>
+                            <span class="text-slate-800 font-black text-lg tracking-wide">{{ $order->tracking_number }}</span>
+                            @if ($order->shipping_method)
+                                <span class="block text-xs text-slate-500 font-bold mt-0.5">{{ $order->shipping_method }}</span>
+                            @endif
+                        </div>
+                        @if ($order->tracking_url)
+                            <a href="{{ $order->tracking_url }}" target="_blank" rel="noopener noreferrer"
+                               class="shrink-0 bg-[#1B3A6B] hover:bg-[#152e56] text-white font-extrabold px-6 py-3 rounded-xl text-xs transition-all text-center">
+                                Kargomu Takip Et →
+                            </a>
+                        @endif
+                    </div>
+                @endif
+
                 <!-- Status Summary -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                     <div class="bg-slate-50 border border-slate-100 p-4 rounded-xl">

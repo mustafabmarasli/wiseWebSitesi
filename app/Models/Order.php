@@ -31,6 +31,10 @@ class Order extends Model
         'bank_transfer_discount',
         'shipping_method',
         'shipping_cost',
+        'tracking_number',
+        'tracking_url',
+        'shipped_notified_at',
+        'review_invite_sent_at',
         'estimated_delivery_at',
         'total_amount',
         'currency',
@@ -61,6 +65,8 @@ class Order extends Model
         'discount_amount'        => 'decimal:2',
         'bank_transfer_discount' => 'decimal:2',
         'payment_confirmed_at'   => 'datetime',
+        'shipped_notified_at'    => 'datetime',
+        'review_invite_sent_at'  => 'datetime',
         'is_corporate'           => 'boolean',
     ];
 
@@ -117,6 +123,12 @@ class Order extends Model
     public function isBankTransfer(): bool
     {
         return $this->payment_type === 'bank_transfer';
+    }
+
+    /** Gösterilecek bir kargo takip numarası girilmiş mi? */
+    public function hasTracking(): bool
+    {
+        return filled($this->tracking_number);
     }
 
     public function items(): HasMany

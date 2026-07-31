@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Orders\Schemas;
 
+use App\Enums\OrderStatus;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -66,6 +67,21 @@ class OrderForm
                     ->numeric()
                     ->default(0.0)
                     ->prefix('₺'),
+                TextInput::make('tracking_number')
+                    ->label('Kargo Takip Numarası')
+                    ->maxLength(100)
+                    ->default(null)
+                    ->helperText('Durumu "Kargoya Verildi" yaptığınızda müşteriye bu numarayla birlikte otomatik e-posta gider.'),
+                TextInput::make('tracking_url')
+                    ->label('Kargo Takip Linki')
+                    ->url()
+                    ->maxLength(500)
+                    ->default(null)
+                    // Kargo firmasına göre otomatik link ÜRETİLMEZ — her firmanın
+                    // takip adresi farklı formatta. Yanlış tahmin edilen bir URL
+                    // müşteriye kırık bağlantı olarak gider.
+                    ->helperText('Kargo firmasının takip sayfasındaki tam adresi buraya yapıştırın (ör. https://www.yurticikargo.com/...). Boş bırakılırsa e-postada yalnızca takip numarası gösterilir, buton çıkmaz.')
+                    ->columnSpanFull(),
                 DateTimePicker::make('estimated_delivery_at')
                     ->label('Tahmini Teslimat Tarihi'),
                 TextInput::make('total_amount')
@@ -80,17 +96,12 @@ class OrderForm
                     ->default('TRY'),
                 Select::make('status')
                     ->label('Sipariş Durumu')
-                    ->options([
-                        'pending' => 'Ödeme Bekliyor',
-                        'paid' => 'Ödendi / Hazırlanıyor',
-                        'shipped' => 'Kargoya Verildi',
-                        'delivered' => 'Teslim Edildi',
-                        'failed' => 'Ödeme Başarısız',
-                        'review' => 'İnceleme Gerekiyor (Tutar Uyuşmazlığı)',
-                        'refunded' => 'İade Edildi',
-                        'cancelled' => 'İptal Edildi',
-                    ])
-                    ->default('pending'),
+                    // Tek kaynak: App\Enums\OrderStatus. Burada elle
+                    // tekrarlanan liste, yeni bir durum eklenince
+                    // unutulmaya çok müsaitti.
+                    ->options(OrderStatus::options())
+                    ->default(OrderStatus::Pending->value)
+                    ->helperText('"Kargoya Verildi" seçildiğinde müşteriye otomatik e-posta gider.'),
                 TextInput::make('iyzico_payment_id')
                     ->label('iyzico Ödeme ID')
                     ->disabled()

@@ -94,6 +94,65 @@ rehberin sonunda satılan ürün sende.
 
 _(iş bitince buraya taşı, tarih yaz)_
 
+### Gerçek müşteri yorumları — 31.07.2026
+
+**En büyük ve en etkili parça.** Ürün detay sayfasında artık gerçek
+müşteri yorumları var — "Müşteri Yorumları" bölümü, Teknik Özellikler
+sekmesinin hemen altında.
+
+- **Yalnızca gerçekten satın almış ve teslim almış müşteri** yazabilir
+  (ödendi/kargoda yetmez — teslim edilmiş olmalı). Bir müşteri bir ürüne
+  yalnızca bir kez yorum yazabilir
+- **Yıldız seçici + yorum kutusu**, sadece uygun kişiye gösterilir. Zaten
+  yorum yazmışsa "teşekkürler" mesajı, hiç almamışsa hiçbir çağrı yok
+- **Onay zorunlu** — Panel → **Ürün Yorumları**'ndan onaylanmadan hiçbir
+  yorum sitede görünmez. Menüde onay bekleyen sayısı rozet olarak çıkar
+- **İsimler maskelenir**: "Ahmet Y." — tam ad asla görünmez
+- **"Doğrulanmış Alışveriş" rozeti** her yorumda otomatik çıkar (eligibilite
+  zaten bunu garanti ediyor)
+- **Sipariş teslim edildiğinde otomatik davet e-postası** — "Ürünlerimizi
+  nasıl buldunuz?" e-postası, satın aldığı ürünlere doğrudan yorum
+  bağlantısıyla. Yalnızca üye siparişlerine gider
+- **Google'a artık gerçek puan gidiyor**: onaylı yorum varsa `aggregateRating`
+  şeması gerçek ortalama ve sayıyla basılıyor — daha önce bu şema BİLİNÇLİ
+  OLARAK yoktu çünkü puanlar seed veriydi
+
+**Düzeltilen bir yalan:** ürün sayfasında her üründe sabit **"(24
+Değerlendirme)"** yazıyordu, hiçbir ürünün gerçekte 24 değerlendirmesi
+yoktu. Artık gerçek yorum varsa gerçek sayı gösteriliyor, yoksa hiç sayı
+gösterilmiyor.
+
+26 test. **Detay:** `GELISTIRICI-NOTLARI.md` → madde 8.8
+
+---
+
+### Kargo takip numarası + Son Görüntülenen Ürünler — 31.07.2026
+
+**Kargo takip numarası:** Panel → Sipariş düzenlemede yeni iki alan —
+**Kargo Takip Numarası** ve **Kargo Takip Linki**. Durumu "Kargoya
+Verildi" yaptığında müşteriye otomatik e-posta gider (kargo firmasına göre
+link üretilmiyor, kargo firmasının kendi takip sayfasının tam adresini
+panelden yapıştırıyorsun). Aynı bilgi Hesabım → Siparişlerim'de de
+gösteriliyor, "Kargomu Takip Et" düğmesiyle. E-posta yalnızca durum ilk kez
+kargoya verildiye geçtiğinde gider — sonradan takip linkini eklemek ikinci
+bir e-posta göndermez.
+
+Yol açık: sipariş durumu metinleri artık panelin üç ayrı yerinde elle
+tekrarlanmıyor, hepsi `App\Enums\OrderStatus`'tan geliyor.
+
+11 test. **Detay:** `GELISTIRICI-NOTLARI.md` → madde 8.7
+
+**Son Görüntülenen Ürünler:** Ürün sayfasının altında, "Benzer Ürünler"in
+hemen altında yeni bir raf — ziyaretçinin o oturumda gezdiği ürünleri en
+yeniden eskiye gösteriyor. Yeni tablo açılmadı, mevcut görüntülenme
+takibi (`ProductViewRecorder`) genişletildi. Şu an bakılan ürün kendi
+rafında tekrar çıkmıyor, aynı ürüne tekrar bakmak onu listenin başına
+taşıyor, en fazla 12 ürün tutuluyor.
+
+8 test. **Detay:** `GELISTIRICI-NOTLARI.md` → madde 10.9
+
+---
+
 ### Ürün paneli filtreleri ve sütun başına arama — 29.07.2026
 
 **Panel → Ürünler:** filtreler, sütun seçimi ve sütun başına arama genişletildi.

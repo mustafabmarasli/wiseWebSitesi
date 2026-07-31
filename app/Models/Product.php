@@ -76,6 +76,61 @@ class Product extends Model
         return round(($this->satis_sayisi / $this->view_count) * 100, 1);
     }
 
+    public function reviews(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(ProductReview::class);
+    }
+
+    /** Herkese açık gösterilen, yönetici onaylı yorumlar. */
+    public function approvedReviews(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->reviews()->approved();
+    }
+
+    /**
+     * Bu kullanıcı bu ürüne yorum yazabilir mi?
+     *
+     * İKİ şart birden gerekir: (1) bu ürünü içeren TESLİM EDİLMİŞ bir
+     * siparişi olmalı, (2) daha önce bu ürüne yorum yazmamış olmalı.
+     * "Ödendi" veya "Kargoda" yeterli değil — ürünü eline almadan
+     * deneyimlemiş sayılmaz.
+     */
+    public function canBeReviewedBy(?User $user): bool
+    {
+        if (! $user) {
+            return false;
+        }
+
+        if ($this->reviews()->where('user_id', $user->id)->exists()) {
+            return false;
+        }
+
+        return OrderItem::where('product_id', $this->id)
+            ->whereHas('order', fn ($q) => $q
+                ->where('user_id', $user->id)
+                ->where('status', \App\Enums\OrderStatus::Delivered->value))
+            ->exists();
+    }
+
+    /** Onaylı yorum sayısı. */
+    public function getRealReviewsCountAttribute(): int
+    {
+        return $this->approvedReviews()->count();
+    }
+
+    /** Onaylı yorumların ortalaması. Hiç yoksa null. */
+    public function getRealAverageRatingAttribute(): ?float
+    {
+        $ortalama = $this->approvedReviews()->avg('rating');
+
+        return $ortalama !== null ? round((float) $ortalama, 1) : null;
+    }
+
+    public function hasRealReviews(): bool
+    {
+        return $this->real_reviews_count > 0;
+    }
+
     /**
      * Get the category that owns the product.
      */

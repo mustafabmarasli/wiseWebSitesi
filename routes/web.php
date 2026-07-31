@@ -109,4 +109,8 @@ Route::middleware('auth')->group(function () {
     
     Route::get('/hesabim/siparisler', [\App\Http\Controllers\ProfileController::class, 'orders'])->name('profile.orders');
     Route::get('/hesabim/siparis/{order}', [\App\Http\Controllers\ProfileController::class, 'orderDetail'])->name('profile.order-detail');
+
+    // Ürün yorumu — yalnızca teslim edilmiş bir siparişte o ürünü satın
+    // almış üyeler yazabilir (bkz. Product::canBeReviewedBy).
+    Route::post('/urun/{product}/yorum', [\App\Http\Controllers\ProductReviewController::class, 'store'])->name('product.review.store');
 });
